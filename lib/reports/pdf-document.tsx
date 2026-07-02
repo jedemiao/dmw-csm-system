@@ -1,13 +1,22 @@
 import "server-only";
+import fs from "node:fs";
 import path from "node:path";
 import { Document, Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer";
 import type { MonthlyAggregate } from "./aggregate";
 import type { ImprovementPlanRow, ServiceTransactionRow } from "@/app/admin/(protected)/reports/actions";
 import { MONTH_NAMES, OFFICE_ADDRESS, OFFICE_EMAIL, OFFICE_NAME, OFFICE_PHONE, OFFICE_WEBSITE } from "./constants";
 
-const COAT_OF_ARMS_PATH = path.join(process.cwd(), "public/images/ph-coat-of-arms.png");
-const DMW_LOGO_PATH = path.join(process.cwd(), "public/images/dmw_logo.png");
-const BAGONG_PILIPINAS_LOGO_PATH = path.join(process.cwd(), "public/images/Bagong_Pilipinas_logo.png");
+// react-pdf resolves local image `src` *strings* via Node's legacy url.parse() + path.resolve(),
+// which mishandles Windows paths (drive letter read as a URL protocol, then even a file:// URL
+// gets mis-resolved because it calls path.resolve() on the whole href instead of the pathname).
+// Passing the already-read Buffer instead skips that resolution path entirely.
+function readAsset(relativePath: string) {
+  return fs.readFileSync(path.join(process.cwd(), relativePath));
+}
+
+const COAT_OF_ARMS_PATH = readAsset("public/images/report-ph-coat-of-arms.png");
+const DMW_LOGO_PATH = readAsset("public/images/report-dmw-logo.png");
+const BAGONG_PILIPINAS_LOGO_PATH = readAsset("public/images/report-bagong-pilipinas-logo.png");
 
 const s = StyleSheet.create({
   page: { padding: 36, fontSize: 8.5, fontFamily: "Helvetica", color: "#111" },
