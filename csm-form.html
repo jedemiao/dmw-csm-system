@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Take the Survey | Client Satisfaction Measurement | DMW</title>
+<meta name="description" content="Official ARTA Client Satisfaction Measurement (CSM) survey for the Department of Migrant Workers, PSA Approval No. ARTA-2242-3.">
+<meta name="theme-color" content="#0d1a44">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+
+<header class="site-header">
+  <div class="utility-bar">
+    <div class="container utility-bar__inner">
+      <nav class="utility-nav" aria-label="Government utility links">
+        <a href="https://www.gov.ph" target="_blank" rel="noopener noreferrer">GOVPH</a>
+        <a href="index.html">Home</a>
+      </nav>
+      <div class="utility-actions">
+        <a href="index.html#data-privacy">Data Privacy Notice</a>
+        <a href="index.html#contact">Contact Us</a>
+        <button type="button" class="theme-toggle" aria-pressed="false" aria-label="Toggle dark mode">
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2.5M12 19v2.5M4.4 4.4l1.8 1.8M17.8 17.8l1.8 1.8M2.5 12H5M19 12h2.5M4.4 19.6l1.8-1.8M17.8 6.2l1.8-1.8"/></svg>
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.8 6.8 0 0 0 10.5 10.5Z"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="brand-bar">
+    <div class="container brand-bar__inner">
+      <div class="brand-bar__identity">
+        <img class="brand-bar__seal seal-badge" src="images/dmw_logo.png" alt="Department of Migrant Workers seal" width="100" height="100">
+        <div class="brand-bar__text">
+          <p class="brand-bar__eyebrow">Republic of the Philippines</p>
+          <p class="brand-bar__name">Department of Migrant Workers</p>
+          <p class="brand-bar__tagline">Kagawaran ng Manggagawang Pandarayuhan</p>
+        </div>
+      </div>
+      <div class="brand-bar__meta">
+        <div class="brand-bar__seals">
+          <img class="seal-badge" src="images/transparency_seal.png" alt="Philippine Transparency Seal" width="60" height="60">
+          <img class="seal-badge" src="images/foi_logo.png" alt="Freedom of Information Philippines seal" width="60" height="60">
+        </div>
+        <div class="brand-bar__status">
+          <span class="home-label">Tahanan ng OFW</span>
+          <span data-live-clock>&nbsp;</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <div class="page-header">
+    <div class="container">
+      <div class="page-header__top">
+        <p class="breadcrumb"><a href="index.html">Home</a> / <span data-i18n="breadcrumb_current">Take the survey</span></p>
+        <div class="lang-toggle" role="group" aria-label="Language / Wika">
+          <button type="button" class="lang-btn is-active" data-lang="en" aria-pressed="true">EN</button>
+          <button type="button" class="lang-btn" data-lang="tl" aria-pressed="false">TL</button>
+        </div>
+      </div>
+      <span class="page-header__eyebrow" data-i18n="page_eyebrow">Client Satisfaction Measurement</span>
+      <h1 data-i18n="page_h1">Take the survey</h1>
+      <p data-i18n="page_lead">Answer honestly. It takes about two minutes and every question below is required unless marked optional.</p>
+    </div>
+  </div>
+
+  <div class="container" style="padding-block: 2.5rem;">
+    <div class="form-shell" id="form-shell">
+      <div class="form-doc-head">
+        <div class="form-doc-head__identity">
+          <img class="crest-badge" src="images/Coat_of_arms_of_the_Philippines.svg.webp" alt="Coat of Arms of the Philippines" height="60">
+          <div>
+            <h2>Department of Migrant Workers</h2>
+            <p data-i18n="doc_tagline">Help us serve you better!</p>
+          </div>
+        </div>
+        <div class="form-doc-head__code">
+          Anti-Red Tape Authority<br>
+          Client Satisfaction Measurement Form<br>
+          PSA Approval No.: ARTA-2242-3
+        </div>
+      </div>
+
+      <p class="form-intro" data-i18n="form_intro">This short Client Satisfaction Measurement (CSM) survey aims to track the customer experience of government offices. Your answers will enable this office to provide a better service.</p>
+
+      <div class="alert alert-error" id="form-alert" role="alert" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M12 8v5M12 16h.01"/></svg>
+        <div>
+          <p class="alert-summary"><span data-alert-count>0</span> <span id="alert-rest-text"></span></p>
+          <ul class="alert-list" id="alert-list"></ul>
+        </div>
+      </div>
+
+      <form id="csm-form" novalidate>
+
+        <section class="form-section">
+          <h3 data-i18n="s1_h3">About your visit</h3>
+          <p class="form-section__hint" data-i18n="s1_hint">This helps us group responses correctly. It is not used to identify you.</p>
+
+          <div class="field-grid">
+            <div class="field" id="field-age">
+              <label for="age" data-i18n="lbl_age">Age</label>
+              <input type="number" id="age" name="age" min="1" max="119" inputmode="numeric" required aria-describedby="age-error">
+              <span class="field-error" id="age-error" role="alert"></span>
+            </div>
+            <div class="field" id="field-sex">
+              <label for="sex" data-i18n="lbl_sex">Sex</label>
+              <select id="sex" name="sex" required aria-describedby="sex-error">
+                <option value="" data-i18n="opt_select">Select</option>
+                <option value="female" data-i18n="opt_female">Female</option>
+                <option value="male" data-i18n="opt_male">Male</option>
+              </select>
+              <span class="field-error" id="sex-error" role="alert"></span>
+            </div>
+            <div class="field" id="field-region">
+              <label for="region" data-i18n="lbl_region">Region</label>
+              <select id="region" name="region" required aria-describedby="region-error">
+                <option value="" data-i18n="opt_select">Select</option>
+                <option>NCR &ndash; National Capital Region</option>
+                <option>CAR &ndash; Cordillera Administrative Region</option>
+                <option>Region I &ndash; Ilocos Region</option>
+                <option>Region II &ndash; Cagayan Valley</option>
+                <option>Region III &ndash; Central Luzon</option>
+                <option>Region IV-A &ndash; CALABARZON</option>
+                <option>MIMAROPA Region</option>
+                <option>Region V &ndash; Bicol Region</option>
+                <option>Region VI &ndash; Western Visayas</option>
+                <option>Region VII &ndash; Central Visayas</option>
+                <option>Region VIII &ndash; Eastern Visayas</option>
+                <option>Region IX &ndash; Zamboanga Peninsula</option>
+                <option>Region X &ndash; Northern Mindanao</option>
+                <option>Region XI &ndash; Davao Region</option>
+                <option>Region XII &ndash; SOCCSKSARGEN</option>
+                <option>Region XIII &ndash; Caraga</option>
+                <option>BARMM &ndash; Bangsamoro Autonomous Region</option>
+                <option value="Outside the Philippines" data-i18n="opt_outside_ph">Outside the Philippines</option>
+              </select>
+              <span class="field-error" id="region-error" role="alert"></span>
+            </div>
+          </div>
+
+          <div class="field-grid field-grid--two" style="margin-top:1.25rem;">
+            <div class="field" id="field-agency">
+              <label for="agency" data-i18n="lbl_agency">Agency visited</label>
+              <input type="text" id="agency" name="agency" value="Department of Migrant Workers (DMW)" readonly>
+            </div>
+            <div class="field" id="field-service">
+              <label for="service" data-i18n="lbl_service">Service availed</label>
+              <select id="service" name="service" required aria-describedby="service-error">
+                <option value="" data-i18n="opt_select">Select</option>
+                <option>PEOS &ndash; Pre-Employment Orientation Seminar</option>
+                <option>E-Registration</option>
+                <option>OFW Records</option>
+                <option>BM Processing (Balik-Manggagawa)</option>
+                <option>Direct-Hire Processing</option>
+                <option>ORAA &ndash; Online Recruitment Authority Application</option>
+                <option>DMW Online Helpdesk</option>
+                <option value="Other online service" data-i18n="opt_other_service">Other online service</option>
+              </select>
+              <span class="field-error" id="service-error" role="alert"></span>
+            </div>
+          </div>
+
+          <fieldset style="margin-top:1.25rem;" id="field-customer-type">
+            <legend data-i18n="lbl_customer_type">Customer type</legend>
+            <div class="radio-row" style="flex-direction:row;flex-wrap:wrap;gap:1.5rem;">
+              <label class="radio-option"><input type="radio" name="customerType" value="citizen"> <span data-i18n="opt_citizen">Citizen</span></label>
+              <label class="radio-option"><input type="radio" name="customerType" value="business"> <span data-i18n="opt_business">Business</span></label>
+              <label class="radio-option"><input type="radio" name="customerType" value="government"> <span data-i18n="opt_government">Government</span></label>
+            </div>
+            <span class="field-error" role="alert"></span>
+          </fieldset>
+        </section>
+
+        <section class="form-section">
+          <h3 data-i18n="s2_h3">Citizen's Charter awareness</h3>
+          <p class="form-section__hint" data-i18n="s2_hint">The Citizen's Charter is a document listing an agency's services and requirements.</p>
+
+          <fieldset id="field-cc1">
+            <legend data-i18n="cc1_legend">CC1. Do you know about the Citizen's Charter?</legend>
+            <div class="radio-row">
+              <label class="radio-option"><input type="radio" name="cc1" value="1"> <span data-i18n="cc1_opt1">Yes, aware before my transaction with this office</span></label>
+              <label class="radio-option"><input type="radio" name="cc1" value="2"> <span data-i18n="cc1_opt2">Yes, but aware only when I saw the CC of this office</span></label>
+              <label class="radio-option"><input type="radio" name="cc1" value="3"> <span data-i18n="cc1_opt3">No, not aware of the CC</span> <span class="radio-skip" data-i18n="cc1_skip">(skips CC2 and CC3)</span></label>
+            </div>
+            <span class="field-error" role="alert"></span>
+          </fieldset>
+
+          <div class="conditional-block" id="cc2-block" hidden>
+            <fieldset id="field-cc2">
+              <legend data-i18n="cc2_legend">CC2. Did you see this office's Citizen's Charter?</legend>
+              <div class="radio-row">
+                <label class="radio-option"><input type="radio" name="cc2" value="1"> <span data-i18n="cc2_opt1">Yes, the CC was easy to find</span></label>
+                <label class="radio-option"><input type="radio" name="cc2" value="2"> <span data-i18n="cc2_opt2">Yes, but the CC was hard to find</span></label>
+                <label class="radio-option"><input type="radio" name="cc2" value="3"> <span data-i18n="cc2_opt3">No, I did not see this office's CC</span> <span class="radio-skip" data-i18n="cc2_skip">(skips CC3)</span></label>
+              </div>
+              <span class="field-error" role="alert"></span>
+            </fieldset>
+          </div>
+
+          <div class="conditional-block" id="cc3-block" hidden>
+            <fieldset id="field-cc3">
+              <legend data-i18n="cc3_legend">CC3. Did you use the Citizen's Charter as a guide for the service you availed?</legend>
+              <div class="radio-row">
+                <label class="radio-option"><input type="radio" name="cc3" value="1"> <span data-i18n="cc3_opt1">Yes, I was able to use the CC</span></label>
+                <label class="radio-option"><input type="radio" name="cc3" value="2"> <span data-i18n="cc3_opt2">No, I was not able to use the CC</span></label>
+              </div>
+              <span class="field-error" role="alert"></span>
+            </fieldset>
+
+            <div class="conditional-block" id="cc3-reason-block" hidden>
+              <div class="field" id="field-cc3-reason">
+                <label for="cc3Reason" data-i18n="lbl_why_not">Why not?</label>
+                <input type="text" id="cc3Reason" name="cc3Reason" aria-describedby="cc3Reason-error">
+                <span class="field-error" id="cc3Reason-error" role="alert"></span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h3 data-i18n="s3_h3">Rate your experience</h3>
+          <p class="form-section__hint" data-i18n="s3_hint">For SQD1 to SQD8, choose the rating that best matches your experience with this online transaction.</p>
+
+          <div class="likert">
+            <div class="likert-head" aria-hidden="true">
+              <span>&nbsp;</span>
+              <span><span class="emoji">&#128546;</span><span data-i18n="scale_sd">Strongly Disagree</span></span>
+              <span><span class="emoji">&#128577;</span><span data-i18n="scale_d">Disagree</span></span>
+              <span><span class="emoji">&#128528;</span><span data-i18n="scale_n">Neither</span></span>
+              <span><span class="emoji">&#128578;</span><span data-i18n="scale_a">Agree</span></span>
+              <span><span class="emoji">&#128512;</span><span data-i18n="scale_sa">Strongly Agree</span></span>
+            </div>
+
+            <fieldset class="likert-row" id="field-sqd1" aria-labelledby="sqd1-label">
+              <div class="likert-question" id="sqd1-label"><span data-i18n="sqd1_q">SQD1. I spent an acceptable amount of time to complete my transaction.</span><span class="dimension" data-i18n="sqd1_dim">Responsiveness</span></div>
+              <div class="likert-scale-mobile" aria-hidden="true">
+                <span><span class="emoji">&#128546;</span><span data-i18n="scale_sd">Strongly Disagree</span></span>
+                <span><span class="emoji">&#128577;</span><span data-i18n="scale_d">Disagree</span></span>
+                <span><span class="emoji">&#128528;</span><span data-i18n="scale_n">Neither</span></span>
+                <span><span class="emoji">&#128578;</span><span data-i18n="scale_a">Agree</span></span>
+                <span><span class="emoji">&#128512;</span><span data-i18n="scale_sa">Strongly Agree</span></span>
+              </div>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_sd">Strongly disagree</span><input type="radio" name="sqd1" value="1"></label>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_d">Disagree</span><input type="radio" name="sqd1" value="2"></label>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_n">Neither agree nor disagree</span><input type="radio" name="sqd1" value="3"></label>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_a">Agree</span><input type="radio" name="sqd1" value="4"></label>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_sa">Strongly agree</span><input type="radio" name="sqd1" value="5"></label>
+              <span class="field-error" role="alert"></span>
+            </fieldset>
+
+            <fieldset class="likert-row" id="field-sqd2" aria-labelledby="sqd2-label">
+              <div class="likert-question" id="sqd2-label"><span data-i18n="sqd2_q">SQD2. The office accurately informed and followed the transaction's requirements and steps.</span><span class="dimension" data-i18n="sqd2_dim">Reliability</span></div>
+              <div class="likert-scale-mobile" aria-hidden="true">
+                <span><span class="emoji">&#128546;</span><span data-i18n="scale_sd">Strongly Disagree</span></span>
+                <span><span class="emoji">&#128577;</span><span data-i18n="scale_d">Disagree</span></span>
+                <span><span class="emoji">&#128528;</span><span data-i18n="scale_n">Neither</span></span>
+                <span><span class="emoji">&#128578;</span><span data-i18n="scale_a">Agree</span></span>
+                <span><span class="emoji">&#128512;</span><span data-i18n="scale_sa">Strongly Agree</span></span>
+              </div>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_sd">Strongly disagree</span><input type="radio" name="sqd2" value="1"></label>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_d">Disagree</span><input type="radio" name="sqd2" value="2"></label>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_n">Neither agree nor disagree</span><input type="radio" name="sqd2" value="3"></label>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_a">Agree</span><input type="radio" name="sqd2" value="4"></label>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_sa">Strongly agree</span><input type="radio" name="sqd2" value="5"></label>
+              <span class="field-error" role="alert"></span>
+            </fieldset>
+
+            <fieldset class="likert-row" id="field-sqd3" aria-labelledby="sqd3-label">
+              <div class="likert-question" id="sqd3-label"><span data-i18n="sqd3_q">SQD3. My online transaction, including steps and payment, was simple and convenient.</span><span class="dimension" data-i18n="sqd3_dim">Access and Facilities</span></div>
+              <div class="likert-scale-mobile" aria-hidden="true">
+                <span><span class="emoji">&#128546;</span><span data-i18n="scale_sd">Strongly Disagree</span></span>
+                <span><span class="emoji">&#128577;</span><span data-i18n="scale_d">Disagree</span></span>
+                <span><span class="emoji">&#128528;</span><span data-i18n="scale_n">Neither</span></span>
+                <span><span class="emoji">&#128578;</span><span data-i18n="scale_a">Agree</span></span>
+                <span><span class="emoji">&#128512;</span><span data-i18n="scale_sa">Strongly Agree</span></span>
+              </div>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_sd">Strongly disagree</span><input type="radio" name="sqd3" value="1"></label>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_d">Disagree</span><input type="radio" name="sqd3" value="2"></label>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_n">Neither agree nor disagree</span><input type="radio" name="sqd3" value="3"></label>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_a">Agree</span><input type="radio" name="sqd3" value="4"></label>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_sa">Strongly agree</span><input type="radio" name="sqd3" value="5"></label>
+              <span class="field-error" role="alert"></span>
+            </fieldset>
+
+            <fieldset class="likert-row" id="field-sqd4" aria-labelledby="sqd4-label">
+              <div class="likert-question" id="sqd4-label"><span data-i18n="sqd4_q">SQD4. I easily found information about my transaction from the office or its website.</span><span class="dimension" data-i18n="sqd4_dim">Communication</span></div>
+              <div class="likert-scale-mobile" aria-hidden="true">
+                <span><span class="emoji">&#128546;</span><span data-i18n="scale_sd">Strongly Disagree</span></span>
+                <span><span class="emoji">&#128577;</span><span data-i18n="scale_d">Disagree</span></span>
+                <span><span class="emoji">&#128528;</span><span data-i18n="scale_n">Neither</span></span>
+                <span><span class="emoji">&#128578;</span><span data-i18n="scale_a">Agree</span></span>
+                <span><span class="emoji">&#128512;</span><span data-i18n="scale_sa">Strongly Agree</span></span>
+              </div>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_sd">Strongly disagree</span><input type="radio" name="sqd4" value="1"></label>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_d">Disagree</span><input type="radio" name="sqd4" value="2"></label>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_n">Neither agree nor disagree</span><input type="radio" name="sqd4" value="3"></label>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_a">Agree</span><input type="radio" name="sqd4" value="4"></label>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_sa">Strongly agree</span><input type="radio" name="sqd4" value="5"></label>
+              <span class="field-error" role="alert"></span>
+            </fieldset>
+
+            <fieldset class="likert-row" id="field-sqd5" aria-labelledby="sqd5-label">
+              <div class="likert-question" id="sqd5-label"><span data-i18n="sqd5_q">SQD5. I paid an acceptable amount of fees for my transaction.</span><span class="dimension" data-i18n="sqd5_dim">Costs</span></div>
+              <div class="likert-scale-mobile" aria-hidden="true">
+                <span><span class="emoji">&#128546;</span><span data-i18n="scale_sd">Strongly Disagree</span></span>
+                <span><span class="emoji">&#128577;</span><span data-i18n="scale_d">Disagree</span></span>
+                <span><span class="emoji">&#128528;</span><span data-i18n="scale_n">Neither</span></span>
+                <span><span class="emoji">&#128578;</span><span data-i18n="scale_a">Agree</span></span>
+                <span><span class="emoji">&#128512;</span><span data-i18n="scale_sa">Strongly Agree</span></span>
+              </div>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_sd">Strongly disagree</span><input type="radio" name="sqd5" value="1"></label>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_d">Disagree</span><input type="radio" name="sqd5" value="2"></label>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_n">Neither agree nor disagree</span><input type="radio" name="sqd5" value="3"></label>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_a">Agree</span><input type="radio" name="sqd5" value="4"></label>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_sa">Strongly agree</span><input type="radio" name="sqd5" value="5"></label>
+              <span class="field-error" role="alert"></span>
+            </fieldset>
+
+            <fieldset class="likert-row" id="field-sqd6" aria-labelledby="sqd6-label">
+              <div class="likert-question" id="sqd6-label"><span data-i18n="sqd6_q">SQD6. I am confident my online transaction was secure.</span><span class="dimension" data-i18n="sqd6_dim">Integrity</span></div>
+              <div class="likert-scale-mobile" aria-hidden="true">
+                <span><span class="emoji">&#128546;</span><span data-i18n="scale_sd">Strongly Disagree</span></span>
+                <span><span class="emoji">&#128577;</span><span data-i18n="scale_d">Disagree</span></span>
+                <span><span class="emoji">&#128528;</span><span data-i18n="scale_n">Neither</span></span>
+                <span><span class="emoji">&#128578;</span><span data-i18n="scale_a">Agree</span></span>
+                <span><span class="emoji">&#128512;</span><span data-i18n="scale_sa">Strongly Agree</span></span>
+              </div>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_sd">Strongly disagree</span><input type="radio" name="sqd6" value="1"></label>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_d">Disagree</span><input type="radio" name="sqd6" value="2"></label>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_n">Neither agree nor disagree</span><input type="radio" name="sqd6" value="3"></label>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_a">Agree</span><input type="radio" name="sqd6" value="4"></label>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_sa">Strongly agree</span><input type="radio" name="sqd6" value="5"></label>
+              <span class="field-error" role="alert"></span>
+            </fieldset>
+
+            <fieldset class="likert-row" id="field-sqd7" aria-labelledby="sqd7-label">
+              <div class="likert-question" id="sqd7-label"><span data-i18n="sqd7_q">SQD7. The office's online support was available, or, if asked questions, was quick to respond.</span><span class="dimension" data-i18n="sqd7_dim">Assurance</span></div>
+              <div class="likert-scale-mobile" aria-hidden="true">
+                <span><span class="emoji">&#128546;</span><span data-i18n="scale_sd">Strongly Disagree</span></span>
+                <span><span class="emoji">&#128577;</span><span data-i18n="scale_d">Disagree</span></span>
+                <span><span class="emoji">&#128528;</span><span data-i18n="scale_n">Neither</span></span>
+                <span><span class="emoji">&#128578;</span><span data-i18n="scale_a">Agree</span></span>
+                <span><span class="emoji">&#128512;</span><span data-i18n="scale_sa">Strongly Agree</span></span>
+              </div>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_sd">Strongly disagree</span><input type="radio" name="sqd7" value="1"></label>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_d">Disagree</span><input type="radio" name="sqd7" value="2"></label>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_n">Neither agree nor disagree</span><input type="radio" name="sqd7" value="3"></label>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_a">Agree</span><input type="radio" name="sqd7" value="4"></label>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_sa">Strongly agree</span><input type="radio" name="sqd7" value="5"></label>
+              <span class="field-error" role="alert"></span>
+            </fieldset>
+
+            <fieldset class="likert-row" id="field-sqd8" aria-labelledby="sqd8-label">
+              <div class="likert-question" id="sqd8-label"><span data-i18n="sqd8_q">SQD8. I got what I needed from the government office.</span><span class="dimension" data-i18n="sqd8_dim">Outcome</span></div>
+              <div class="likert-scale-mobile" aria-hidden="true">
+                <span><span class="emoji">&#128546;</span><span data-i18n="scale_sd">Strongly Disagree</span></span>
+                <span><span class="emoji">&#128577;</span><span data-i18n="scale_d">Disagree</span></span>
+                <span><span class="emoji">&#128528;</span><span data-i18n="scale_n">Neither</span></span>
+                <span><span class="emoji">&#128578;</span><span data-i18n="scale_a">Agree</span></span>
+                <span><span class="emoji">&#128512;</span><span data-i18n="scale_sa">Strongly Agree</span></span>
+              </div>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_sd">Strongly disagree</span><input type="radio" name="sqd8" value="1"></label>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_d">Disagree</span><input type="radio" name="sqd8" value="2"></label>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_n">Neither agree nor disagree</span><input type="radio" name="sqd8" value="3"></label>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_a">Agree</span><input type="radio" name="sqd8" value="4"></label>
+              <label class="likert-cell"><span class="visually-hidden" data-i18n="vh_sa">Strongly agree</span><input type="radio" name="sqd8" value="5"></label>
+              <span class="field-error" role="alert"></span>
+            </fieldset>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h3><span data-i18n="s4_h3">Anything else?</span> <span class="optional" data-i18n="lbl_optional">Optional</span></h3>
+          <div class="field">
+            <label for="remarks" data-i18n="lbl_remarks">Remarks</label>
+            <textarea id="remarks" name="remarks" placeholder="Tell us anything that would help improve this service." data-i18n-placeholder="placeholder_remarks"></textarea>
+          </div>
+        </section>
+
+        <div class="form-actions">
+          <p data-i18n="actions_note">This preview stores responses on your device only. A backend endpoint is needed to collect real submissions.</p>
+          <button type="submit" class="btn btn-primary" id="submit-btn" data-i18n="btn_submit">Submit survey</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="form-shell confirm" id="confirm-panel" hidden>
+      <span class="confirm__icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13l4 4L19 7"/></svg>
+      </span>
+      <h2 data-i18n="confirm_h2">Thank you for your feedback</h2>
+      <p data-i18n="confirm_p">Your response has been recorded and will help the Department of Migrant Workers improve this service.</p>
+      <p class="confirm__ref" id="confirm-ref"></p>
+      <div class="confirm__actions">
+        <a class="btn btn-secondary" href="index.html" data-i18n="btn_back_home">Back to home</a>
+        <button type="button" class="btn btn-primary" onclick="location.reload()" data-i18n="btn_submit_another">Submit another response</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-top">
+      <img class="footer-logo" src="images/republika_ng_pilipinas.png" alt="Coat of Arms of the Philippines">
+      <div class="footer-columns">
+        <div>
+          <h4>Republic of the Philippines</h4>
+          <p>All content is in the public domain unless otherwise stated. This CSM survey is administered under RA 11032 and ARTA guidelines. Responses are used for service reporting only.</p>
+        </div>
+        <div>
+          <h4>About GOVPH</h4>
+          <ul>
+            <li><a href="https://www.gov.ph" target="_blank" rel="noopener noreferrer">GOVPH</a></li>
+            <li><a href="https://www.officialgazette.gov.ph" target="_blank" rel="noopener noreferrer">Official Gazette</a></li>
+            <li><a href="https://arta.gov.ph" target="_blank" rel="noopener noreferrer">Anti-Red Tape Authority</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>This survey</h4>
+          <ul>
+            <li><a href="index.html">Overview</a></li>
+            <li><a href="csm-form.html">Take the survey</a></li>
+            <li><a href="index.html#how-it-works">How it works</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Contact Us</h4>
+          <p>Department of Migrant Workers<br>Blas F. Ople Building, Ortigas Ave., Cor. EDSA<br>Mandaluyong City, Philippines 1555</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>Department of Migrant Workers (DMW)</p>
+    <p>&copy; 2026 DMW. All rights reserved. CSM survey content per ARTA, PSA Approval No. ARTA-2242-3.</p>
+  </div>
+  <a class="back-to-top" href="#main" aria-label="Back to top">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+  </a>
+</footer>
+
+<script src="js/i18n.js"></script>
+<script src="js/main.js"></script>
+<script src="js/form.js"></script>
+</body>
+</html>
