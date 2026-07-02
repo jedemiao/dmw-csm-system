@@ -11,7 +11,7 @@ import { OFFICE_ADDRESS, OFFICE_EMAIL, OFFICE_NAME, OFFICE_PHONE, OFFICE_WEBSITE
 // gets mis-resolved because it calls path.resolve() on the whole href instead of the pathname).
 // Passing the already-read Buffer instead skips that resolution path entirely.
 function readAsset(relativePath: string) {
-  return fs.readFileSync(path.join(process.cwd(), relativePath));
+  return fs.readFileSync(path.join(/* turbopackIgnore: true */ process.cwd(), relativePath));
 }
 
 // Font.register's `src` doesn't accept a Buffer (only a standard font name, a URL, a data URL,
