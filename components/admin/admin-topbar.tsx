@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { ThemeToggle } from "@/lib/theme/theme-toggle";
+import { NotificationBell } from "@/components/admin/notification-bell";
 
 export function AdminTopbar({ name }: { name: string }) {
   return (
@@ -18,6 +19,7 @@ export function AdminTopbar({ name }: { name: string }) {
           <span className="admin-topbar__role">Department of Migrant Workers Region XIII</span>
         </div>
       </div>
+      <NotificationBell />
       <ThemeToggle />
     </div>
   );

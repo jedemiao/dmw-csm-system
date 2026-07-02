@@ -194,6 +194,156 @@ textarea:focus-visible,
 [data-theme="dark"] .theme-toggle .icon-sun { display: none; }
 [data-theme="dark"] .theme-toggle .icon-moon { display: block; }
 
+/* ---- Admin notification bell ---- */
+/* Sits directly beside .theme-toggle in .admin-topbar; that class carries its
+   own margin-left:auto for its other home (.utility-actions on the public
+   site header), which would otherwise split the topbar's free space into two
+   gaps and strand this button away from the toggle. Neutralize it here. */
+.admin-topbar .theme-toggle { margin-left: 0; }
+
+.notification-bell { position: relative; display: inline-flex; }
+.notification-bell__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-700);
+  cursor: pointer;
+  position: relative;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+.notification-bell__trigger:hover { border-color: var(--blue-600); color: var(--blue-600); }
+.notification-bell__trigger svg { width: 16px; height: 16px; }
+.notification-bell__badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--danger-600);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+  border: 2px solid var(--surface);
+}
+
+/* Fade + scale + rise entrance, mirroring a spring-style popover effect;
+   collapses to an instant snap under prefers-reduced-motion (see global rule). */
+.notification-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 320px;
+  max-width: calc(100vw - 2rem);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 0.5rem;
+  z-index: 30;
+  transform-origin: top right;
+  opacity: 0;
+  transform: translateY(-6px) scale(0.95);
+  transition: opacity 0.16s ease, transform 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+.notification-panel.is-open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+.notification-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem 0.6rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ink-900);
+}
+.notification-panel__mark-read {
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--blue-600);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.notification-panel__mark-read:hover:not(:disabled) { text-decoration: underline; }
+.notification-panel__mark-read:disabled { color: var(--ink-400); cursor: default; }
+
+.notification-panel__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 320px;
+  overflow-y: auto;
+  border-top: 1px solid var(--border);
+}
+.notification-panel__item {
+  display: flex;
+  gap: 0.6rem;
+  padding: 0.65rem 0.6rem;
+  border-bottom: 1px solid var(--border);
+}
+.notification-panel__item:last-child { border-bottom: none; }
+.notification-panel__dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  margin-top: 0.4rem;
+  border-radius: 999px;
+  background: transparent;
+}
+.notification-panel__item.is-unread .notification-panel__dot { background: var(--blue-600); }
+.notification-panel__body { min-width: 0; flex: 1; }
+.notification-panel__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.notification-panel__title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink-900);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.notification-panel__item:not(.is-unread) .notification-panel__title { font-weight: 500; color: var(--ink-700); }
+.notification-panel__time { flex: none; font-size: 0.72rem; color: var(--ink-400); }
+.notification-panel__desc { font-size: 0.78rem; color: var(--ink-400); margin-top: 0.1rem; }
+.notification-panel__footer {
+  display: block;
+  text-align: center;
+  padding: 0.6rem;
+  margin-top: 0.25rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--blue-600);
+  text-decoration: none;
+}
+.notification-panel__footer:hover { text-decoration: underline; }
+
+@media (max-width: 860px) {
+  .notification-bell__trigger { width: 40px; height: 40px; }
+  .notification-bell__trigger svg { width: 19px; height: 19px; }
+}
+
 .brand-bar {
   background: linear-gradient(180deg, var(--navy-900), var(--navy-950));
   color: #fff;
