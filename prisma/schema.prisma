@@ -1,0 +1,97 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Sex {
+  FEMALE
+  MALE
+}
+
+enum CustomerType {
+  CITIZEN
+  BUSINESS
+  GOVERNMENT
+}
+
+enum Cc1 {
+  AWARE_BEFORE
+  AWARE_ON_SITE
+  NOT_AWARE
+}
+
+enum Cc2 {
+  EASY_TO_FIND
+  HARD_TO_FIND
+  NOT_SEEN
+}
+
+enum Cc3 {
+  USED_CC
+  NOT_USED_CC
+}
+
+enum AdminRole {
+  STAFF
+  ADMIN
+}
+
+model SurveyResponse {
+  id           String       @id @default(cuid())
+  age          Int
+  sex          Sex
+  region       String
+  agency       String       @default("Department of Migrant Workers (DMW)")
+  service      String
+  customerType CustomerType
+
+  cc1       Cc1
+  cc2       Cc2?
+  cc3       Cc3?
+  cc3Reason String?
+
+  sqd1 Int @db.SmallInt
+  sqd2 Int @db.SmallInt
+  sqd3 Int @db.SmallInt
+  sqd4 Int @db.SmallInt
+  sqd5 Int @db.SmallInt
+  sqd6 Int @db.SmallInt
+  sqd7 Int @db.SmallInt
+  sqd8 Int @db.SmallInt
+
+  remarks   String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([region])
+  @@index([service])
+  @@index([customerType])
+}
+
+model AdminUser {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  name         String
+  role         AdminRole @default(STAFF)
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  sessions     Session[]
+}
+
+model Session {
+  id        String    @id @default(cuid())
+  userId    String
+  user      AdminUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+  userAgent String?
+  ipAddress String?
+
+  @@index([userId])
+  @@index([expiresAt])
+}
