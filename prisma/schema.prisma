@@ -95,3 +95,27 @@ model Session {
   @@index([userId])
   @@index([expiresAt])
 }
+
+model MonthlyReport {
+  id     String @id @default(cuid())
+  year   Int
+  month  Int // 1-12
+
+  // Not derivable from survey responses - entered by staff.
+  serviceTransactions Json // [{ service: string, totalTransactions: number }]
+  improvementPlan     Json // [{ details: string, when: string }]
+
+  summaryAnalysis String?
+  ccAnalysis      String?
+  sqdAnalysis     String?
+
+  preparedByName  String?
+  preparedByTitle String?
+  approvedByName  String?
+  approvedByTitle String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([year, month])
+}

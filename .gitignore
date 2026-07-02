@@ -37,3 +37,6 @@ next-env.d.ts
 # prisma
 /prisma/dev.db*
 /generated/
+
+# local-only reference material, not for the repo
+/sample data/

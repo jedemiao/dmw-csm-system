@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import {
   CaretDoubleLeft,
   ChartBar,
+  FilePdf,
   Gauge,
   IconProps,
   ListBullets,
@@ -23,6 +24,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/admin", label: "Overview", Icon: Gauge },
   { href: "/admin/responses", label: "Responses", Icon: ListBullets },
   { href: "/admin/analytics", label: "Analytics", Icon: ChartBar },
+  { href: "/admin/reports", label: "Reports", Icon: FilePdf },
 ];
 
 export function AdminSidebar({ name, email }: { name: string; email: string }) {
