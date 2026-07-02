@@ -1,4 +1,5 @@
 import "dotenv/config";
+import crypto from "node:crypto";
 import bcrypt from "bcrypt";
 import { PrismaClient } from "../generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
@@ -31,19 +32,31 @@ function randomSqd(): number {
 
 async function main() {
   const username = "admin";
-  const passwordHash = await bcrypt.hash("ChangeMe123!", 12);
+  const existingAdmin = await prisma.adminUser.findUnique({ where: { username } });
 
-  await prisma.adminUser.upsert({
-    where: { username },
-    update: {},
-    create: {
-      username,
-      passwordHash,
-      name: "Client Satisfaction Measurement",
-      role: "ADMIN",
-    },
-  });
-  console.log(`Seeded admin user: ${username} / ChangeMe123! (change this immediately in non-dev environments)`);
+  if (existingAdmin) {
+    console.log(`Admin user "${username}" already exists, leaving password untouched.`);
+  } else {
+    const initialPassword = process.env.SEED_ADMIN_PASSWORD ?? crypto.randomBytes(12).toString("base64url");
+    const passwordHash = await bcrypt.hash(initialPassword, 12);
+
+    await prisma.adminUser.create({
+      data: {
+        username,
+        passwordHash,
+        name: "Client Satisfaction Measurement",
+        role: "ADMIN",
+      },
+    });
+
+    if (process.env.SEED_ADMIN_PASSWORD) {
+      console.log(`Seeded admin user: ${username} (password taken from SEED_ADMIN_PASSWORD)`);
+    } else {
+      console.log(
+        `Seeded admin user: ${username} / ${initialPassword} (generated — save this now, it will not be shown again; change it after first login)`,
+      );
+    }
+  }
 
   const existingCount = await prisma.surveyResponse.count();
   if (existingCount > 0) {

@@ -89,6 +89,24 @@ model AdminUser {
   sessions     Session[]
 }
 
+model LoginAttempt {
+  username    String    @id
+  failedCount Int       @default(0)
+  lockedUntil DateTime?
+  updatedAt   DateTime  @updatedAt
+}
+
+// One row per public survey submission attempt, keyed by a hashed IP so raw
+// addresses aren't stored alongside (otherwise-anonymous) survey responses.
+// Used only to throttle spam; not joined to SurveyResponse.
+model SubmissionThrottle {
+  id        String   @id @default(cuid())
+  ipHash    String
+  createdAt DateTime @default(now())
+
+  @@index([ipHash, createdAt])
+}
+
 model Session {
   id        String    @id @default(cuid())
   userId    String

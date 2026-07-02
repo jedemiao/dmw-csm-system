@@ -5,7 +5,7 @@ import { SERVICES } from "@/lib/constants/survey-options";
 import { getReportMeta } from "./actions";
 import { ReportForm } from "./report-form";
 import type { ImprovementPlanRow, ServiceTransactionRow } from "./actions";
-import type { ReportPeriodType } from "@/lib/reports/constants";
+import { parseReportQuery, type ReportPeriodType } from "@/lib/reports/constants";
 
 const REPORT_TITLES: Record<ReportPeriodType, string> = {
   MONTH: "Monthly CSM Report",
@@ -13,22 +13,13 @@ const REPORT_TITLES: Record<ReportPeriodType, string> = {
   YEAR: "Annual CSM Report",
 };
 
-function currentQuarter(now: Date) {
-  return Math.floor(now.getMonth() / 3) + 1;
-}
-
 export default async function AdminReportsPage({
   searchParams,
 }: {
   searchParams: Promise<{ type?: string; year?: string; period?: string }>;
 }) {
   const params = await searchParams;
-  const now = new Date();
-  const periodType = (params.type?.toUpperCase() as ReportPeriodType | undefined) ?? "MONTH";
-  const year = Number(params.year) || now.getFullYear();
-  const period =
-    Number(params.period) ||
-    (periodType === "MONTH" ? now.getMonth() + 1 : periodType === "QUARTER" ? currentQuarter(now) : 0);
+  const { periodType, year, period } = parseReportQuery(params);
 
   const [data, meta, rolledUp] = await Promise.all([
     getReportAggregate(periodType, year, period),

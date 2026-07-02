@@ -8,6 +8,9 @@ import { createSession } from "./session";
 
 export type LoginState = { error: string | null };
 
+const MAX_FAILED_ATTEMPTS = 5;
+const LOCKOUT_MS = 15 * 60 * 1000;
+
 export async function login(_prevState: LoginState, formData: FormData): Promise<LoginState> {
   const username = String(formData.get("username") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
@@ -16,16 +19,34 @@ export async function login(_prevState: LoginState, formData: FormData): Promise
     return { error: "Enter your username and password." };
   }
 
-  const user = await prisma.adminUser.findUnique({ where: { username } });
   const genericError = { error: "Invalid username or password." };
+  const lockedError = { error: "Too many failed attempts. Try again in 15 minutes." };
 
-  if (!user || !user.isActive) return genericError;
+  const attempt = await prisma.loginAttempt.findUnique({ where: { username } });
+  if (attempt?.lockedUntil && attempt.lockedUntil > new Date()) {
+    return lockedError;
+  }
 
-  const valid = await verifyPassword(password, user.passwordHash);
-  if (!valid) return genericError;
+  const user = await prisma.adminUser.findUnique({ where: { username } });
+  const valid = user?.isActive ? await verifyPassword(password, user.passwordHash) : false;
+
+  if (!valid) {
+    const failedCount = (attempt?.failedCount ?? 0) + 1;
+    const lockedUntil = failedCount >= MAX_FAILED_ATTEMPTS ? new Date(Date.now() + LOCKOUT_MS) : null;
+    await prisma.loginAttempt.upsert({
+      where: { username },
+      create: { username, failedCount, lockedUntil },
+      update: { failedCount, lockedUntil },
+    });
+    return lockedUntil ? lockedError : genericError;
+  }
+
+  if (attempt) {
+    await prisma.loginAttempt.delete({ where: { username } }).catch(() => {});
+  }
 
   const headerStore = await headers();
-  await createSession(user.id, {
+  await createSession(user!.id, {
     userAgent: headerStore.get("user-agent") ?? undefined,
     ipAddress: headerStore.get("x-forwarded-for") ?? undefined,
   });

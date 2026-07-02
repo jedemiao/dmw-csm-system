@@ -3,6 +3,7 @@ import { REGIONS, SERVICES } from "@/lib/constants/survey-options";
 import { ResponsesTable, type ResponseRow } from "./responses-table";
 
 const PAGE_SIZE = 20;
+const CUSTOMER_TYPES = ["CITIZEN", "BUSINESS", "GOVERNMENT"] as const;
 
 type SearchParams = {
   page?: string;
@@ -21,12 +22,14 @@ export default async function AdminResponsesPage({
   const page = Math.max(1, Number(params.page) || 1);
   const sortDir = params.sort === "createdAt_asc" ? "asc" : "desc";
 
+  const customerType = params.customerType?.toUpperCase();
+  const isValidCustomerType = (v: string | undefined): v is (typeof CUSTOMER_TYPES)[number] =>
+    (CUSTOMER_TYPES as readonly string[]).includes(v ?? "");
+
   const where = {
-    ...(params.region ? { region: params.region } : {}),
-    ...(params.service ? { service: params.service } : {}),
-    ...(params.customerType
-      ? { customerType: params.customerType.toUpperCase() as "CITIZEN" | "BUSINESS" | "GOVERNMENT" }
-      : {}),
+    ...(params.region && (REGIONS as readonly string[]).includes(params.region) ? { region: params.region } : {}),
+    ...(params.service && (SERVICES as readonly string[]).includes(params.service) ? { service: params.service } : {}),
+    ...(isValidCustomerType(customerType) ? { customerType } : {}),
   };
 
   const [rows, total] = await Promise.all([

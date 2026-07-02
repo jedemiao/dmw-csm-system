@@ -6,12 +6,16 @@ import { SESSION_COOKIE_NAME } from "@/lib/auth/session-cookie";
 // isn't expired, user is active) lives in lib/auth/dal.ts's requireAdmin(),
 // called from every admin Server Component and Server Action.
 export function proxy(request: NextRequest) {
-  if (request.nextUrl.pathname.startsWith("/admin/login")) {
+  const { pathname } = request.nextUrl;
+  if (pathname.startsWith("/admin/login")) {
     return NextResponse.next();
   }
 
   const hasSessionCookie = Boolean(request.cookies.get(SESSION_COOKIE_NAME)?.value);
   if (!hasSessionCookie) {
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const loginUrl = new URL("/admin/login", request.url);
     return NextResponse.redirect(loginUrl);
   }
@@ -19,5 +23,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*", "/api/admin/:path*"],
 };

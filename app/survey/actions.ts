@@ -1,5 +1,7 @@
 "use server";
 
+import crypto from "node:crypto";
+import { headers } from "next/headers";
 import { prisma } from "@/lib/db";
 import { surveyFormSchema } from "@/lib/validation/survey-schema";
 
@@ -9,7 +11,30 @@ const CC1_MAP = { "1": "AWARE_BEFORE", "2": "AWARE_ON_SITE", "3": "NOT_AWARE" } 
 const CC2_MAP = { "1": "EASY_TO_FIND", "2": "HARD_TO_FIND", "3": "NOT_SEEN" } as const;
 const CC3_MAP = { "1": "USED_CC", "2": "NOT_USED_CC" } as const;
 
+const MAX_SUBMISSIONS_PER_WINDOW = 5;
+const WINDOW_MS = 60 * 60 * 1000; // 1h
+
+async function enforceSubmissionThrottle() {
+  const headerStore = await headers();
+  const ip = headerStore.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const ipHash = crypto.createHash("sha256").update(ip).digest("hex");
+
+  const windowStart = new Date(Date.now() - WINDOW_MS);
+  const recentCount = await prisma.submissionThrottle.count({
+    where: { ipHash, createdAt: { gte: windowStart } },
+  });
+  if (recentCount >= MAX_SUBMISSIONS_PER_WINDOW) {
+    throw new Error("Too many submissions from this network. Please try again later.");
+  }
+
+  await prisma.submissionThrottle.create({ data: { ipHash } });
+  if (Math.random() < 0.05) {
+    await prisma.submissionThrottle.deleteMany({ where: { createdAt: { lt: windowStart } } }).catch(() => {});
+  }
+}
+
 export async function submitSurvey(input: unknown): Promise<{ id: string }> {
+  await enforceSubmissionThrottle();
   const data = surveyFormSchema.parse(input);
 
   const response = await prisma.surveyResponse.create({

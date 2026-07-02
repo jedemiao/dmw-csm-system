@@ -77,3 +77,29 @@ export function getPeriodSlug(periodType: ReportPeriodType, year: number, period
   if (periodType === "QUARTER") return `Q${period}-${year}`;
   return `${year}`;
 }
+
+// Parses `?type=&year=&period=` query params into a bounded, always-valid report
+// period. Unrecognized/out-of-range input falls back to the current period instead
+// of reaching Prisma as an invalid enum value or NaN (see security audit finding 4.1).
+export function parseReportQuery(
+  raw: { type?: string; year?: string; period?: string },
+  now: Date = new Date(),
+): { periodType: ReportPeriodType; year: number; period: number } {
+  const upperType = raw.type?.toUpperCase();
+  const periodType: ReportPeriodType =
+    upperType === "QUARTER" ? "QUARTER" : upperType === "YEAR" ? "YEAR" : "MONTH";
+
+  const rawYear = Number(raw.year);
+  const year = Number.isInteger(rawYear) && rawYear >= 2000 && rawYear <= 2100 ? rawYear : now.getFullYear();
+
+  const defaultPeriod =
+    periodType === "MONTH" ? now.getMonth() + 1 : periodType === "QUARTER" ? Math.floor(now.getMonth() / 3) + 1 : 0;
+
+  if (periodType === "YEAR") return { periodType, year, period: 0 };
+
+  const rawPeriod = Number(raw.period);
+  const max = periodType === "QUARTER" ? 4 : 12;
+  const period = Number.isInteger(rawPeriod) && rawPeriod >= 1 && rawPeriod <= max ? rawPeriod : defaultPeriod;
+
+  return { periodType, year, period };
+}
