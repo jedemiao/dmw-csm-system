@@ -7,11 +7,14 @@ import { MONTH_NAMES, OFFICE_ADDRESS, OFFICE_EMAIL, OFFICE_NAME, OFFICE_PHONE, O
 
 const COAT_OF_ARMS_PATH = path.join(process.cwd(), "public/images/ph-coat-of-arms.png");
 const DMW_LOGO_PATH = path.join(process.cwd(), "public/images/dmw_logo.png");
+const BAGONG_PILIPINAS_LOGO_PATH = path.join(process.cwd(), "public/images/Bagong_Pilipinas_logo.png");
 
 const s = StyleSheet.create({
   page: { padding: 36, fontSize: 8.5, fontFamily: "Helvetica", color: "#111" },
   headerRow: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 4 },
   headerLogo: { width: 46, height: 46 },
+  headerLogoGroup: { flexDirection: "row", alignItems: "center", gap: 6 },
+  bagongPilipinasLogo: { width: 46, height: 42.9 },
   headerText: { flex: 1, textAlign: "center" },
   headerKicker: { fontSize: 9 },
   headerTitle: { fontSize: 15, fontFamily: "Helvetica-Bold", marginTop: 1 },
@@ -99,7 +102,10 @@ export function MonthlyReportDocument({
             <Text style={s.headerTitle}>Department of Migrant Workers</Text>
             <Text style={s.headerSub}>Kagawaran ng Manggagawang Pandarayuhan</Text>
           </View>
-          <Image src={DMW_LOGO_PATH} style={s.headerLogo} />
+          <View style={s.headerLogoGroup}>
+            <Image src={DMW_LOGO_PATH} style={s.headerLogo} />
+            <Image src={BAGONG_PILIPINAS_LOGO_PATH} style={s.bagongPilipinasLogo} />
+          </View>
         </View>
         <Text style={s.contactLine}>{OFFICE_ADDRESS}</Text>
         <Text style={s.contactLine}>
