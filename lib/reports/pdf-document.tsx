@@ -18,22 +18,23 @@ const COAT_OF_ARMS_PATH = readAsset("public/images/report-ph-coat-of-arms.png");
 const BAGONG_PILIPINAS_LOGO_PATH = readAsset("public/images/report-bagong-pilipinas-logo.png");
 
 const s = StyleSheet.create({
-  page: { padding: 36, fontSize: 8.5, fontFamily: "Helvetica", color: "#111" },
-  headerRow: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 4 },
-  headerLogo: { width: 46, height: 46 },
-  bagongPilipinasLogo: { width: 50, height: 46 },
+  page: { padding: 36, fontSize: 8.5, fontFamily: "Times-Roman", color: "#111" },
+  headerRow: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 6 },
+  headerLogo: { width: 55, height: 55 },
+  bagongPilipinasLogo: { width: 60, height: 55 },
   headerText: { flex: 1, textAlign: "center" },
-  headerKicker: { fontSize: 9 },
-  headerTitle: { fontSize: 15, fontFamily: "Helvetica-Bold", marginTop: 1 },
-  headerSub: { fontSize: 8, fontStyle: "italic", marginTop: 1 },
-  contactLine: { textAlign: "center", fontSize: 7.5, marginTop: 2, marginBottom: 6 },
-  hr: { borderBottomWidth: 1, borderBottomColor: "#111", marginBottom: 8 },
-  reportTitle: { textAlign: "center", fontFamily: "Helvetica-Bold", fontSize: 11 },
+  headerKicker: { fontSize: 11 },
+  headerTitle: { fontSize: 20, fontFamily: "Times-Bold", marginTop: 2 },
+  addressLine: { textAlign: "center", fontSize: 8, marginTop: 4, marginBottom: 6 },
+  contactLine: { textAlign: "center", fontSize: 8, marginTop: 6, marginBottom: 10 },
+  link: { color: "#1155cc", textDecoration: "underline" },
+  hr: { borderBottomWidth: 1, borderBottomColor: "#111" },
+  reportTitle: { textAlign: "center", fontFamily: "Times-Bold", fontSize: 11 },
   reportSubtitle: { textAlign: "center", fontSize: 9, marginTop: 2, marginBottom: 10 },
   officeLine: { fontSize: 9, marginBottom: 10 },
-  officeLineValue: { textDecoration: "underline", fontFamily: "Helvetica-Bold" },
-  sectionLabel: { fontFamily: "Helvetica-Bold", fontSize: 9.5, marginBottom: 4, marginTop: 10 },
-  subLabel: { fontFamily: "Helvetica-Bold", fontSize: 9, marginBottom: 4, marginTop: 6 },
+  officeLineValue: { textDecoration: "underline", fontFamily: "Times-Bold" },
+  sectionLabel: { fontFamily: "Times-Bold", fontSize: 9.5, marginBottom: 4, marginTop: 10 },
+  subLabel: { fontFamily: "Times-Bold", fontSize: 9, marginBottom: 4, marginTop: 6 },
   table: { borderWidth: 1, borderColor: "#111", marginBottom: 4 },
   tr: { flexDirection: "row" },
   trHead: { flexDirection: "row" },
@@ -41,13 +42,13 @@ const s = StyleSheet.create({
   trBlank: { flexDirection: "row", minHeight: 10 },
   td: { borderRightWidth: 1, borderBottomWidth: 1, borderColor: "#111", padding: 3, fontSize: 8 },
   tdLast: { borderBottomWidth: 1, borderColor: "#111", padding: 3, fontSize: 8 },
-  tdBold: { fontFamily: "Helvetica-Bold" },
+  tdBold: { fontFamily: "Times-Bold" },
   tdCenter: { textAlign: "center" },
   analysis: { fontSize: 8, marginTop: 4, marginBottom: 2 },
-  analysisLabel: { fontFamily: "Helvetica-Bold" },
+  analysisLabel: { fontFamily: "Times-Bold" },
   signRow: { flexDirection: "row", marginTop: 24, gap: 40 },
   signCol: { flex: 1 },
-  signName: { textDecoration: "underline", fontFamily: "Helvetica-Bold", fontSize: 9, marginTop: 24 },
+  signName: { textDecoration: "underline", fontFamily: "Times-Bold", fontSize: 9, marginTop: 24 },
   signTitle: { fontSize: 8, marginTop: 2 },
 });
 
@@ -143,15 +144,15 @@ export function MonthlyReportDocument({
           <View style={s.headerText}>
             <Text style={s.headerKicker}>Republic of the Philippines</Text>
             <Text style={s.headerTitle}>Department of Migrant Workers</Text>
-            <Text style={s.headerSub}>Kagawaran ng Manggagawang Pandarayuhan</Text>
           </View>
           <Image src={BAGONG_PILIPINAS_LOGO_PATH} style={s.bagongPilipinasLogo} />
         </View>
-        <Text style={s.contactLine}>{OFFICE_ADDRESS}</Text>
-        <Text style={s.contactLine}>
-          Website: {OFFICE_WEBSITE} | Email: {OFFICE_EMAIL} | {OFFICE_PHONE}
-        </Text>
+        <Text style={s.addressLine}>{OFFICE_ADDRESS}</Text>
         <View style={s.hr} />
+        <Text style={s.contactLine}>
+          Website: <Text style={s.link}>{OFFICE_WEBSITE}</Text> | Email: <Text style={s.link}>{OFFICE_EMAIL}</Text> |{" "}
+          {OFFICE_PHONE}
+        </Text>
 
         <Text style={s.reportTitle}>CUSTOMER SATISFACTION MEASUREMENT (CSM) REPORT</Text>
         <Text style={s.reportSubtitle}>For the Month of {MONTH_NAMES[data.month - 1]} {data.year}</Text>
