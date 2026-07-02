@@ -29,8 +29,9 @@ const s = StyleSheet.create({
   subLabel: { fontFamily: "Helvetica-Bold", fontSize: 9, marginBottom: 4, marginTop: 6 },
   table: { borderWidth: 1, borderColor: "#111", marginBottom: 4 },
   tr: { flexDirection: "row" },
-  trHead: { flexDirection: "row", backgroundColor: "#eef1f6" },
-  trGroupHead: { flexDirection: "row", backgroundColor: "#f6f7f9" },
+  trHead: { flexDirection: "row" },
+  trGroupHead: { flexDirection: "row" },
+  trBlank: { flexDirection: "row", minHeight: 10 },
   td: { borderRightWidth: 1, borderBottomWidth: 1, borderColor: "#111", padding: 3, fontSize: 8 },
   tdLast: { borderBottomWidth: 1, borderColor: "#111", padding: 3, fontSize: 8 },
   tdBold: { fontFamily: "Helvetica-Bold" },
@@ -65,6 +66,41 @@ function Cell({
 
 function fmtPct(v: number | null) {
   return v === null ? "" : `${v}%`;
+}
+
+function BlankRow() {
+  return (
+    <View style={s.trBlank}>
+      <Cell width="60%">{""}</Cell>
+      <Cell width="20%">{""}</Cell>
+      <Cell width="20%" last>
+        {""}
+      </Cell>
+    </View>
+  );
+}
+
+function LabeledCountTable({ title, rows }: { title: string; rows: { label: string; count: number }[] }) {
+  return (
+    <View style={{ ...s.table, marginTop: 6 }}>
+      <View style={s.trHead}>
+        <Cell width="70%" bold>
+          {title}
+        </Cell>
+        <Cell width="30%" last>
+          {""}
+        </Cell>
+      </View>
+      {rows.map((row) => (
+        <View style={s.tr} key={row.label}>
+          <Cell width="70%">{row.label}</Cell>
+          <Cell width="30%" center last>
+            {row.count || ""}
+          </Cell>
+        </View>
+      ))}
+    </View>
+  );
 }
 
 export function MonthlyReportDocument({
@@ -194,6 +230,7 @@ export function MonthlyReportDocument({
               </Cell>
             </View>
           ))}
+          <BlankRow />
           <View style={s.trGroupHead}>
             <Cell width="100%" bold last>
               CC2: Visibility
@@ -210,6 +247,7 @@ export function MonthlyReportDocument({
               </Cell>
             </View>
           ))}
+          <BlankRow />
           <View style={s.trGroupHead}>
             <Cell width="100%" bold last>
               CC3: Citizen&apos;s Charter Usage
@@ -284,61 +322,10 @@ export function MonthlyReportDocument({
 
         <Text style={s.sectionLabel}>C. Client Demographic</Text>
 
-        <Text style={s.subLabel}>Sex</Text>
-        <View style={s.table}>
-          {data.sex.map((row) => (
-            <View style={s.tr} key={row.label}>
-              <Cell width="70%" bold>
-                {row.label}
-              </Cell>
-              <Cell width="30%" center last>
-                {row.count || ""}
-              </Cell>
-            </View>
-          ))}
-        </View>
-
-        <Text style={s.subLabel}>Client Type</Text>
-        <View style={s.table}>
-          {data.customerType.map((row) => (
-            <View style={s.tr} key={row.label}>
-              <Cell width="70%" bold>
-                {row.label}
-              </Cell>
-              <Cell width="30%" center last>
-                {row.count || ""}
-              </Cell>
-            </View>
-          ))}
-        </View>
-
-        <Text style={s.subLabel}>Age</Text>
-        <View style={s.table}>
-          {data.age.map((row) => (
-            <View style={s.tr} key={row.label}>
-              <Cell width="70%" bold>
-                {row.label}
-              </Cell>
-              <Cell width="30%" center last>
-                {row.count || ""}
-              </Cell>
-            </View>
-          ))}
-        </View>
-
-        <Text style={s.subLabel}>Region</Text>
-        <View style={s.table}>
-          {data.region.map((row) => (
-            <View style={s.tr} key={row.label}>
-              <Cell width="70%" bold>
-                {row.label}
-              </Cell>
-              <Cell width="30%" center last>
-                {row.count || ""}
-              </Cell>
-            </View>
-          ))}
-        </View>
+        <LabeledCountTable title="Sex:" rows={data.sex} />
+        <LabeledCountTable title="Client Type:" rows={data.customerType} />
+        <LabeledCountTable title="Age:" rows={data.age} />
+        <LabeledCountTable title="Region:" rows={data.region} />
 
         <Text style={s.sectionLabel}>Continuous Improvement Plan</Text>
         <View style={s.table}>
