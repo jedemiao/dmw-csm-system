@@ -2,7 +2,8 @@ import "server-only";
 import { prisma } from "@/lib/db";
 import { CC1_LABELS, CC2_LABELS, CC3_LABELS, SEX_LABELS } from "@/lib/constants/enum-labels";
 import { SERVICES } from "@/lib/constants/survey-options";
-import { AGE_BUCKETS, REPORT_REGION_ORDER } from "./constants";
+import { AGE_BUCKETS, REPORT_REGION_ORDER, getQuarterMonths, type ReportPeriodType } from "./constants";
+import type { ServiceTransactionRow } from "@/app/admin/(protected)/reports/actions";
 
 const SQD_DIMENSIONS = [
   { key: "sqd1", label: "SQD1: Responsiveness" },
@@ -29,11 +30,11 @@ function pct(count: number, total: number): number | null {
   return Math.round((count / total) * 1000) / 10;
 }
 
-export type MonthlyAggregate = Awaited<ReturnType<typeof getMonthlyAggregate>>;
+export type ReportAggregate = Awaited<ReturnType<typeof getAggregateForRange>>;
+// Kept for call sites that only ever dealt with the monthly shape.
+export type MonthlyAggregate = ReportAggregate;
 
-export async function getMonthlyAggregate(year: number, month: number) {
-  const start = new Date(Date.UTC(year, month - 1, 1));
-  const end = new Date(Date.UTC(year, month, 1));
+async function getAggregateForRange(start: Date, end: Date) {
   const where = { createdAt: { gte: start, lt: end } };
 
   const [
@@ -111,8 +112,6 @@ export async function getMonthlyAggregate(year: number, month: number) {
   const region = REPORT_REGION_ORDER.map((label) => ({ label, count: regionCountMap.get(label) ?? 0 }));
 
   return {
-    year,
-    month,
     totalResponses,
     serviceCounts,
     cc1,
@@ -124,4 +123,59 @@ export async function getMonthlyAggregate(year: number, month: number) {
     age,
     region,
   };
+}
+
+export async function getMonthlyAggregate(year: number, month: number) {
+  const start = new Date(Date.UTC(year, month - 1, 1));
+  const end = new Date(Date.UTC(year, month, 1));
+  return { periodType: "MONTH" as const, year, period: month, ...(await getAggregateForRange(start, end)) };
+}
+
+export async function getQuarterlyAggregate(year: number, quarter: number) {
+  const [startMonth] = getQuarterMonths(quarter);
+  const start = new Date(Date.UTC(year, startMonth - 1, 1));
+  const end = new Date(Date.UTC(year, startMonth + 2, 1));
+  return { periodType: "QUARTER" as const, year, period: quarter, ...(await getAggregateForRange(start, end)) };
+}
+
+export async function getAnnualAggregate(year: number) {
+  const start = new Date(Date.UTC(year, 0, 1));
+  const end = new Date(Date.UTC(year + 1, 0, 1));
+  return { periodType: "YEAR" as const, year, period: 0, ...(await getAggregateForRange(start, end)) };
+}
+
+export async function getReportAggregate(periodType: ReportPeriodType, year: number, period: number) {
+  if (periodType === "MONTH") return getMonthlyAggregate(year, period);
+  if (periodType === "QUARTER") return getQuarterlyAggregate(year, period);
+  return getAnnualAggregate(year);
+}
+
+// Suggests "Total Transactions" defaults for a quarterly/annual report by summing the
+// already-saved monthly reports covering that period, falling back to a month's actual
+// response counts (per service) when no monthly report was saved for it. Staff can still
+// edit any number before saving the quarterly/annual report itself.
+export async function getRolledUpServiceTransactions(
+  periodType: ReportPeriodType,
+  year: number,
+  period: number,
+): Promise<ServiceTransactionRow[]> {
+  const months = periodType === "QUARTER" ? getQuarterMonths(period) : Array.from({ length: 12 }, (_, i) => i + 1);
+
+  const savedReports = await prisma.report.findMany({
+    where: { periodType: "MONTH", year, period: { in: months } },
+  });
+  const savedByMonth = new Map(savedReports.map((r) => [r.period, r.serviceTransactions as ServiceTransactionRow[]]));
+
+  const totals = new Map<string, number>();
+  for (const month of months) {
+    const saved = savedByMonth.get(month);
+    if (saved) {
+      for (const row of saved) totals.set(row.service, (totals.get(row.service) ?? 0) + row.totalTransactions);
+    } else {
+      const monthData = await getMonthlyAggregate(year, month);
+      for (const row of monthData.serviceCounts) totals.set(row.service, (totals.get(row.service) ?? 0) + row.responses);
+    }
+  }
+
+  return SERVICES.filter((s) => totals.has(s)).map((service) => ({ service, totalTransactions: totals.get(service)! }));
 }

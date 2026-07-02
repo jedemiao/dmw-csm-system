@@ -48,3 +48,32 @@ export const AGE_BUCKETS = [
   { label: "50-64", min: 50, max: 64 },
   { label: "65 and higher", min: 65, max: Infinity },
 ] as const;
+
+export type ReportPeriodType = "MONTH" | "QUARTER" | "YEAR";
+
+const QUARTER_ORDINALS = ["1st", "2nd", "3rd", "4th"] as const;
+
+// Calendar quarters: Q1 Jan-Mar, Q2 Apr-Jun, Q3 Jul-Sep, Q4 Oct-Dec.
+export const QUARTER_LABELS = ["Q1 (Jan–Mar)", "Q2 (Apr–Jun)", "Q3 (Jul–Sep)", "Q4 (Oct–Dec)"] as const;
+
+export function getQuarterMonths(quarter: number): [number, number, number] {
+  const start = (quarter - 1) * 3 + 1;
+  return [start, start + 1, start + 2];
+}
+
+// period: MONTH -> 1-12, QUARTER -> 1-4, YEAR -> ignored (always the full year).
+export function getPeriodLabel(periodType: ReportPeriodType, year: number, period: number): string {
+  if (periodType === "MONTH") return `For the Month of ${MONTH_NAMES[period - 1]} ${year}`;
+  if (periodType === "QUARTER") {
+    const [startMonth, , endMonth] = getQuarterMonths(period);
+    return `For the ${QUARTER_ORDINALS[period - 1]} Quarter (${MONTH_NAMES[startMonth - 1]}–${MONTH_NAMES[endMonth - 1]}) ${year}`;
+  }
+  return `For the Year ${year}`;
+}
+
+// Short, filesystem-safe slug for report filenames, e.g. "July-2026", "Q3-2026", "2026".
+export function getPeriodSlug(periodType: ReportPeriodType, year: number, period: number): string {
+  if (periodType === "MONTH") return `${MONTH_NAMES[period - 1]}-${year}`;
+  if (periodType === "QUARTER") return `Q${period}-${year}`;
+  return `${year}`;
+}

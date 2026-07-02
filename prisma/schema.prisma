@@ -40,6 +40,12 @@ enum AdminRole {
   ADMIN
 }
 
+enum ReportPeriodType {
+  MONTH
+  QUARTER
+  YEAR
+}
+
 model SurveyResponse {
   id           String       @id @default(cuid())
   age          Int
@@ -96,10 +102,11 @@ model Session {
   @@index([expiresAt])
 }
 
-model MonthlyReport {
-  id     String @id @default(cuid())
-  year   Int
-  month  Int // 1-12
+model Report {
+  id         String           @id @default(cuid())
+  periodType ReportPeriodType
+  year       Int
+  period     Int // MONTH: 1-12, QUARTER: 1-4, YEAR: always 0
 
   // Not derivable from survey responses - entered by staff.
   serviceTransactions Json // [{ service: string, totalTransactions: number }]
@@ -117,5 +124,21 @@ model MonthlyReport {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([year, month])
+  @@unique([periodType, year, period])
+}
+
+model ReportDownload {
+  id         String           @id @default(cuid())
+  periodType ReportPeriodType
+  year       Int
+  period     Int
+
+  // Snapshots at download time, so history stays accurate if labels/admin names change later.
+  periodLabel      String
+  filename         String
+  downloadedByName String
+
+  downloadedAt DateTime @default(now())
+
+  @@index([downloadedAt])
 }

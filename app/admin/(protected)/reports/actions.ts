@@ -3,13 +3,15 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth/dal";
+import type { ReportPeriodType } from "@/lib/reports/constants";
 
 export type ServiceTransactionRow = { service: string; totalTransactions: number };
 export type ImprovementPlanRow = { details: string; when: string };
 
 export type ReportMetaInput = {
+  periodType: ReportPeriodType;
   year: number;
-  month: number;
+  period: number;
   serviceTransactions: ServiceTransactionRow[];
   improvementPlan: ImprovementPlanRow[];
   summaryAnalysis: string;
@@ -21,18 +23,18 @@ export type ReportMetaInput = {
   approvedByTitle: string;
 };
 
-export async function getReportMeta(year: number, month: number) {
+export async function getReportMeta(periodType: ReportPeriodType, year: number, period: number) {
   await requireAdmin();
-  return prisma.monthlyReport.findUnique({ where: { year_month: { year, month } } });
+  return prisma.report.findUnique({ where: { periodType_year_period: { periodType, year, period } } });
 }
 
 export async function saveReportMeta(input: ReportMetaInput) {
   await requireAdmin();
-  const { year, month, ...data } = input;
+  const { periodType, year, period, ...data } = input;
 
-  await prisma.monthlyReport.upsert({
-    where: { year_month: { year, month } },
-    create: { year, month, ...data },
+  await prisma.report.upsert({
+    where: { periodType_year_period: { periodType, year, period } },
+    create: { periodType, year, period, ...data },
     update: data,
   });
 

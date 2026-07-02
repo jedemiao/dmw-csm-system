@@ -4,11 +4,24 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { DownloadSimple, FloppyDisk, Plus, Trash } from "@phosphor-icons/react";
 import { saveReportMeta, type ImprovementPlanRow, type ServiceTransactionRow } from "./actions";
-import { MONTH_NAMES } from "@/lib/reports/constants";
+import { MONTH_NAMES, QUARTER_LABELS, type ReportPeriodType } from "@/lib/reports/constants";
+
+const PERIOD_TYPE_LABELS: Record<ReportPeriodType, string> = {
+  MONTH: "Month",
+  QUARTER: "Quarter",
+  YEAR: "Year",
+};
+
+const RESPONSE_SCOPE_LABELS: Record<ReportPeriodType, string> = {
+  MONTH: "this month",
+  QUARTER: "this quarter",
+  YEAR: "this year",
+};
 
 export function ReportForm({
+  periodType,
   year,
-  month,
+  period,
   totalResponses,
   serviceTransactions: initialServiceTx,
   improvementPlan: initialPlan,
@@ -20,8 +33,9 @@ export function ReportForm({
   approvedByName: initialApprovedName,
   approvedByTitle: initialApprovedTitle,
 }: {
+  periodType: ReportPeriodType;
   year: number;
-  month: number;
+  period: number;
   totalResponses: number;
   serviceTransactions: ServiceTransactionRow[];
   improvementPlan: ImprovementPlanRow[];
@@ -47,27 +61,53 @@ export function ReportForm({
   const [approvedByName, setApprovedByName] = useState(initialApprovedName);
   const [approvedByTitle, setApprovedByTitle] = useState(initialApprovedTitle);
 
-  function changeMonth(nextYear: number, nextMonth: number) {
-    router.push(`/admin/reports?year=${nextYear}&month=${nextMonth}`);
+  function navigate(nextType: ReportPeriodType, nextYear: number, nextPeriod: number) {
+    router.push(`/admin/reports?type=${nextType.toLowerCase()}&year=${nextYear}&period=${nextPeriod}`);
+  }
+
+  function changeType(nextType: ReportPeriodType) {
+    if (nextType === periodType) return;
+    const now = new Date();
+    const defaultPeriod = nextType === "MONTH" ? now.getMonth() + 1 : nextType === "QUARTER" ? Math.floor(now.getMonth() / 3) + 1 : 0;
+    navigate(nextType, year, defaultPeriod);
+  }
+
+  const pdfHref = `/admin/reports/pdf?type=${periodType.toLowerCase()}&year=${year}&period=${period}`;
+
+  function currentMeta() {
+    return {
+      periodType,
+      year,
+      period,
+      serviceTransactions: serviceTx,
+      improvementPlan: plan.filter((r) => r.details.trim() || r.when.trim()),
+      summaryAnalysis,
+      ccAnalysis,
+      sqdAnalysis,
+      preparedByName,
+      preparedByTitle,
+      approvedByName,
+      approvedByTitle,
+    };
   }
 
   function handleSave() {
     setSaved(false);
     startTransition(async () => {
-      await saveReportMeta({
-        year,
-        month,
-        serviceTransactions: serviceTx,
-        improvementPlan: plan.filter((r) => r.details.trim() || r.when.trim()),
-        summaryAnalysis,
-        ccAnalysis,
-        sqdAnalysis,
-        preparedByName,
-        preparedByTitle,
-        approvedByName,
-        approvedByTitle,
-      });
+      await saveReportMeta(currentMeta());
       setSaved(true);
+    });
+  }
+
+  function handleDownload() {
+    setSaved(false);
+    startTransition(async () => {
+      // The PDF route reads saved report data from the database, not from this
+      // form's state, so unsaved edits (e.g. Description/Analysis text) would
+      // silently be missing from the download unless we save first.
+      await saveReportMeta(currentMeta());
+      setSaved(true);
+      window.location.href = pdfHref;
     });
   }
 
@@ -75,26 +115,58 @@ export function ReportForm({
     <div style={{ display: "flex", flexDirection: "column", gap: "1.75rem", maxWidth: "56rem" }}>
       <div style={{ display: "flex", gap: "0.75rem", alignItems: "flex-end", flexWrap: "wrap" }}>
         <div className="field" style={{ marginBottom: 0 }}>
-          <label htmlFor="report-month">Month</label>
-          <select id="report-month" value={month} onChange={(e) => changeMonth(year, Number(e.target.value))}>
-            {MONTH_NAMES.map((name, i) => (
-              <option key={name} value={i + 1}>
-                {name}
+          <label htmlFor="report-type">Report type</label>
+          <select
+            id="report-type"
+            value={periodType}
+            onChange={(e) => changeType(e.target.value as ReportPeriodType)}
+          >
+            {(Object.keys(PERIOD_TYPE_LABELS) as ReportPeriodType[]).map((type) => (
+              <option key={type} value={type}>
+                {PERIOD_TYPE_LABELS[type]}
               </option>
             ))}
           </select>
         </div>
+        {periodType === "MONTH" && (
+          <div className="field" style={{ marginBottom: 0 }}>
+            <label htmlFor="report-month">Month</label>
+            <select id="report-month" value={period} onChange={(e) => navigate(periodType, year, Number(e.target.value))}>
+              {MONTH_NAMES.map((name, i) => (
+                <option key={name} value={i + 1}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+        {periodType === "QUARTER" && (
+          <div className="field" style={{ marginBottom: 0 }}>
+            <label htmlFor="report-quarter">Quarter</label>
+            <select
+              id="report-quarter"
+              value={period}
+              onChange={(e) => navigate(periodType, year, Number(e.target.value))}
+            >
+              {QUARTER_LABELS.map((label, i) => (
+                <option key={label} value={i + 1}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <div className="field" style={{ marginBottom: 0, maxWidth: "8rem" }}>
           <label htmlFor="report-year">Year</label>
           <input
             id="report-year"
             type="number"
             value={year}
-            onChange={(e) => changeMonth(Number(e.target.value) || year, month)}
+            onChange={(e) => navigate(periodType, Number(e.target.value) || year, period)}
           />
         </div>
         <p style={{ color: "var(--ink-500)", fontSize: "0.85rem", marginBottom: "0.6rem" }}>
-          {totalResponses} response{totalResponses === 1 ? "" : "s"} recorded this month
+          {totalResponses} response{totalResponses === 1 ? "" : "s"} recorded {RESPONSE_SCOPE_LABELS[periodType]}
         </p>
       </div>
 
@@ -211,9 +283,9 @@ export function ReportForm({
         <button type="button" className="btn btn-primary" onClick={handleSave} disabled={isPending}>
           <FloppyDisk size={16} /> {isPending ? "Saving…" : "Save"}
         </button>
-        <a className="btn btn-secondary" href={`/admin/reports/${year}/${month}/pdf`}>
-          <DownloadSimple size={16} /> Download PDF
-        </a>
+        <button type="button" className="btn btn-secondary" onClick={handleDownload} disabled={isPending}>
+          <DownloadSimple size={16} /> {isPending ? "Saving…" : "Download PDF"}
+        </button>
         {saved && !isPending && <span style={{ color: "var(--ink-500)", fontSize: "0.85rem" }}>Saved.</span>}
       </div>
     </div>
