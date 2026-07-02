@@ -9,15 +9,15 @@ import { createSession } from "./session";
 export type LoginState = { error: string | null };
 
 export async function login(_prevState: LoginState, formData: FormData): Promise<LoginState> {
-  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const username = String(formData.get("username") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
 
-  if (!email || !password) {
-    return { error: "Enter your email and password." };
+  if (!username || !password) {
+    return { error: "Enter your username and password." };
   }
 
-  const user = await prisma.adminUser.findUnique({ where: { email } });
-  const genericError = { error: "Invalid email or password." };
+  const user = await prisma.adminUser.findUnique({ where: { username } });
+  const genericError = { error: "Invalid username or password." };
 
   if (!user || !user.isActive) return genericError;
 

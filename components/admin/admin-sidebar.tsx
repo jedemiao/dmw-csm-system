@@ -27,19 +27,19 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/admin/reports", label: "Reports", Icon: FilePdf },
 ];
 
-export function AdminSidebar({ name, email }: { name: string; email: string }) {
+export function AdminSidebar({ role, username }: { role: string; username: string }) {
   const [open, setOpen] = useState(true);
   const pathname = usePathname();
 
   return (
     <nav className={`admin-sidebar${open ? "" : " admin-sidebar--collapsed"}`} aria-label="Admin navigation">
       <div className="admin-sidebar__brand">
-        <Image className="admin-sidebar__mark" src="/images/dmw_logo.png" alt="" width={36} height={36} />
+        <Image className="admin-sidebar__mark" src="/images/dmw_logo.png" alt="" width={36} height={36} quality={100} />
 
         {open && (
           <div className="admin-sidebar__brand-text">
-            <span className="admin-sidebar__brand-title">DMW CSM Admin</span>
-            <span className="admin-sidebar__brand-sub">{name}</span>
+            <span className="admin-sidebar__brand-title">DMW</span>
+            <span className="admin-sidebar__brand-sub">{role.toLowerCase()}</span>
           </div>
         )}
       </div>
@@ -62,8 +62,8 @@ export function AdminSidebar({ name, email }: { name: string; email: string }) {
       </div>
 
       {open && (
-        <div className="admin-sidebar__footer-note" title={email}>
-          Signed in as {email}
+        <div className="admin-sidebar__footer-note" title={username}>
+          Signed in as {username}
         </div>
       )}
 

@@ -557,6 +557,43 @@ main { display: block; }
   font-size: 0.95rem;
 }
 
+/* ---- Login card ---- */
+.login-card {
+  padding: 2.5rem 2rem;
+  max-width: 400px;
+  margin-inline: auto;
+  text-align: center;
+}
+.login-card__badge {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 1.25rem;
+  border-radius: 50%;
+  background: var(--blue-100);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.login-card__badge img { width: 60px; height: 60px; max-width: none; object-fit: contain; }
+.login-card h1 { font-size: 1.35rem; margin-bottom: 0.35rem; }
+.login-card__subtitle { color: var(--ink-500); font-size: 0.9rem; margin: 0 0 1.75rem; }
+.login-card .alert { text-align: left; margin: 0 0 1.25rem; }
+.login-card__fields { display: flex; flex-direction: column; gap: 1.1rem; text-align: left; }
+
+.input-icon { position: relative; display: flex; align-items: center; }
+.input-icon svg {
+  position: absolute;
+  left: 0.85rem;
+  color: var(--ink-400);
+  pointer-events: none;
+}
+.field .input-icon input[type="text"],
+.field .input-icon input[type="password"] {
+  padding-left: 2.6rem;
+}
+
 .form-section {
   padding: 1.75rem 2rem;
   border-top: 1px solid var(--border);
@@ -596,6 +633,7 @@ main { display: block; }
   font-size: 0.8rem;
 }
 .field input[type="text"],
+.field input[type="password"],
 .field input[type="number"],
 .field select,
 .field textarea {
@@ -944,6 +982,7 @@ fieldset.has-error { background: var(--danger-100); }
   flex: none;
   width: 36px;
   height: 36px;
+  max-width: none;
   border-radius: 50%;
   object-fit: contain;
   background: #fff;
@@ -954,6 +993,7 @@ fieldset.has-error { background: var(--danger-100); }
 .admin-sidebar__brand-sub {
   font-size: 0.78rem;
   color: var(--ink-400);
+  text-transform: capitalize;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1049,13 +1089,14 @@ fieldset.has-error { background: var(--danger-100); }
 }
 .admin-topbar__avatar {
   flex: none;
+  max-width: none;
   border-radius: 50%;
   object-fit: contain;
   background: #fff;
   border: 1px solid var(--border);
 }
 .admin-topbar__name { display: block; font-size: 0.85rem; font-weight: 600; color: var(--ink-900); }
-.admin-topbar__role { display: block; font-size: 0.72rem; text-transform: capitalize; color: var(--ink-400); }
+.admin-topbar__role { display: block; font-size: 0.72rem; color: var(--ink-400); }
 
 .admin-main__content {
   padding: 2rem clamp(1.25rem, 1rem + 1vw, 2.5rem);

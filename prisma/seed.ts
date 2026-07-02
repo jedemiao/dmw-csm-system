@@ -30,20 +30,20 @@ function randomSqd(): number {
 }
 
 async function main() {
-  const email = "admin@dmw.gov.ph";
+  const username = "admin";
   const passwordHash = await bcrypt.hash("ChangeMe123!", 12);
 
   await prisma.adminUser.upsert({
-    where: { email },
+    where: { username },
     update: {},
     create: {
-      email,
+      username,
       passwordHash,
-      name: "DMW CSM Administrator",
+      name: "Client Satisfaction Measurement",
       role: "ADMIN",
     },
   });
-  console.log(`Seeded admin user: ${email} / ChangeMe123! (change this immediately in non-dev environments)`);
+  console.log(`Seeded admin user: ${username} / ChangeMe123! (change this immediately in non-dev environments)`);
 
   const existingCount = await prisma.surveyResponse.count();
   if (existingCount > 0) {

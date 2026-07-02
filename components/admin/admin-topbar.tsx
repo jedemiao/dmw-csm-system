@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { ThemeToggle } from "@/lib/theme/theme-toggle";
 
-export function AdminTopbar({ name, role }: { name: string; role: string }) {
+export function AdminTopbar({ name }: { name: string }) {
   return (
     <div className="admin-topbar">
       <div className="admin-topbar__user">
@@ -9,12 +9,13 @@ export function AdminTopbar({ name, role }: { name: string; role: string }) {
           className="admin-topbar__avatar"
           src="/images/dmw_logo.png"
           alt=""
-          width={30}
-          height={30}
+          width={38}
+          height={38}
+          quality={100}
         />
         <div>
           <span className="admin-topbar__name">{name}</span>
-          <span className="admin-topbar__role">{role.toLowerCase()}</span>
+          <span className="admin-topbar__role">Department of Migrant Workers Region XIII</span>
         </div>
       </div>
       <ThemeToggle />
