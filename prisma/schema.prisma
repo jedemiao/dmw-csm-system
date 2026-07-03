@@ -60,14 +60,16 @@ model SurveyResponse {
   cc3       Cc3?
   cc3Reason String?
 
-  sqd1 Int @db.SmallInt
-  sqd2 Int @db.SmallInt
-  sqd3 Int @db.SmallInt
-  sqd4 Int @db.SmallInt
-  sqd5 Int @db.SmallInt
-  sqd6 Int @db.SmallInt
-  sqd7 Int @db.SmallInt
-  sqd8 Int @db.SmallInt
+  // Null means the respondent marked this dimension N/A (e.g. costs on a free transaction) —
+  // excluded from that dimension's rating average and % rating, not counted as a low score.
+  sqd1 Int? @db.SmallInt
+  sqd2 Int? @db.SmallInt
+  sqd3 Int? @db.SmallInt
+  sqd4 Int? @db.SmallInt
+  sqd5 Int? @db.SmallInt
+  sqd6 Int? @db.SmallInt
+  sqd7 Int? @db.SmallInt
+  sqd8 Int? @db.SmallInt
 
   remarks   String?
   createdAt DateTime @default(now())
@@ -128,11 +130,13 @@ model Report {
 
   // Not derivable from survey responses - entered by staff.
   serviceTransactions Json // [{ service: string, totalTransactions: number }]
-  improvementPlan     Json // [{ details: string, when: string }]
+  improvementPlan     Json // [{ recommendation: string, actionPlan: string, timeline: string }]
 
-  summaryAnalysis String?
-  ccAnalysis      String?
-  sqdAnalysis     String?
+  summaryAnalysis    String?
+  ccAnalysis         String?
+  sqdAnalysis        String?
+  actionPlanResults  String? // Section E: results of previously reported action plans
+  csmRecommendations String? // Section G: recommendations for improving DMW CSM reporting
 
   preparedByName  String?
   preparedByTitle String?

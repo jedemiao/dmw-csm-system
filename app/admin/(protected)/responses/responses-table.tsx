@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { SEX_LABELS, CUSTOMER_TYPE_LABELS, CC1_LABELS } from "@/lib/constants/enum-labels";
 
@@ -14,7 +14,7 @@ export type ResponseRow = {
   service: string;
   customerType: string;
   cc1: string;
-  avgSqd: number;
+  avgSqd: number | null;
   remarks: string | null;
 };
 
@@ -34,7 +34,7 @@ const columns = [
     cell: (info) => CUSTOMER_TYPE_LABELS[info.getValue()] ?? info.getValue(),
   }),
   columnHelper.accessor("cc1", { header: "CC1", cell: (info) => CC1_LABELS[info.getValue()] ?? info.getValue() }),
-  columnHelper.accessor("avgSqd", { header: "Avg. SQD", cell: (info) => info.getValue().toFixed(1) }),
+  columnHelper.accessor("avgSqd", { header: "Avg. SQD", cell: (info) => info.getValue()?.toFixed(1) ?? "—" }),
   columnHelper.accessor("remarks", {
     header: "Remarks",
     cell: (info) => {
@@ -53,6 +53,7 @@ export function ResponsesTable({
   filters,
   regions,
   services,
+  highlightId,
 }: {
   data: ResponseRow[];
   page: number;
@@ -61,12 +62,18 @@ export function ResponsesTable({
   filters: { region: string; service: string; customerType: string };
   regions: readonly string[];
   services: readonly string[];
+  highlightId?: string | null;
 }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const highlightRowRef = useRef<HTMLTableRowElement | null>(null);
 
   const table = useReactTable({ data, columns, getCoreRowModel: getCoreRowModel() });
+
+  useEffect(() => {
+    highlightRowRef.current?.scrollIntoView({ block: "center" });
+  }, [highlightId]);
 
   function updateParams(next: Record<string, string | null>) {
     const params = new URLSearchParams(searchParams.toString());
@@ -135,13 +142,20 @@ export function ResponsesTable({
             ))}
           </thead>
           <tbody>
-            {table.getRowModel().rows.map((row) => (
-              <tr key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
-                ))}
-              </tr>
-            ))}
+            {table.getRowModel().rows.map((row) => {
+              const isHighlighted = row.original.id === highlightId;
+              return (
+                <tr
+                  key={row.id}
+                  ref={isHighlighted ? highlightRowRef : undefined}
+                  className={isHighlighted ? "data-table__row--highlighted" : undefined}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
+                  ))}
+                </tr>
+              );
+            })}
             {data.length === 0 && (
               <tr>
                 <td colSpan={columns.length} style={{ textAlign: "center", color: "var(--ink-400)", padding: "1.5rem" }}>

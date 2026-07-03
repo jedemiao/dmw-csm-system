@@ -18,7 +18,9 @@ function pick<T>(arr: readonly T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-function randomSqd(): number {
+function randomSqd(): number | null {
+  // A small share of answers are N/A (e.g. cost doesn't apply to a free service).
+  if (Math.random() < 0.04) return null;
   // Skew toward positive ratings, like a typical CSM dataset.
   const weights = [1, 1, 2, 4, 6];
   const total = weights.reduce((a, b) => a + b, 0);

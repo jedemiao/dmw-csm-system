@@ -33,6 +33,10 @@ async function enforceSubmissionThrottle() {
   }
 }
 
+function toSqd(value: string): number | null {
+  return value === "NA" ? null : Number(value);
+}
+
 export async function submitSurvey(input: unknown): Promise<{ id: string }> {
   await enforceSubmissionThrottle();
   const data = surveyFormSchema.parse(input);
@@ -48,14 +52,14 @@ export async function submitSurvey(input: unknown): Promise<{ id: string }> {
       cc2: data.cc2 ? CC2_MAP[data.cc2] : undefined,
       cc3: data.cc3 ? CC3_MAP[data.cc3] : undefined,
       cc3Reason: data.cc3Reason || undefined,
-      sqd1: Number(data.sqd1),
-      sqd2: Number(data.sqd2),
-      sqd3: Number(data.sqd3),
-      sqd4: Number(data.sqd4),
-      sqd5: Number(data.sqd5),
-      sqd6: Number(data.sqd6),
-      sqd7: Number(data.sqd7),
-      sqd8: Number(data.sqd8),
+      sqd1: toSqd(data.sqd1),
+      sqd2: toSqd(data.sqd2),
+      sqd3: toSqd(data.sqd3),
+      sqd4: toSqd(data.sqd4),
+      sqd5: toSqd(data.sqd5),
+      sqd6: toSqd(data.sqd6),
+      sqd7: toSqd(data.sqd7),
+      sqd8: toSqd(data.sqd8),
       remarks: data.remarks || undefined,
     },
     select: { id: true },

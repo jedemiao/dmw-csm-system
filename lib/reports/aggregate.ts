@@ -2,7 +2,7 @@ import "server-only";
 import { prisma } from "@/lib/db";
 import { CC1_LABELS, CC2_LABELS, CC3_LABELS, SEX_LABELS } from "@/lib/constants/enum-labels";
 import { SERVICES } from "@/lib/constants/survey-options";
-import { AGE_BUCKETS, REPORT_REGION_ORDER, getQuarterMonths, type ReportPeriodType } from "./constants";
+import { AGE_BUCKETS, REPORT_REGION_ORDER, getPeriodRange, getQuarterMonths, type ReportPeriodType } from "./constants";
 import type { ServiceTransactionRow } from "@/app/admin/(protected)/reports/actions";
 
 const SQD_DIMENSIONS = [
@@ -47,6 +47,7 @@ async function getAggregateForRange(start: Date, end: Date) {
     customerTypeGroups,
     regionGroups,
     ageRows,
+    remarkRows,
     ...sqdGroups
   ] = await Promise.all([
     prisma.surveyResponse.count({ where }),
@@ -58,6 +59,11 @@ async function getAggregateForRange(start: Date, end: Date) {
     prisma.surveyResponse.groupBy({ where, by: ["customerType"], _count: true }),
     prisma.surveyResponse.groupBy({ where, by: ["region"], _count: true }),
     prisma.surveyResponse.findMany({ where, select: { age: true } }),
+    prisma.surveyResponse.findMany({
+      where: { ...where, remarks: { not: null } },
+      select: { remarks: true },
+      orderBy: { createdAt: "asc" },
+    }),
     ...SQD_DIMENSIONS.map(({ key }) => prisma.surveyResponse.groupBy({ where, by: [key as "sqd1"], _count: true })),
   ]);
 
@@ -88,12 +94,15 @@ async function getAggregateForRange(start: Date, end: Date) {
     const counts = [1, 2, 3, 4, 5].map(
       (value) => groups.find((g) => g[key] === value)?._count ?? 0,
     );
+    const naCount = groups.find((g) => g[key] === null)?._count ?? 0;
+    // Responses/rating % exclude N/A per ARTA CSM methodology — N/A isn't a low score,
+    // it means the dimension didn't apply to that transaction.
     const responses = counts.reduce((a, b) => a + b, 0);
     const agree = counts[3] + counts[4];
-    return { key, label, counts, responses, ratingPct: pct(agree, responses) };
+    return { key, label, counts: [...counts, naCount], responses, ratingPct: pct(agree, responses) };
   });
 
-  const sex = (["FEMALE", "MALE"] as const).map((value) => ({
+  const sex = (["MALE", "FEMALE"] as const).map((value) => ({
     label: SEX_LABELS[value],
     count: sexGroups.find((g) => g.sex === value)?._count ?? 0,
   }));
@@ -111,6 +120,19 @@ async function getAggregateForRange(start: Date, end: Date) {
   const regionCountMap = new Map(regionGroups.map((g) => [g.region, g._count]));
   const region = REPORT_REGION_ORDER.map((label) => ({ label, count: regionCountMap.get(label) ?? 0 }));
 
+  const remarks = remarkRows.map((r) => r.remarks!).filter((text) => text.trim() !== "");
+
+  // Overall row: every SQD1-8 dimension summed together, same shape as one `sqd` entry.
+  const sqdOverall = sqd.reduce(
+    (acc, row) => {
+      row.counts.forEach((c, i) => (acc.counts[i] += c));
+      acc.responses += row.responses;
+      return acc;
+    },
+    { counts: [0, 0, 0, 0, 0, 0], responses: 0 },
+  );
+  const sqdOverallAgree = sqdOverall.counts[3] + sqdOverall.counts[4];
+
   return {
     totalResponses,
     serviceCounts,
@@ -118,29 +140,27 @@ async function getAggregateForRange(start: Date, end: Date) {
     cc2,
     cc3,
     sqd,
+    sqdOverall: { ...sqdOverall, ratingPct: pct(sqdOverallAgree, sqdOverall.responses) },
     sex,
     customerType,
     age,
     region,
+    remarks,
   };
 }
 
 export async function getMonthlyAggregate(year: number, month: number) {
-  const start = new Date(Date.UTC(year, month - 1, 1));
-  const end = new Date(Date.UTC(year, month, 1));
+  const { start, end } = getPeriodRange("MONTH", year, month);
   return { periodType: "MONTH" as const, year, period: month, ...(await getAggregateForRange(start, end)) };
 }
 
 export async function getQuarterlyAggregate(year: number, quarter: number) {
-  const [startMonth] = getQuarterMonths(quarter);
-  const start = new Date(Date.UTC(year, startMonth - 1, 1));
-  const end = new Date(Date.UTC(year, startMonth + 2, 1));
+  const { start, end } = getPeriodRange("QUARTER", year, quarter);
   return { periodType: "QUARTER" as const, year, period: quarter, ...(await getAggregateForRange(start, end)) };
 }
 
 export async function getAnnualAggregate(year: number) {
-  const start = new Date(Date.UTC(year, 0, 1));
-  const end = new Date(Date.UTC(year + 1, 0, 1));
+  const { start, end } = getPeriodRange("YEAR", year, 0);
   return { periodType: "YEAR" as const, year, period: 0, ...(await getAggregateForRange(start, end)) };
 }
 

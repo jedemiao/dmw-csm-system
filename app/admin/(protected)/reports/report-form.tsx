@@ -28,6 +28,8 @@ export function ReportForm({
   summaryAnalysis: initialSummary,
   ccAnalysis: initialCc,
   sqdAnalysis: initialSqd,
+  actionPlanResults: initialActionPlanResults,
+  csmRecommendations: initialCsmRecommendations,
   preparedByName: initialPreparedName,
   preparedByTitle: initialPreparedTitle,
   approvedByName: initialApprovedName,
@@ -42,6 +44,8 @@ export function ReportForm({
   summaryAnalysis: string;
   ccAnalysis: string;
   sqdAnalysis: string;
+  actionPlanResults: string;
+  csmRecommendations: string;
   preparedByName: string;
   preparedByTitle: string;
   approvedByName: string;
@@ -52,10 +56,14 @@ export function ReportForm({
   const [saved, setSaved] = useState(false);
 
   const [serviceTx, setServiceTx] = useState(initialServiceTx);
-  const [plan, setPlan] = useState<ImprovementPlanRow[]>(initialPlan.length ? initialPlan : [{ details: "", when: "" }]);
+  const [plan, setPlan] = useState<ImprovementPlanRow[]>(
+    initialPlan.length ? initialPlan : [{ recommendation: "", actionPlan: "", timeline: "" }],
+  );
   const [summaryAnalysis, setSummaryAnalysis] = useState(initialSummary);
   const [ccAnalysis, setCcAnalysis] = useState(initialCc);
   const [sqdAnalysis, setSqdAnalysis] = useState(initialSqd);
+  const [actionPlanResults, setActionPlanResults] = useState(initialActionPlanResults);
+  const [csmRecommendations, setCsmRecommendations] = useState(initialCsmRecommendations);
   const [preparedByName, setPreparedByName] = useState(initialPreparedName);
   const [preparedByTitle, setPreparedByTitle] = useState(initialPreparedTitle);
   const [approvedByName, setApprovedByName] = useState(initialApprovedName);
@@ -80,10 +88,12 @@ export function ReportForm({
       year,
       period,
       serviceTransactions: serviceTx,
-      improvementPlan: plan.filter((r) => r.details.trim() || r.when.trim()),
+      improvementPlan: plan.filter((r) => r.recommendation.trim() || r.actionPlan.trim() || r.timeline.trim()),
       summaryAnalysis,
       ccAnalysis,
       sqdAnalysis,
+      actionPlanResults,
+      csmRecommendations,
       preparedByName,
       preparedByTitle,
       approvedByName,
@@ -220,25 +230,46 @@ export function ReportForm({
       </section>
 
       <section>
-        <h2 style={{ fontSize: "1.05rem", marginBottom: "0.5rem" }}>Continuous Improvement Plan</h2>
+        <h2 style={{ fontSize: "1.05rem", marginBottom: "0.5rem" }}>E. Results of Action Plan Reported</h2>
+        <div className="field">
+          <label htmlFor="action-plan-results" className="field-help">
+            Results of the B/S/Os action plan reported from previously submitted report/s
+          </label>
+          <textarea id="action-plan-results" value={actionPlanResults} onChange={(e) => setActionPlanResults(e.target.value)} />
+        </div>
+      </section>
+
+      <section>
+        <h2 style={{ fontSize: "1.05rem", marginBottom: "0.5rem" }}>F. Continuous Improvement Plan</h2>
         {plan.map((row, i) => (
-          <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 12rem 2.5rem", gap: "0.5rem", marginBottom: "0.5rem" }}>
+          <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 1fr 10rem 2.5rem", gap: "0.5rem", marginBottom: "0.5rem" }}>
             <div className="field" style={{ marginBottom: 0 }}>
-              {i === 0 && <label htmlFor={`plan-details-${i}`}>Details</label>}
+              {i === 0 && <label htmlFor={`plan-recommendation-${i}`}>Recommendation</label>}
               <input
-                id={`plan-details-${i}`}
+                id={`plan-recommendation-${i}`}
                 type="text"
-                value={row.details}
-                onChange={(e) => setPlan((prev) => prev.map((r, idx) => (idx === i ? { ...r, details: e.target.value } : r)))}
+                value={row.recommendation}
+                onChange={(e) =>
+                  setPlan((prev) => prev.map((r, idx) => (idx === i ? { ...r, recommendation: e.target.value } : r)))
+                }
               />
             </div>
             <div className="field" style={{ marginBottom: 0 }}>
-              {i === 0 && <label htmlFor={`plan-when-${i}`}>When</label>}
+              {i === 0 && <label htmlFor={`plan-action-${i}`}>Action Plan</label>}
               <input
-                id={`plan-when-${i}`}
+                id={`plan-action-${i}`}
                 type="text"
-                value={row.when}
-                onChange={(e) => setPlan((prev) => prev.map((r, idx) => (idx === i ? { ...r, when: e.target.value } : r)))}
+                value={row.actionPlan}
+                onChange={(e) => setPlan((prev) => prev.map((r, idx) => (idx === i ? { ...r, actionPlan: e.target.value } : r)))}
+              />
+            </div>
+            <div className="field" style={{ marginBottom: 0 }}>
+              {i === 0 && <label htmlFor={`plan-timeline-${i}`}>Timeline/Period</label>}
+              <input
+                id={`plan-timeline-${i}`}
+                type="text"
+                value={row.timeline}
+                onChange={(e) => setPlan((prev) => prev.map((r, idx) => (idx === i ? { ...r, timeline: e.target.value } : r)))}
               />
             </div>
             <button
@@ -252,9 +283,23 @@ export function ReportForm({
             </button>
           </div>
         ))}
-        <button type="button" className="btn btn-secondary" onClick={() => setPlan((prev) => [...prev, { details: "", when: "" }])}>
+        <button
+          type="button"
+          className="btn btn-secondary"
+          onClick={() => setPlan((prev) => [...prev, { recommendation: "", actionPlan: "", timeline: "" }])}
+        >
           <Plus size={16} /> Add row
         </button>
+      </section>
+
+      <section>
+        <h2 style={{ fontSize: "1.05rem", marginBottom: "0.5rem" }}>G. Recommendations for Improving DMW CSM Reporting</h2>
+        <div className="field">
+          <label htmlFor="csm-recommendations" className="field-help">
+            E.g. best practices, process improvements
+          </label>
+          <textarea id="csm-recommendations" value={csmRecommendations} onChange={(e) => setCsmRecommendations(e.target.value)} />
+        </div>
       </section>
 
       <section>

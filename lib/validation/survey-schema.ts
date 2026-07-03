@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { REGIONS, SERVICES } from "@/lib/constants/survey-options";
 
-const sqdValue = z.enum(["1", "2", "3", "4", "5"]);
+const sqdValue = z.enum(["1", "2", "3", "4", "5", "NA"]);
 
 export const surveyFormSchema = z
   .object({

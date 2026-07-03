@@ -1,10 +1,10 @@
 import "server-only";
 import fs from "node:fs";
 import path from "node:path";
-import { Document, Page, View, Text, Image, StyleSheet, Font } from "@react-pdf/renderer";
+import { Document, Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer";
 import type { ReportAggregate } from "./aggregate";
 import type { ImprovementPlanRow, ServiceTransactionRow } from "@/app/admin/(protected)/reports/actions";
-import { OFFICE_ADDRESS, OFFICE_EMAIL, OFFICE_NAME, OFFICE_PHONE, OFFICE_WEBSITE } from "./constants";
+import { BUREAU_NAME, DIVISION_NAME, OFFICE_LOCATION, OFFICE_NAME } from "./constants";
 
 // react-pdf resolves local image `src` *strings* via Node's legacy url.parse() + path.resolve(),
 // which mishandles Windows paths (drive letter read as a URL protocol, then even a file:// URL
@@ -14,48 +14,17 @@ function readAsset(relativePath: string) {
   return fs.readFileSync(path.join(/* turbopackIgnore: true */ process.cwd(), relativePath));
 }
 
-// Font.register's `src` doesn't accept a Buffer (only a standard font name, a URL, a data URL,
-// or a file path handed to fontkit.open) — encode as a data URL to avoid the same path-resolution
-// pitfalls as readAsset above.
-function readFontAsDataUrl(relativePath: string) {
-  return `data:font/woff;base64,${readAsset(relativePath).toString("base64")}`;
-}
-
-const COAT_OF_ARMS_PATH = readAsset("public/images/report-ph-coat-of-arms.png");
-const BAGONG_PILIPINAS_LOGO_PATH = readAsset("public/images/report-bagong-pilipinas-logo.png");
-
-// The rest of the document uses react-pdf's built-in "Times-Roman" standard font, which isn't
-// embedded in the PDF and gets substituted by whatever the viewer has installed — that substitution
-// varies enough across viewers/OSes to visibly not match a Word-authored reference letterhead.
-// The masthead ("Republic of the Philippines" / "Department of Migrant Workers") is embedded with
-// Tinos, a metrically-compatible, SIL-OFL-licensed clone of Times New Roman, so it renders identically
-// everywhere. See public/fonts/TINOS-LICENSE.txt.
-Font.register({
-  family: "Tinos",
-  fonts: [
-    { src: readFontAsDataUrl("public/fonts/tinos-regular.woff") },
-    { src: readFontAsDataUrl("public/fonts/tinos-bold.woff"), fontWeight: "bold" },
-  ],
-});
+const HEADER_BANNER_PATH = readAsset("public/images/header-report.png");
 
 const s = StyleSheet.create({
-  page: { paddingTop: 36, paddingBottom: 36, paddingLeft: 72, paddingRight: 72, fontSize: 8.5, fontFamily: "Times-Roman", color: "#111" },
-  headerRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 14, marginBottom: 0 },
-  headerLogo: { width: 64, height: 64 },
-  bagongPilipinasLogo: { width: 70, height: 64 },
-  headerText: { alignItems: "center" },
-  headerKicker: { fontFamily: "Tinos", fontSize: 11, textAlign: "center" },
-  headerTitle: { fontFamily: "Tinos", fontWeight: "bold", fontSize: 20, marginTop: 2, textAlign: "center" },
-  addressLine: { textAlign: "center", fontSize: 8, marginTop: -8, marginBottom: 4 },
-  contactLine: { textAlign: "center", fontSize: 8, marginTop: 2, marginBottom: 10 },
-  link: { color: "#1155cc", textDecoration: "underline" },
-  hr: { width: 280, alignSelf: "center", borderBottomWidth: 1, borderBottomColor: "#111" },
+  page: { paddingTop: 36, paddingBottom: 40, paddingLeft: 72, paddingRight: 72, fontSize: 8.5, fontFamily: "Times-Roman", color: "#111" },
+  headerBanner: { width: 451, height: 58, alignSelf: "center", objectFit: "contain", marginBottom: 8 },
   reportTitle: { textAlign: "center", fontFamily: "Times-Bold", fontSize: 11 },
   reportSubtitle: { textAlign: "center", fontSize: 9, marginTop: 2, marginBottom: 10 },
-  officeLine: { textAlign: "center", fontSize: 9, marginBottom: 10 },
-  officeLineValue: { textDecoration: "underline", fontFamily: "Times-Bold" },
+  metaLine: { fontFamily: "Times-Bold", fontSize: 9, marginBottom: 2 },
   sectionLabel: { fontFamily: "Times-Bold", fontSize: 9.5, marginBottom: 4, marginTop: 10 },
   subLabel: { fontFamily: "Times-Bold", fontSize: 9, marginBottom: 4, marginTop: 6 },
+  noteText: { fontFamily: "Times-Italic", fontSize: 7.5, marginBottom: 2 },
   // Tables have no border of their own — every edge comes from the cells. Every cell gets
   // top+right by default (plus left on the first cell in a row); only the true last row of each
   // table gets an added bottom border, via Cell's `last` prop. Each horizontal boundary is then
@@ -81,10 +50,12 @@ const s = StyleSheet.create({
   tdCenter: { textAlign: "center" },
   analysis: { fontSize: 8, marginTop: 4, marginBottom: 2 },
   analysisLabel: { fontFamily: "Times-Bold" },
+  boxText: { fontSize: 8, lineHeight: 1.4 },
   signRow: { flexDirection: "row", marginTop: 24, gap: 40 },
   signCol: { flex: 1 },
   signName: { textDecoration: "underline", fontFamily: "Times-Bold", fontSize: 9, marginTop: 24 },
   signTitle: { fontSize: 8, marginTop: 2 },
+  pageFooter: { position: "absolute", bottom: 16, left: 0, right: 0, textAlign: "center", fontSize: 7.5, color: "#444" },
 });
 
 function Cell({
@@ -159,6 +130,30 @@ function LabeledCountTable({ title, rows }: { title: string; rows: { label: stri
   );
 }
 
+// Section D/E/G are a single bordered box of free text on the paper form — a numbered
+// list for D (remarks), a plain paragraph for E and G.
+function BoxedText({ lines }: { lines: string[] }) {
+  return (
+    <View style={{ ...s.table }}>
+      <View style={s.tr} wrap={false}>
+        <Cell width="100%" first last>
+          <View>
+            {lines.length === 0 ? (
+              <Text style={s.boxText}>None recorded.</Text>
+            ) : (
+              lines.map((line, i) => (
+                <Text style={s.boxText} key={i}>
+                  {i + 1}. {line}
+                </Text>
+              ))
+            )}
+          </View>
+        </Cell>
+      </View>
+    </View>
+  );
+}
+
 export function CsmReportDocument({
   data,
   periodLabel,
@@ -167,6 +162,8 @@ export function CsmReportDocument({
   summaryAnalysis,
   ccAnalysis,
   sqdAnalysis,
+  actionPlanResults,
+  csmRecommendations,
   preparedByName,
   preparedByTitle,
   approvedByName,
@@ -179,73 +176,78 @@ export function CsmReportDocument({
   summaryAnalysis: string;
   ccAnalysis: string;
   sqdAnalysis: string;
+  actionPlanResults: string;
+  csmRecommendations: string;
   preparedByName: string;
   preparedByTitle: string;
   approvedByName: string;
   approvedByTitle: string;
 }) {
+  const totalTransactions = serviceTransactions.reduce((sum, r) => sum + r.totalTransactions, 0);
+
   return (
     <Document title={`CSM Report - ${periodLabel}`}>
       <Page size="A4" style={s.page}>
-        <View style={s.headerRow}>
-          <Image src={COAT_OF_ARMS_PATH} style={s.headerLogo} />
-          <View style={s.headerText}>
-            <Text style={s.headerKicker}>Republic of the Philippines</Text>
-            <Text style={s.headerTitle}>Department of Migrant Workers</Text>
-          </View>
-          <Image src={BAGONG_PILIPINAS_LOGO_PATH} style={s.bagongPilipinasLogo} />
-        </View>
-        <Text style={s.addressLine}>{OFFICE_ADDRESS}</Text>
-        <View style={s.hr} />
-        <Text style={s.contactLine}>
-          Website: <Text style={s.link}>{OFFICE_WEBSITE}</Text> | Email: <Text style={s.link}>{OFFICE_EMAIL}</Text> |{" "}
-          {OFFICE_PHONE}
-        </Text>
+        <Image src={HEADER_BANNER_PATH} style={s.headerBanner} />
 
         <Text style={s.reportTitle}>CUSTOMER SATISFACTION MEASUREMENT (CSM) REPORT</Text>
         <Text style={s.reportSubtitle}>{periodLabel}</Text>
 
-        <Text style={s.officeLine}>
-          Office : <Text style={s.officeLineValue}>{OFFICE_NAME}</Text>
+        <Text style={s.metaLine}>Bureau/Service/ : {BUREAU_NAME}</Text>
+        <Text style={s.metaLine}>Office (B/S/Os) : {OFFICE_NAME}</Text>
+        <Text style={{ ...s.metaLine, marginBottom: 10 }}>
+          Division : {DIVISION_NAME}      Location : {OFFICE_LOCATION}
         </Text>
 
         <Text style={s.sectionLabel}>A. Summary</Text>
         <View style={s.table}>
           <View style={s.trHead} wrap={false}>
-            <Cell width="55%" first bold>
-              External / Internal Service
+            <Cell width="50%" first bold>
+              {"Name of Service\n[X] External   [ ] Internal"}
             </Cell>
-            <Cell width="45%" bold center>
+            <Cell width="25%" bold center>
               Responses
+            </Cell>
+            <Cell width="25%" bold center>
+              Total Transactions
             </Cell>
           </View>
           {serviceTransactions.map((row, i) => (
             <View style={s.tr} key={row.service} wrap={false}>
-              <Cell width="55%" first>
+              <Cell width="50%" first>
                 {i + 1}. {row.service}
               </Cell>
-              <Cell width="45%" center>
-                {data.serviceCounts.find((r) => r.service === row.service)?.responses ?? 0}
+              <Cell width="25%" center>
+                {data.serviceCounts.find((r) => r.service === row.service)?.responses || ""}
+              </Cell>
+              <Cell width="25%" center>
+                {row.totalTransactions || ""}
               </Cell>
             </View>
           ))}
           <View style={s.tr} wrap={false}>
-            <Cell width="55%" first last bold center>
-              Total Transactions
+            <Cell width="50%" first last bold center>
+              Total
             </Cell>
-            <Cell width="45%" last bold center>
+            <Cell width="25%" last bold center>
               {data.totalResponses}
+            </Cell>
+            <Cell width="25%" last bold center>
+              {totalTransactions}
             </Cell>
           </View>
         </View>
+        <Text style={s.noteText}>Note: Kindly indicate if the service/s had no clients (i.e. Zero-Client Service)</Text>
         <Text style={s.analysis}>
           <Text style={s.analysisLabel}>Description/Analysis: </Text>
           {summaryAnalysis}
         </Text>
 
-        <Text style={s.sectionLabel}>B. Result: Count of Citizen&apos;s Charter (CC) and Service Quality Dimension (SQD)</Text>
+        <Text style={s.sectionLabel}>
+          B. Result: Count of Citizen&apos;s Charter (CC) and Service Quality Dimension (SQD):
+        </Text>
 
-        <Text style={s.subLabel}>A. Citizen&apos;s Charter (CC)</Text>
+        <Text style={s.subLabel}>B.1 Citizen&apos;s Charter (CC)</Text>
         <View style={s.table}>
           <View style={s.trHead} wrap={false}>
             <Cell width="60%" first bold>
@@ -320,86 +322,126 @@ export function CsmReportDocument({
           {ccAnalysis}
         </Text>
 
-        <Text style={s.subLabel}>B. Service Quality Dimension (SQD)</Text>
+        <Text style={s.subLabel}>B.2 Service Quality Dimension (SQD)</Text>
+        <Text style={{ ...s.subLabel, marginTop: 0, fontSize: 8 }}>SQD1-8 Results:</Text>
         <View style={s.table}>
           <View style={s.trHead} wrap={false}>
-            <Cell width="24%" first bold>
+            <Cell width="20%" first bold>
               Dimension
             </Cell>
-            <Cell width="10%" bold center>
+            <Cell width="9%" bold center>
               Strongly Disagree
             </Cell>
-            <Cell width="10%" bold center>
+            <Cell width="9%" bold center>
               Disagree
             </Cell>
-            <Cell width="14%" bold center>
+            <Cell width="12%" bold center>
               Neither Agree or Disagree
             </Cell>
-            <Cell width="10%" bold center>
+            <Cell width="9%" bold center>
               Agree
             </Cell>
-            <Cell width="10%" bold center>
+            <Cell width="9%" bold center>
               Strongly Agree
             </Cell>
-            <Cell width="11%" bold center>
-              Responses
+            <Cell width="9%" bold center>
+              N/A
             </Cell>
             <Cell width="11%" bold center>
-              Rating
+              Total Responses
+            </Cell>
+            <Cell width="12%" bold center>
+              Overall
             </Cell>
           </View>
-          {data.sqd.map((row, i) => (
+          {data.sqd.map((row) => (
             <View style={s.tr} key={row.key} wrap={false}>
-              <Cell width="24%" first last={i === data.sqd.length - 1}>
+              <Cell width="20%" first>
                 {row.label}
               </Cell>
               {row.counts.map((c, j) => (
-                <Cell width={j === 2 ? "14%" : "10%"} center last={i === data.sqd.length - 1} key={j}>
+                <Cell width={j === 2 ? "12%" : "9%"} center key={j}>
                   {c || ""}
                 </Cell>
               ))}
-              <Cell width="11%" center last={i === data.sqd.length - 1}>
+              <Cell width="11%" center>
                 {row.responses}
               </Cell>
-              <Cell width="11%" center last={i === data.sqd.length - 1}>
+              <Cell width="12%" center>
                 {fmtPct(row.ratingPct)}
               </Cell>
             </View>
           ))}
+          <View style={s.tr} wrap={false}>
+            <Cell width="20%" first last bold>
+              Overall
+            </Cell>
+            {data.sqdOverall.counts.map((c, j) => (
+              <Cell width={j === 2 ? "12%" : "9%"} center last bold key={j}>
+                {c || ""}
+              </Cell>
+            ))}
+            <Cell width="11%" center last bold>
+              {data.sqdOverall.responses}
+            </Cell>
+            <Cell width="12%" center last bold>
+              {fmtPct(data.sqdOverall.ratingPct)}
+            </Cell>
+          </View>
         </View>
         <Text style={s.analysis}>
           <Text style={s.analysisLabel}>Description/Analysis: </Text>
           {sqdAnalysis}
         </Text>
 
-        <Text style={s.sectionLabel}>C. Client Demographic</Text>
+        <Text style={s.sectionLabel}>C. Client Demographic Profile:</Text>
 
-        <LabeledCountTable title="Sex:" rows={data.sex} />
-        <LabeledCountTable title="Client Type:" rows={data.customerType} />
-        <LabeledCountTable title="Age:" rows={data.age} />
-        <LabeledCountTable title="Region:" rows={data.region} />
+        <LabeledCountTable title="C.1 Gender" rows={[...data.sex, { label: "Did not specify", count: 0 }]} />
+        <LabeledCountTable
+          title="C.2 Type of Client"
+          rows={[...data.customerType, { label: "Did not specify", count: 0 }]}
+        />
+        <LabeledCountTable title="C.3 Age Bracket" rows={[...data.age, { label: "Did not specify", count: 0 }]} />
+        <LabeledCountTable title="C.4 Client Demographic by Region (Region by Residence)" rows={data.region} />
 
-        <Text style={s.sectionLabel}>Continuous Improvement Plan</Text>
+        <Text style={s.sectionLabel}>D. Free Responses/Suggestions from the client/s on how to further improve services:</Text>
+        <BoxedText lines={data.remarks} />
+
+        <Text style={s.sectionLabel}>E. Results of the B/S/Os Action Plan Reported (from previously submitted report/s):</Text>
+        <BoxedText lines={actionPlanResults.trim() ? [actionPlanResults.trim()] : []} />
+
+        <Text style={s.sectionLabel}>F. Continuous Improvement Plan:</Text>
         <View style={s.table}>
           <View style={s.trHead} wrap={false}>
-            <Cell width="70%" first bold last={improvementPlan.length === 0}>
-              Details
+            <Cell width="40%" first bold last={improvementPlan.length === 0}>
+              Recommendation
             </Cell>
-            <Cell width="30%" bold center last={improvementPlan.length === 0}>
-              When
+            <Cell width="35%" bold center last={improvementPlan.length === 0}>
+              Action Plan
+            </Cell>
+            <Cell width="25%" bold center last={improvementPlan.length === 0}>
+              Timeline/Period
             </Cell>
           </View>
           {improvementPlan.map((row, i) => (
             <View style={s.tr} key={i} wrap={false}>
-              <Cell width="70%" first last={i === improvementPlan.length - 1}>
-                {row.details}
+              <Cell width="40%" first last={i === improvementPlan.length - 1}>
+                {row.recommendation}
               </Cell>
-              <Cell width="30%" center last={i === improvementPlan.length - 1}>
-                {row.when}
+              <Cell width="35%" center last={i === improvementPlan.length - 1}>
+                {row.actionPlan}
+              </Cell>
+              <Cell width="25%" center last={i === improvementPlan.length - 1}>
+                {row.timeline}
               </Cell>
             </View>
           ))}
         </View>
+
+        <Text style={s.sectionLabel}>
+          G. Recommendations for Improving the DMW CSM Reporting (e.g. best practices, process improvements)
+        </Text>
+        <BoxedText lines={csmRecommendations.trim() ? [csmRecommendations.trim()] : []} />
 
         <View style={s.signRow}>
           <View style={s.signCol}>
@@ -413,6 +455,12 @@ export function CsmReportDocument({
             <Text style={s.signTitle}>{approvedByTitle}</Text>
           </View>
         </View>
+
+        <Text
+          style={s.pageFooter}
+          fixed
+          render={({ pageNumber, totalPages }) => `Page ${pageNumber} of ${totalPages}`}
+        />
       </Page>
     </Document>
   );

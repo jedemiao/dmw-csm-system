@@ -6,7 +6,7 @@ import { requireAdmin } from "@/lib/auth/dal";
 import type { ReportPeriodType } from "@/lib/reports/constants";
 
 export type ServiceTransactionRow = { service: string; totalTransactions: number };
-export type ImprovementPlanRow = { details: string; when: string };
+export type ImprovementPlanRow = { recommendation: string; actionPlan: string; timeline: string };
 
 export type ReportMetaInput = {
   periodType: ReportPeriodType;
@@ -17,6 +17,8 @@ export type ReportMetaInput = {
   summaryAnalysis: string;
   ccAnalysis: string;
   sqdAnalysis: string;
+  actionPlanResults: string;
+  csmRecommendations: string;
   preparedByName: string;
   preparedByTitle: string;
   approvedByName: string;

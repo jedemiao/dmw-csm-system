@@ -1,5 +1,8 @@
-export const OFFICE_NAME = "DEPARTMENT OF MIGRANT WORKERS REGIONAL OFFICE XIII-CARAGA";
-export const OFFICE_ADDRESS = "Nimfa Tiu Bldg. 7, J. Rosales Avenue, Butuan City, Agusan del Norte, 8600";
+export const BUREAU_NAME = "DEPARTMENT OF MIGRANT WORKERS";
+export const OFFICE_NAME = "REGIONAL OFFICE XIII";
+export const DIVISION_NAME = "MIGRANT WORKERS PROTECTION DIVISION";
+export const OFFICE_LOCATION = "3RD FLOOR ESQUINA DOS BLDG.";
+export const OFFICE_ADDRESS = "3rd floor, Esquina Dos Building, J.C. Aquino Avenue cor. Doongan Road, Butuan City, Agusan del Norte, 8600";
 export const OFFICE_WEBSITE = "www.dmw.gov.ph";
 export const OFFICE_EMAIL = "butuan@dmw.gov.ph";
 export const OFFICE_PHONE = "(085)815-1708";
@@ -42,11 +45,11 @@ export const REPORT_REGION_ORDER = [
 ] as const;
 
 export const AGE_BUCKETS = [
-  { label: "19 and below", min: 0, max: 19 },
-  { label: "20-34 years old", min: 20, max: 34 },
+  { label: "19 or lower", min: 0, max: 19 },
+  { label: "20-34", min: 20, max: 34 },
   { label: "35-49", min: 35, max: 49 },
   { label: "50-64", min: 50, max: 64 },
-  { label: "65 and higher", min: 65, max: Infinity },
+  { label: "65 or higher", min: 65, max: Infinity },
 ] as const;
 
 export type ReportPeriodType = "MONTH" | "QUARTER" | "YEAR";
@@ -59,6 +62,18 @@ export const QUARTER_LABELS = ["Q1 (Jan–Mar)", "Q2 (Apr–Jun)", "Q3 (Jul–Se
 export function getQuarterMonths(quarter: number): [number, number, number] {
   const start = (quarter - 1) * 3 + 1;
   return [start, start + 1, start + 2];
+}
+
+// period: MONTH -> 1-12, QUARTER -> 1-4, YEAR -> ignored (always the full year).
+export function getPeriodRange(periodType: ReportPeriodType, year: number, period: number): { start: Date; end: Date } {
+  if (periodType === "MONTH") {
+    return { start: new Date(Date.UTC(year, period - 1, 1)), end: new Date(Date.UTC(year, period, 1)) };
+  }
+  if (periodType === "QUARTER") {
+    const [startMonth] = getQuarterMonths(period);
+    return { start: new Date(Date.UTC(year, startMonth - 1, 1)), end: new Date(Date.UTC(year, startMonth + 2, 1)) };
+  }
+  return { start: new Date(Date.UTC(year, 0, 1)), end: new Date(Date.UTC(year + 1, 0, 1)) };
 }
 
 // period: MONTH -> 1-12, QUARTER -> 1-4, YEAR -> ignored (always the full year).
@@ -102,4 +117,23 @@ export function parseReportQuery(
   const period = Number.isInteger(rawPeriod) && rawPeriod >= 1 && rawPeriod <= max ? rawPeriod : defaultPeriod;
 
   return { periodType, year, period };
+}
+
+export type AnalyticsPeriodType = "ALL" | ReportPeriodType;
+
+// Parses `?range=&year=&period=` for the analytics dashboard filter. Unlike report
+// queries (which always need a concrete saved period), "ALL" — no date filter — is a
+// valid and default choice here.
+export function parseAnalyticsQuery(
+  raw: { range?: string; year?: string; period?: string },
+  now: Date = new Date(),
+): { periodType: AnalyticsPeriodType; year: number; period: number } {
+  const upper = raw.range?.toUpperCase();
+  if (upper === "MONTH" || upper === "QUARTER" || upper === "YEAR") {
+    return parseReportQuery({ type: upper, year: raw.year, period: raw.period }, now);
+  }
+
+  const rawYear = Number(raw.year);
+  const year = Number.isInteger(rawYear) && rawYear >= 2000 && rawYear <= 2100 ? rawYear : now.getFullYear();
+  return { periodType: "ALL", year, period: 0 };
 }

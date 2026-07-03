@@ -20,14 +20,12 @@ export const REGIONS = [
 ] as const;
 
 export const SERVICES = [
-  "PEOS – Pre-Employment Orientation Seminar",
-  "E-Registration",
-  "OFW Records",
-  "BM Processing (Balik-Manggagawa)",
-  "Direct-Hire Processing",
-  "ORAA – Online Recruitment Authority Application",
-  "DMW Online Helpdesk",
-  "Other online service",
+  "Inquiry",
+  "Legal Assistance",
+  "Adjudication",
+  "Prosecution",
+  "Other Forms of Assistance",
+  "Alternative Dispute Resolution/SENA",
 ] as const;
 
 export const DEFAULT_AGENCY = "Department of Migrant Workers (DMW)";
@@ -49,4 +47,5 @@ export const SCALE_OPTIONS = [
   { value: "3", scaleKey: "scale_n", vhKey: "vh_n", emoji: "😐" },
   { value: "4", scaleKey: "scale_a", vhKey: "vh_a", emoji: "🙂" },
   { value: "5", scaleKey: "scale_sa", vhKey: "vh_sa", emoji: "😀" },
+  { value: "NA", scaleKey: "scale_na", vhKey: "vh_na", emoji: "➖" },
 ] as const;

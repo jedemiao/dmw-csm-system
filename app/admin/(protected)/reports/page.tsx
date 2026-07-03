@@ -30,14 +30,16 @@ export default async function AdminReportsPage({
   const savedServiceTx = new Map(
     ((meta?.serviceTransactions as ServiceTransactionRow[] | undefined) ?? []).map((r) => [r.service, r.totalTransactions]),
   );
-  const serviceTransactions: ServiceTransactionRow[] = SERVICES.filter((s) =>
-    data.serviceCounts.some((r) => r.service === s),
-  ).map((service) => ({
+  // Lists every defined service, not just ones with responses this period — the report
+  // template expects zero-client services to show explicitly (see its "Zero-Client Service" note)
+  // rather than being silently omitted.
+  const serviceTransactions: ServiceTransactionRow[] = SERVICES.map((service) => ({
     service,
     totalTransactions:
       savedServiceTx.get(service) ??
       rolledUp?.find((r) => r.service === service)?.totalTransactions ??
-      data.serviceCounts.find((r) => r.service === service)!.responses,
+      data.serviceCounts.find((r) => r.service === service)?.responses ??
+      0,
   }));
 
   return (
@@ -65,6 +67,8 @@ export default async function AdminReportsPage({
         summaryAnalysis={meta?.summaryAnalysis ?? ""}
         ccAnalysis={meta?.ccAnalysis ?? ""}
         sqdAnalysis={meta?.sqdAnalysis ?? ""}
+        actionPlanResults={meta?.actionPlanResults ?? ""}
+        csmRecommendations={meta?.csmRecommendations ?? ""}
         preparedByName={meta?.preparedByName ?? ""}
         preparedByTitle={meta?.preparedByTitle ?? ""}
         approvedByName={meta?.approvedByName ?? ""}

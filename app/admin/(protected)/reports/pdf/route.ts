@@ -28,17 +28,17 @@ export async function GET(req: Request) {
         (r) => [r.service, r.totalTransactions],
       ),
     );
-    const serviceTransactions = SERVICES.filter((s) => data.serviceCounts.some((r) => r.service === s)).map(
-      (service) => ({
-        service,
-        totalTransactions:
-          savedServiceTx.get(service) ??
-          rolledUp?.find((r) => r.service === service)?.totalTransactions ??
-          data.serviceCounts.find((r) => r.service === service)!.responses,
-      }),
-    );
+    const serviceTransactions = SERVICES.map((service) => ({
+      service,
+      totalTransactions:
+        savedServiceTx.get(service) ??
+        rolledUp?.find((r) => r.service === service)?.totalTransactions ??
+        data.serviceCounts.find((r) => r.service === service)?.responses ??
+        0,
+    }));
 
-    const improvementPlan = (meta?.improvementPlan as { details: string; when: string }[] | undefined) ?? [];
+    const improvementPlan =
+      (meta?.improvementPlan as { recommendation: string; actionPlan: string; timeline: string }[] | undefined) ?? [];
 
     const buffer = await renderToBuffer(
       CsmReportDocument({
@@ -49,6 +49,8 @@ export async function GET(req: Request) {
         summaryAnalysis: meta?.summaryAnalysis ?? "",
         ccAnalysis: meta?.ccAnalysis ?? "",
         sqdAnalysis: meta?.sqdAnalysis ?? "",
+        actionPlanResults: meta?.actionPlanResults ?? "",
+        csmRecommendations: meta?.csmRecommendations ?? "",
         preparedByName: meta?.preparedByName ?? "",
         preparedByTitle: meta?.preparedByTitle ?? "",
         approvedByName: meta?.approvedByName ?? "",

@@ -194,10 +194,11 @@ export function SurveyForm() {
         <div className="form-doc-head__identity">
           <Image
             className="crest-badge"
-            src="/images/Coat_of_arms_of_the_Philippines.svg.webp"
-            alt="Coat of Arms of the Philippines"
+            src="/images/dmw_logo.png"
+            alt="Department of Migrant Workers seal"
             height={60}
             width={60}
+            quality={100}
           />
           <div>
             <h2>Department of Migrant Workers</h2>
@@ -321,15 +322,9 @@ export function SurveyForm() {
                 onChange={(e) => set("service", e.target.value)}
               >
                 <option value="">{t("opt_select")}</option>
-                {SERVICES.map((service) =>
-                  service === "Other online service" ? (
-                    <option key={service} value={service}>
-                      {t("opt_other_service")}
-                    </option>
-                  ) : (
-                    <option key={service}>{service}</option>
-                  ),
-                )}
+                {SERVICES.map((service) => (
+                  <option key={service}>{service}</option>
+                ))}
               </select>
               <span className="field-error" id="service-error" role="alert">
                 {errors["field-service"]}

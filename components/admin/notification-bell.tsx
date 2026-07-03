@@ -49,8 +49,8 @@ export function NotificationBell() {
     lastSeenRef.current = lastSeen;
   }, [lastSeen]);
 
-  const poll = useCallback(async () => {
-    if (phaseRef.current !== "closed") return;
+  const poll = useCallback(async (force = false) => {
+    if (!force && phaseRef.current !== "closed") return;
     try {
       const res = await fetch(`/api/admin/notifications?since=${encodeURIComponent(lastSeenRef.current)}`, {
         cache: "no-store",
@@ -155,6 +155,24 @@ export function NotificationBell() {
     setCount(0);
   }
 
+  // Clicking through to a specific response counts as having seen everything
+  // up to and including it, so its dot (and anything older) clears too —
+  // without pulling in still-newer unread items above it in the list. The
+  // badge count can't be adjusted by a simple -1 here: advancing the cutoff
+  // can clear many items at once (e.g. clicking the newest one clears all of
+  // them), so re-poll for the real server-computed count instead of guessing.
+  function markItemRead(createdAt: string) {
+    if (createdAt <= lastSeenRef.current) return;
+    setLastSeen(createdAt);
+    lastSeenRef.current = createdAt;
+    try {
+      localStorage.setItem(LAST_SEEN_KEY, createdAt);
+    } catch {
+      // storage unavailable
+    }
+    poll(true);
+  }
+
   const panelMounted = phase !== "closed";
 
   return (
@@ -197,16 +215,25 @@ export function NotificationBell() {
                 const unread = item.createdAt > lastSeen;
                 return (
                   <li className={`notification-panel__item${unread ? " is-unread" : ""}`} key={item.id}>
-                    <span className="notification-panel__dot" aria-hidden="true" />
-                    <div className="notification-panel__body">
-                      <div className="notification-panel__row">
-                        <p className="notification-panel__title">{item.service}</p>
-                        <span className="notification-panel__time">{timeAgo(item.createdAt)}</span>
+                    <Link
+                      href={`/admin/responses?highlight=${item.id}`}
+                      className="notification-panel__item-link"
+                      onClick={() => {
+                        markItemRead(item.createdAt);
+                        requestClose();
+                      }}
+                    >
+                      <span className="notification-panel__dot" aria-hidden="true" />
+                      <div className="notification-panel__body">
+                        <div className="notification-panel__row">
+                          <p className="notification-panel__title">{item.service}</p>
+                          <span className="notification-panel__time">{timeAgo(item.createdAt)}</span>
+                        </div>
+                        <p className="notification-panel__desc">
+                          {item.region} · {item.customerType.charAt(0) + item.customerType.slice(1).toLowerCase()}
+                        </p>
                       </div>
-                      <p className="notification-panel__desc">
-                        {item.region} · {item.customerType.charAt(0) + item.customerType.slice(1).toLowerCase()}
-                      </p>
-                    </div>
+                    </Link>
                   </li>
                 );
               })}

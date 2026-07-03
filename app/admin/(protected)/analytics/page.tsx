@@ -1,6 +1,9 @@
 import { prisma } from "@/lib/db";
+import { Prisma } from "@/generated/prisma/client";
 import { CC1_LABELS, CC2_LABELS, CC3_LABELS, CUSTOMER_TYPE_LABELS } from "@/lib/constants/enum-labels";
+import { getPeriodLabel, getPeriodRange, parseAnalyticsQuery } from "@/lib/reports/constants";
 import { BreakdownBarChart, SqdBarChart, VolumeLineChart } from "./analytics-charts";
+import { AnalyticsFilters } from "./analytics-filters";
 
 const SQD_DIMENSIONS = [
   { key: "sqd1", label: "Responsiveness" },
@@ -13,25 +16,40 @@ const SQD_DIMENSIONS = [
   { key: "sqd8", label: "Outcome" },
 ] as const;
 
-export default async function AdminAnalyticsPage() {
-  const [sqdAvg, cc1Groups, cc2Groups, cc3Groups, regionGroups, serviceGroups, customerTypeGroups, volumeRows] =
+export default async function AdminAnalyticsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ range?: string; year?: string; period?: string }>;
+}) {
+  const params = await searchParams;
+  const { periodType, year, period } = parseAnalyticsQuery(params);
+  const range = periodType === "ALL" ? null : getPeriodRange(periodType, year, period);
+  const where = range ? { createdAt: { gte: range.start, lt: range.end } } : {};
+  const dateFilter = range ? Prisma.sql`WHERE "createdAt" >= ${range.start} AND "createdAt" < ${range.end}` : Prisma.empty;
+
+  const [totalResponses, sqdAvg, cc1Groups, cc2Groups, cc3Groups, regionGroups, serviceGroups, customerTypeGroups, volumeRows] =
     await Promise.all([
+      prisma.surveyResponse.count({ where }),
       prisma.surveyResponse.aggregate({
+        where,
         _avg: { sqd1: true, sqd2: true, sqd3: true, sqd4: true, sqd5: true, sqd6: true, sqd7: true, sqd8: true },
       }),
-      prisma.surveyResponse.groupBy({ by: ["cc1"], _count: true }),
-      prisma.surveyResponse.groupBy({ by: ["cc2"], _count: true }),
-      prisma.surveyResponse.groupBy({ by: ["cc3"], _count: true }),
-      prisma.surveyResponse.groupBy({ by: ["region"], _count: true, orderBy: { _count: { region: "desc" } } }),
-      prisma.surveyResponse.groupBy({ by: ["service"], _count: true, orderBy: { _count: { service: "desc" } } }),
-      prisma.surveyResponse.groupBy({ by: ["customerType"], _count: true }),
+      prisma.surveyResponse.groupBy({ where, by: ["cc1"], _count: true }),
+      prisma.surveyResponse.groupBy({ where, by: ["cc2"], _count: true }),
+      prisma.surveyResponse.groupBy({ where, by: ["cc3"], _count: true }),
+      prisma.surveyResponse.groupBy({ where, by: ["region"], _count: true, orderBy: { _count: { region: "desc" } } }),
+      prisma.surveyResponse.groupBy({ where, by: ["service"], _count: true, orderBy: { _count: { service: "desc" } } }),
+      prisma.surveyResponse.groupBy({ where, by: ["customerType"], _count: true }),
       prisma.$queryRaw<Array<{ day: Date; count: bigint }>>`
         SELECT date_trunc('day', "createdAt") AS day, COUNT(*)::bigint AS count
         FROM "SurveyResponse"
+        ${dateFilter}
         GROUP BY day
         ORDER BY day ASC
       `,
     ]);
+
+  const scopeLabel = periodType === "ALL" ? "All time" : getPeriodLabel(periodType, year, period);
 
   const sqdData = SQD_DIMENSIONS.map(({ key, label }) => ({
     dimension: label,
@@ -61,8 +79,15 @@ export default async function AdminAnalyticsPage() {
     <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
       <div>
         <h1 style={{ fontSize: "1.5rem", marginBottom: "0.25rem" }}>Analytics</h1>
-        <p style={{ color: "var(--ink-500)" }}>Aggregate scores computed from all collected responses.</p>
+        <p style={{ color: "var(--ink-500)" }}>Aggregate scores computed from collected responses.</p>
       </div>
+
+      <section>
+        <AnalyticsFilters periodType={periodType} year={year} period={period} />
+        <p style={{ color: "var(--ink-500)", fontSize: "0.85rem", marginTop: "0.6rem" }}>
+          {scopeLabel} — {totalResponses} response{totalResponses === 1 ? "" : "s"}
+        </p>
+      </section>
 
       <section>
         <h2 style={{ fontSize: "1.1rem", marginBottom: "0.75rem" }}>Average SQD score by dimension</h2>
