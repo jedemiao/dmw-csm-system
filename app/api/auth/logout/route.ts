@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server";
 import { destroySession } from "@/lib/auth/session";
+import { getSiteOrigin } from "@/lib/site-url";
 
 export async function POST(request: Request) {
   const origin = request.headers.get("origin");
-  if (origin && new URL(origin).host !== new URL(request.url).host) {
+  const host = request.headers.get("host");
+  if (origin && new URL(origin).host !== host) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   await destroySession();
-  return NextResponse.redirect(new URL("/admin/login", request.url));
+  const siteOrigin = await getSiteOrigin();
+  return NextResponse.redirect(new URL("/admin/login", siteOrigin));
 }
