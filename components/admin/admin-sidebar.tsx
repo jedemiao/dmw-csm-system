@@ -11,6 +11,7 @@ import {
   Gauge,
   IconProps,
   ListBullets,
+  QrCode,
   SignOut,
 } from "@phosphor-icons/react";
 
@@ -25,6 +26,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/admin/responses", label: "Responses", Icon: ListBullets },
   { href: "/admin/analytics", label: "Analytics", Icon: ChartBar },
   { href: "/admin/reports", label: "Reports", Icon: FilePdf },
+  { href: "/admin/qr-code", label: "QR Code", Icon: QrCode },
 ];
 
 export function AdminSidebar({ role, username }: { role: string; username: string }) {

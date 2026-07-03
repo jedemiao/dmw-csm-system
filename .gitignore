@@ -41,3 +41,6 @@ next-env.d.ts
 # local-only reference material, not for the repo
 /sample data/
 /CSM-DATA-PROCESSING-SEPT-2024.*
+
+.vercel
+.env*
