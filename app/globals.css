@@ -405,9 +405,10 @@ textarea:focus-visible,
 
 @media (max-width: 860px) {
   .brand-bar__meta { display: none; }
-  .utility-nav { order: 2; width: 100%; }
-  .utility-actions { order: 1; width: 100%; }
-  .theme-toggle { width: 40px; height: 40px; }
+  .utility-bar { font-size: 0.7rem; }
+  .utility-bar__inner { gap: 0.6rem; }
+  .utility-nav, .utility-actions { gap: 0.65rem; }
+  .theme-toggle { width: 40px; height: 40px; margin-left: 0.4rem; }
   .theme-toggle svg { width: 18px; height: 18px; }
 }
 
@@ -925,11 +926,7 @@ fieldset.has-error { background: var(--danger-100); }
   .likert-scale-mobile .emoji { display: block; font-size: 1.15rem; margin-bottom: 0.2rem; }
   .likert-row .likert-cell {
     flex: 1 1 0;
-    flex-direction: column;
-    gap: 0.3rem;
-    font-size: 0.7rem;
-    color: var(--ink-400);
-    padding: 0;
+    padding: 0.75rem 0;
   }
 }
 @media (min-width: 721px) {
