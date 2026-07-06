@@ -914,14 +914,16 @@ fieldset.has-error { background: var(--danger-100); }
     padding: 0.9rem 1rem 1rem;
     row-gap: 0.5rem;
   }
-  .likert-row .likert-question { flex: 1 1 100%; padding: 0; }
+  .likert-row .likert-question { flex: 1 1 100%; padding: 0; min-width: 0; }
   .likert-row .field-error { flex: 1 1 100%; grid-column: unset; padding: 0.3rem 0 0; }
   .likert-scale-mobile {
     display: flex;
     flex: 1 1 100%;
+    min-width: 0;
   }
   .likert-scale-mobile span {
     flex: 1 1 0;
+    min-width: 0;
     text-align: center;
     font-size: 0.62rem;
     line-height: 1.2;
