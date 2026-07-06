@@ -214,7 +214,7 @@ function BoxedText({ lines }: { lines: string[] }) {
         <Cell width="100%" first last>
           <View>
             {lines.length === 0 ? (
-              <Text style={s.boxText}>None recorded.</Text>
+              <Text style={s.boxText}> </Text>
             ) : (
               lines.map((line, i) => (
                 <Text style={s.boxText} key={i}>
