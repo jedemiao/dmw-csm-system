@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Bell } from "@phosphor-icons/react";
 
 const LAST_SEEN_KEY = "dmw-csm-notif-last-seen";
-const POLL_MS = 15000;
+const POLL_MS = 5000;
 const PANEL_ID = "admin-notification-panel";
 const EXIT_MS = 160;
 
@@ -84,7 +84,23 @@ export function NotificationBell() {
 
     poll();
     const interval = setInterval(poll, POLL_MS);
-    return () => clearInterval(interval);
+
+    // Catch up immediately when the admin comes back to the tab, rather
+    // than waiting out the rest of the poll interval.
+    function handleVisibility() {
+      if (document.visibilityState === "visible") poll();
+    }
+    function handleFocus() {
+      poll();
+    }
+    document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("focus", handleFocus);
+    };
   }, [poll]);
 
   useEffect(() => () => clearTimeout(closeTimerRef.current), []);
