@@ -8,6 +8,10 @@ export default defineConfig({
     seed: "tsx prisma/seed.ts",
   },
   datasource: {
-    url: process.env["DATABASE_URL"],
+    // Migrations need a direct (non-pooled) connection: `migrate deploy` uses advisory
+    // locks that a pgbouncer transaction-pooling connection (our runtime DATABASE_URL)
+    // can't support and will hang on indefinitely instead of erroring. The running app
+    // still connects via DATABASE_URL (see lib/db.ts) — only the CLI uses DIRECT_URL.
+    url: process.env["DIRECT_URL"] ?? process.env["DATABASE_URL"],
   },
 });
