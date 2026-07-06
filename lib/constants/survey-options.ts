@@ -28,7 +28,7 @@ export const SERVICES = [
   "Alternative Dispute Resolution/SENA",
 ] as const;
 
-export const DEFAULT_AGENCY = "Department of Migrant Workers (DMW)";
+export const DEFAULT_AGENCY = "Department of Migrant Workers (DMW) Regional Office XIII";
 
 export const SQD_ITEMS = [
   { name: "sqd1", qKey: "sqd1_q", dimKey: "sqd1_dim" },

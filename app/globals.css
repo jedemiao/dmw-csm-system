@@ -74,7 +74,12 @@
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
 
-html, body { max-width: 100%; overflow-x: hidden; }
+/* Only html gets overflow-x:hidden — setting it on both html and body makes
+   both implicitly overflow-y:auto (per spec), splitting scrolling across two
+   independent containers. That breaks position:sticky for anything under
+   body, since body's own scrollTop never moves while html's does. */
+html { max-width: 100%; overflow-x: hidden; }
+body { max-width: 100%; }
 
 body {
   margin: 0;
@@ -1120,7 +1125,7 @@ fieldset.has-error { background: var(--danger-100); }
 }
 .admin-sidebar--collapsed { width: 68px; }
 @media (max-width: 860px) {
-  .admin-sidebar { position: relative; height: auto; width: 100% !important; }
+  .admin-sidebar { width: 100% !important; }
 }
 
 .admin-sidebar__brand {

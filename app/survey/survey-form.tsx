@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useLang } from "@/lib/i18n/lang-context";
 import { REGIONS, SERVICES, DEFAULT_AGENCY, SQD_ITEMS, SCALE_OPTIONS } from "@/lib/constants/survey-options";
+import { toReferenceCode } from "@/lib/reference";
 import { submitSurvey } from "./actions";
 
 type Values = {
@@ -152,7 +153,7 @@ export function SurveyForm() {
         sqd8: values.sqd8,
         remarks: values.remarks || undefined,
       });
-      setReference(`CSM-${response.id.slice(-10).toUpperCase()}`);
+      setReference(toReferenceCode(response.id));
     } catch {
       setSubmitError(true);
     } finally {

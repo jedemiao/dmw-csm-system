@@ -1,12 +1,13 @@
 "use client";
 
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { SEX_LABELS, CUSTOMER_TYPE_LABELS, CC1_LABELS } from "@/lib/constants/enum-labels";
 
 export type ResponseRow = {
   id: string;
+  reference: string;
   createdAt: string;
   age: number;
   sex: string;
@@ -21,6 +22,7 @@ export type ResponseRow = {
 const columnHelper = createColumnHelper<ResponseRow>();
 
 const columns = [
+  columnHelper.accessor("reference", { header: "Reference" }),
   columnHelper.accessor("createdAt", {
     header: "Submitted",
     cell: (info) => new Date(info.getValue()).toLocaleString("en-PH", { dateStyle: "medium", timeStyle: "short" }),
@@ -54,6 +56,7 @@ export function ResponsesTable({
   regions,
   services,
   highlightId,
+  referenceSearch,
 }: {
   data: ResponseRow[];
   page: number;
@@ -63,17 +66,26 @@ export function ResponsesTable({
   regions: readonly string[];
   services: readonly string[];
   highlightId?: string | null;
+  referenceSearch: string;
 }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const highlightRowRef = useRef<HTMLTableRowElement | null>(null);
+  const [referenceInput, setReferenceInput] = useState(referenceSearch);
 
   const table = useReactTable({ data, columns, getCoreRowModel: getCoreRowModel() });
 
   useEffect(() => {
     highlightRowRef.current?.scrollIntoView({ block: "center" });
   }, [highlightId]);
+
+  useEffect(() => {
+    if (referenceInput === referenceSearch) return;
+    const timeout = setTimeout(() => updateParams({ reference: referenceInput.trim() || null }), 400);
+    return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [referenceInput]);
 
   function updateParams(next: Record<string, string | null>) {
     const params = new URLSearchParams(searchParams.toString());
@@ -97,6 +109,22 @@ export function ResponsesTable({
   return (
     <div>
       <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", marginBottom: "1rem" }}>
+        <input
+          type="search"
+          aria-label="Search by reference"
+          placeholder="Search by reference (e.g. CSM-FZ60RTLUTH)"
+          value={referenceInput}
+          onChange={(e) => setReferenceInput(e.target.value)}
+          style={{
+            padding: "0.5rem 0.75rem",
+            borderRadius: "var(--radius-sm)",
+            border: "1px solid var(--border-strong)",
+            background: "var(--surface)",
+            color: "var(--ink-900)",
+            fontSize: "0.85rem",
+            minWidth: "220px",
+          }}
+        />
         {filterFields.map((field) => (
           <select
             key={field.key}

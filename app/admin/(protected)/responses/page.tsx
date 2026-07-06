@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { REGIONS, SERVICES } from "@/lib/constants/survey-options";
+import { toReferenceCode } from "@/lib/reference";
 import { ResponsesTable, type ResponseRow } from "./responses-table";
 
 const PAGE_SIZE = 20;
@@ -12,7 +13,14 @@ type SearchParams = {
   customerType?: string;
   sort?: string;
   highlight?: string;
+  reference?: string;
 };
+
+// A reference code is CSM-<last 10 chars of the id, uppercased> — recover that
+// suffix from user input (with or without the "CSM-" prefix) to filter by id.
+function referenceToIdSuffix(reference: string): string {
+  return reference.replace(/^CSM-/i, "").trim().toLowerCase();
+}
 
 export default async function AdminResponsesPage({
   searchParams,
@@ -27,10 +35,13 @@ export default async function AdminResponsesPage({
   const isValidCustomerType = (v: string | undefined): v is (typeof CUSTOMER_TYPES)[number] =>
     (CUSTOMER_TYPES as readonly string[]).includes(v ?? "");
 
+  const referenceSuffix = params.reference ? referenceToIdSuffix(params.reference) : "";
+
   const where = {
     ...(params.region && (REGIONS as readonly string[]).includes(params.region) ? { region: params.region } : {}),
     ...(params.service && (SERVICES as readonly string[]).includes(params.service) ? { service: params.service } : {}),
     ...(isValidCustomerType(customerType) ? { customerType } : {}),
+    ...(referenceSuffix ? { id: { endsWith: referenceSuffix } } : {}),
   };
 
   // A notification link points at a response by id, not a page number — jump to
@@ -69,6 +80,7 @@ export default async function AdminResponsesPage({
     );
     return {
       id: r.id,
+      reference: toReferenceCode(r.id),
       createdAt: r.createdAt.toISOString(),
       age: r.age,
       sex: r.sex,
@@ -97,6 +109,7 @@ export default async function AdminResponsesPage({
         regions={REGIONS}
         services={SERVICES}
         highlightId={highlightId}
+        referenceSearch={params.reference ?? ""}
       />
     </div>
   );
