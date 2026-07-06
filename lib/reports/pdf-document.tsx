@@ -1,20 +1,9 @@
 import "server-only";
-import fs from "node:fs";
-import path from "node:path";
 import { Document, Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer";
 import type { ReportAggregate } from "./aggregate";
 import type { ImprovementPlanRow, ServiceTransactionRow } from "@/app/admin/(protected)/reports/actions";
 import { BUREAU_NAME, DIVISION_NAME, OFFICE_LOCATION, OFFICE_NAME } from "./constants";
-
-// react-pdf resolves local image `src` *strings* via Node's legacy url.parse() + path.resolve(),
-// which mishandles Windows paths (drive letter read as a URL protocol, then even a file:// URL
-// gets mis-resolved because it calls path.resolve() on the whole href instead of the pathname).
-// Passing the already-read Buffer instead skips that resolution path entirely.
-function readAsset(relativePath: string) {
-  return fs.readFileSync(path.join(/* turbopackIgnore: true */ process.cwd(), relativePath));
-}
-
-const HEADER_BANNER_PATH = readAsset("public/images/header-report.png");
+import { HEADER_BANNER_PNG } from "./header-banner";
 
 const s = StyleSheet.create({
   page: { paddingTop: 36, paddingBottom: 40, paddingLeft: 72, paddingRight: 72, fontSize: 8.5, fontFamily: "Times-Roman", color: "#111" },
@@ -274,7 +263,7 @@ export function CsmReportDocument({
   return (
     <Document title={`CSM Report - ${periodLabel}`}>
       <Page size="A4" style={s.page}>
-        <Image src={HEADER_BANNER_PATH} style={s.headerBanner} />
+        <Image src={HEADER_BANNER_PNG} style={s.headerBanner} />
 
         <Text style={s.reportTitle}>CUSTOMER SATISFACTION MEASUREMENT (CSM) REPORT</Text>
         <Text style={s.reportSubtitle}>{periodLabel}</Text>
