@@ -2,7 +2,14 @@ import "server-only";
 import { prisma } from "@/lib/db";
 import { CC1_LABELS, CC2_LABELS, CC3_LABELS, SEX_LABELS } from "@/lib/constants/enum-labels";
 import { SERVICES } from "@/lib/constants/survey-options";
-import { AGE_BUCKETS, REPORT_REGION_ORDER, getPeriodRange, getQuarterMonths, type ReportPeriodType } from "./constants";
+import {
+  AGE_BUCKETS,
+  REPORT_REGION_ORDER,
+  getPeriodRange,
+  getQuarterMonths,
+  getSemesterMonths,
+  type ReportPeriodType,
+} from "./constants";
 import type { ServiceTransactionRow } from "@/app/admin/(protected)/reports/actions";
 
 const SQD_DIMENSIONS = [
@@ -159,6 +166,11 @@ export async function getQuarterlyAggregate(year: number, quarter: number) {
   return { periodType: "QUARTER" as const, year, period: quarter, ...(await getAggregateForRange(start, end)) };
 }
 
+export async function getSemesterAggregate(year: number, semester: number) {
+  const { start, end } = getPeriodRange("SEMESTER", year, semester);
+  return { periodType: "SEMESTER" as const, year, period: semester, ...(await getAggregateForRange(start, end)) };
+}
+
 export async function getAnnualAggregate(year: number) {
   const { start, end } = getPeriodRange("YEAR", year, 0);
   return { periodType: "YEAR" as const, year, period: 0, ...(await getAggregateForRange(start, end)) };
@@ -167,6 +179,7 @@ export async function getAnnualAggregate(year: number) {
 export async function getReportAggregate(periodType: ReportPeriodType, year: number, period: number) {
   if (periodType === "MONTH") return getMonthlyAggregate(year, period);
   if (periodType === "QUARTER") return getQuarterlyAggregate(year, period);
+  if (periodType === "SEMESTER") return getSemesterAggregate(year, period);
   return getAnnualAggregate(year);
 }
 
@@ -179,7 +192,12 @@ export async function getRolledUpServiceTransactions(
   year: number,
   period: number,
 ): Promise<ServiceTransactionRow[]> {
-  const months = periodType === "QUARTER" ? getQuarterMonths(period) : Array.from({ length: 12 }, (_, i) => i + 1);
+  const months =
+    periodType === "QUARTER"
+      ? getQuarterMonths(period)
+      : periodType === "SEMESTER"
+        ? getSemesterMonths(period)
+        : Array.from({ length: 12 }, (_, i) => i + 1);
 
   const savedReports = await prisma.report.findMany({
     where: { periodType: "MONTH", year, period: { in: months } },

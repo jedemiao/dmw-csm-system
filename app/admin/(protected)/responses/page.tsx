@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { REGIONS, SERVICES } from "@/lib/constants/survey-options";
 import { toReferenceCode } from "@/lib/reference";
+import { AutoRefresh } from "@/components/admin/auto-refresh";
 import { ResponsesTable, type ResponseRow } from "./responses-table";
 
 const PAGE_SIZE = 20;
@@ -97,6 +98,7 @@ export default async function AdminResponsesPage({
 
   return (
     <div>
+      <AutoRefresh />
       <h1 style={{ fontSize: "1.5rem", marginBottom: "0.25rem" }}>Responses</h1>
       <p style={{ color: "var(--ink-500)", marginBottom: "1.5rem" }}>{total.toLocaleString()} total responses.</p>
 

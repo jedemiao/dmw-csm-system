@@ -1,6 +1,7 @@
 import { ChatCircleText, CalendarCheck, Star, ShieldCheck, ClipboardText } from "@phosphor-icons/react/ssr";
 import { prisma } from "@/lib/db";
 import { CC1_LABELS } from "@/lib/constants/enum-labels";
+import { AutoRefresh } from "@/components/admin/auto-refresh";
 
 function startOfWeek() {
   const now = new Date();
@@ -61,6 +62,7 @@ export default async function AdminOverviewPage() {
 
   return (
     <div>
+      <AutoRefresh />
       <h1 style={{ fontSize: "1.5rem", marginBottom: "0.25rem" }}>Overview</h1>
       <p style={{ color: "var(--ink-500)", marginBottom: "1.5rem" }}>
         Summary of Client Satisfaction Measurement responses collected so far.

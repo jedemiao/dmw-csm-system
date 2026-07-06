@@ -43,6 +43,7 @@ enum AdminRole {
 enum ReportPeriodType {
   MONTH
   QUARTER
+  SEMESTER
   YEAR
 }
 
@@ -126,7 +127,7 @@ model Report {
   id         String           @id @default(cuid())
   periodType ReportPeriodType
   year       Int
-  period     Int // MONTH: 1-12, QUARTER: 1-4, YEAR: always 0
+  period     Int // MONTH: 1-12, QUARTER: 1-4, SEMESTER: 1-2, YEAR: always 0
 
   // Not derivable from survey responses - entered by staff.
   serviceTransactions Json // [{ service: string, totalTransactions: number }]

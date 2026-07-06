@@ -20,12 +20,11 @@ export const REGIONS = [
 ] as const;
 
 export const SERVICES = [
-  "Inquiry",
-  "Legal Assistance",
+  "Provision of Legal Assistance",
+  "Extended Other Forms of Assistance",
+  "Alternative Dispute Resolution/SENA",
   "Adjudication",
   "Prosecution",
-  "Other Forms of Assistance",
-  "Alternative Dispute Resolution/SENA",
 ] as const;
 
 export const DEFAULT_AGENCY = "Department of Migrant Workers (DMW) Regional Office XIII";

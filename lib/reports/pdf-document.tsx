@@ -93,6 +93,92 @@ function fmtPct(v: number | null) {
   return v === null ? "" : `${v}%`;
 }
 
+// SQD0 and SQD1-8 render as two tables of the same 9-column shape (Dimension, SD, D,
+// NAD, A, SA, N/A, Total Responses, Overall) per the ANNEX C report template — SQD0 is
+// just that shape with a single "Overall" row instead of the eight per-dimension rows.
+function SqdResultsTable({
+  title,
+  rows,
+  overall,
+  overallLabel,
+}: {
+  title: string;
+  rows: ReportAggregate["sqd"];
+  overall: ReportAggregate["sqdOverall"];
+  overallLabel: string;
+}) {
+  return (
+    <View wrap={false}>
+      <Text style={{ ...s.subLabel, marginTop: 6, fontSize: 8 }}>{title}</Text>
+      <View style={s.table}>
+        <View style={s.trHead} wrap={false}>
+          <Cell width="20%" first bold>
+            Dimension
+          </Cell>
+          <Cell width="9%" bold center>
+            Strongly Disagree
+          </Cell>
+          <Cell width="9%" bold center>
+            Disagree
+          </Cell>
+          <Cell width="12%" bold center>
+            Neither Agree or Disagree
+          </Cell>
+          <Cell width="9%" bold center>
+            Agree
+          </Cell>
+          <Cell width="9%" bold center>
+            Strongly Agree
+          </Cell>
+          <Cell width="9%" bold center>
+            N/A
+          </Cell>
+          <Cell width="11%" bold center>
+            Total Responses
+          </Cell>
+          <Cell width="12%" bold center>
+            Overall
+          </Cell>
+        </View>
+        {rows.map((row) => (
+          <View style={s.tr} key={row.key} wrap={false}>
+            <Cell width="20%" first>
+              {row.label}
+            </Cell>
+            {row.counts.map((c, j) => (
+              <Cell width={j === 2 ? "12%" : "9%"} center key={j}>
+                {c || ""}
+              </Cell>
+            ))}
+            <Cell width="11%" center>
+              {row.responses}
+            </Cell>
+            <Cell width="12%" center>
+              {fmtPct(row.ratingPct)}
+            </Cell>
+          </View>
+        ))}
+        <View style={s.tr} wrap={false}>
+          <Cell width="20%" first last bold>
+            {overallLabel}
+          </Cell>
+          {overall.counts.map((c, j) => (
+            <Cell width={j === 2 ? "12%" : "9%"} center last bold key={j}>
+              {c || ""}
+            </Cell>
+          ))}
+          <Cell width="11%" center last bold>
+            {overall.responses}
+          </Cell>
+          <Cell width="12%" center last bold>
+            {fmtPct(overall.ratingPct)}
+          </Cell>
+        </View>
+      </View>
+    </View>
+  );
+}
+
 function BlankRow() {
   return (
     <View style={s.trBlank} wrap={false}>
@@ -203,7 +289,7 @@ export function CsmReportDocument({
         <View style={s.table}>
           <View style={s.trHead} wrap={false}>
             <Cell width="50%" first bold>
-              {"Name of Service\n[X] External   [ ] Internal"}
+              {"Name of Service\n[ ] External   [ ] Internal"}
             </Cell>
             <Cell width="25%" bold center>
               Responses
@@ -323,72 +409,8 @@ export function CsmReportDocument({
         </Text>
 
         <Text style={s.subLabel}>B.2 Service Quality Dimension (SQD)</Text>
-        <Text style={{ ...s.subLabel, marginTop: 0, fontSize: 8 }}>SQD1-8 Results:</Text>
-        <View style={s.table}>
-          <View style={s.trHead} wrap={false}>
-            <Cell width="20%" first bold>
-              Dimension
-            </Cell>
-            <Cell width="9%" bold center>
-              Strongly Disagree
-            </Cell>
-            <Cell width="9%" bold center>
-              Disagree
-            </Cell>
-            <Cell width="12%" bold center>
-              Neither Agree or Disagree
-            </Cell>
-            <Cell width="9%" bold center>
-              Agree
-            </Cell>
-            <Cell width="9%" bold center>
-              Strongly Agree
-            </Cell>
-            <Cell width="9%" bold center>
-              N/A
-            </Cell>
-            <Cell width="11%" bold center>
-              Total Responses
-            </Cell>
-            <Cell width="12%" bold center>
-              Overall
-            </Cell>
-          </View>
-          {data.sqd.map((row) => (
-            <View style={s.tr} key={row.key} wrap={false}>
-              <Cell width="20%" first>
-                {row.label}
-              </Cell>
-              {row.counts.map((c, j) => (
-                <Cell width={j === 2 ? "12%" : "9%"} center key={j}>
-                  {c || ""}
-                </Cell>
-              ))}
-              <Cell width="11%" center>
-                {row.responses}
-              </Cell>
-              <Cell width="12%" center>
-                {fmtPct(row.ratingPct)}
-              </Cell>
-            </View>
-          ))}
-          <View style={s.tr} wrap={false}>
-            <Cell width="20%" first last bold>
-              Overall
-            </Cell>
-            {data.sqdOverall.counts.map((c, j) => (
-              <Cell width={j === 2 ? "12%" : "9%"} center last bold key={j}>
-                {c || ""}
-              </Cell>
-            ))}
-            <Cell width="11%" center last bold>
-              {data.sqdOverall.responses}
-            </Cell>
-            <Cell width="12%" center last bold>
-              {fmtPct(data.sqdOverall.ratingPct)}
-            </Cell>
-          </View>
-        </View>
+        <SqdResultsTable title="SQD0 Results:" rows={[]} overall={data.sqdOverall} overallLabel="SQD0: Overall" />
+        <SqdResultsTable title="SQD1-8 Results:" rows={data.sqd} overall={data.sqdOverall} overallLabel="Overall" />
         <Text style={s.analysis}>
           <Text style={s.analysisLabel}>Description/Analysis: </Text>
           {sqdAnalysis}

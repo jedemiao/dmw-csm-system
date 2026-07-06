@@ -10,6 +10,7 @@ import { parseReportQuery, type ReportPeriodType } from "@/lib/reports/constants
 const REPORT_TITLES: Record<ReportPeriodType, string> = {
   MONTH: "Monthly CSM Report",
   QUARTER: "Quarterly CSM Report",
+  SEMESTER: "Semestral CSM Report",
   YEAR: "Annual CSM Report",
 };
 

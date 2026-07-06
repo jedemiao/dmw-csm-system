@@ -12,8 +12,8 @@ export const surveyFormSchema = z
     customerType: z.enum(["citizen", "business", "government"]),
 
     cc1: z.enum(["1", "2", "3"]),
-    cc2: z.enum(["1", "2", "3"]).optional(),
-    cc3: z.enum(["1", "2"]).optional(),
+    cc2: z.enum(["1", "2", "3"]),
+    cc3: z.enum(["1", "2"]),
     cc3Reason: z.string().trim().optional(),
 
     sqd1: sqdValue,
@@ -28,17 +28,7 @@ export const surveyFormSchema = z
     remarks: z.string().trim().optional(),
   })
   .superRefine((data, ctx) => {
-    const showCc2 = data.cc1 === "1" || data.cc1 === "2";
-    const showCc3 = showCc2 && (data.cc2 === "1" || data.cc2 === "2");
-    const showCc3Reason = showCc3 && data.cc3 === "2";
-
-    if (showCc2 && !data.cc2) {
-      ctx.addIssue({ code: "custom", path: ["cc2"], message: "CC2 is required." });
-    }
-    if (showCc3 && !data.cc3) {
-      ctx.addIssue({ code: "custom", path: ["cc3"], message: "CC3 is required." });
-    }
-    if (showCc3Reason && !data.cc3Reason) {
+    if (data.cc3 === "2" && !data.cc3Reason) {
       ctx.addIssue({ code: "custom", path: ["cc3Reason"], message: "CC3 reason is required." });
     }
   });

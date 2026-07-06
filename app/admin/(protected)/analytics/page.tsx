@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { Prisma } from "@/generated/prisma/client";
 import { CC1_LABELS, CC2_LABELS, CC3_LABELS, CUSTOMER_TYPE_LABELS } from "@/lib/constants/enum-labels";
 import { getPeriodLabel, getPeriodRange, parseAnalyticsQuery } from "@/lib/reports/constants";
+import { AutoRefresh } from "@/components/admin/auto-refresh";
 import { BreakdownBarChart, SqdBarChart, VolumeLineChart } from "./analytics-charts";
 import { AnalyticsFilters } from "./analytics-filters";
 
@@ -77,6 +78,7 @@ export default async function AdminAnalyticsPage({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
+      <AutoRefresh />
       <div>
         <h1 style={{ fontSize: "1.5rem", marginBottom: "0.25rem" }}>Analytics</h1>
         <p style={{ color: "var(--ink-500)" }}>Aggregate scores computed from collected responses.</p>

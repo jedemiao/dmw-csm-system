@@ -4,17 +4,19 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { DownloadSimple, FloppyDisk, Plus, Trash } from "@phosphor-icons/react";
 import { saveReportMeta, type ImprovementPlanRow, type ServiceTransactionRow } from "./actions";
-import { MONTH_NAMES, QUARTER_LABELS, type ReportPeriodType } from "@/lib/reports/constants";
+import { MONTH_NAMES, QUARTER_LABELS, SEMESTER_LABELS, type ReportPeriodType } from "@/lib/reports/constants";
 
 const PERIOD_TYPE_LABELS: Record<ReportPeriodType, string> = {
   MONTH: "Month",
   QUARTER: "Quarter",
+  SEMESTER: "Semester",
   YEAR: "Year",
 };
 
 const RESPONSE_SCOPE_LABELS: Record<ReportPeriodType, string> = {
   MONTH: "this month",
   QUARTER: "this quarter",
+  SEMESTER: "this semester",
   YEAR: "this year",
 };
 
@@ -76,7 +78,14 @@ export function ReportForm({
   function changeType(nextType: ReportPeriodType) {
     if (nextType === periodType) return;
     const now = new Date();
-    const defaultPeriod = nextType === "MONTH" ? now.getMonth() + 1 : nextType === "QUARTER" ? Math.floor(now.getMonth() / 3) + 1 : 0;
+    const defaultPeriod =
+      nextType === "MONTH"
+        ? now.getMonth() + 1
+        : nextType === "QUARTER"
+          ? Math.floor(now.getMonth() / 3) + 1
+          : nextType === "SEMESTER"
+            ? Math.floor(now.getMonth() / 6) + 1
+            : 0;
     navigate(nextType, year, defaultPeriod);
   }
 
@@ -159,6 +168,22 @@ export function ReportForm({
               onChange={(e) => navigate(periodType, year, Number(e.target.value))}
             >
               {QUARTER_LABELS.map((label, i) => (
+                <option key={label} value={i + 1}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+        {periodType === "SEMESTER" && (
+          <div className="field" style={{ marginBottom: 0 }}>
+            <label htmlFor="report-semester">Semester</label>
+            <select
+              id="report-semester"
+              value={period}
+              onChange={(e) => navigate(periodType, year, Number(e.target.value))}
+            >
+              {SEMESTER_LABELS.map((label, i) => (
                 <option key={label} value={i + 1}>
                   {label}
                 </option>

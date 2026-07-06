@@ -51,28 +51,11 @@ export function SurveyForm() {
   const [submitError, setSubmitError] = useState(false);
   const [reference, setReference] = useState<string | null>(null);
 
-  const showCc2 = values.cc1 === "1" || values.cc1 === "2";
-  const showCc3 = showCc2 && (values.cc2 === "1" || values.cc2 === "2");
-  const showCc3Reason = showCc3 && values.cc3 === "2";
+  const showCc3Reason = values.cc3 === "2";
 
   function set<K extends keyof Values>(key: K, value: string) {
     setValues((prev) => {
       const next = { ...prev, [key]: value };
-      if (key === "cc1") {
-        const willShowCc2 = value === "1" || value === "2";
-        if (!willShowCc2) {
-          next.cc2 = "";
-          next.cc3 = "";
-          next.cc3Reason = "";
-        }
-      }
-      if (key === "cc2") {
-        const willShowCc3 = value === "1" || value === "2";
-        if (!willShowCc3) {
-          next.cc3 = "";
-          next.cc3Reason = "";
-        }
-      }
       if (key === "cc3" && value !== "2") {
         next.cc3Reason = "";
       }
@@ -107,8 +90,8 @@ export function SurveyForm() {
     check("field-customer-type", values.customerType !== "", t("msg_customer_type"), t("lbl_customer_type"));
     check("field-cc1", values.cc1 !== "", t("msg_cc1"), t("lbl_cc1"));
 
-    if (showCc2) check("field-cc2", values.cc2 !== "", t("msg_cc2"), t("lbl_cc2"));
-    if (showCc3) check("field-cc3", values.cc3 !== "", t("msg_cc3"), t("lbl_cc3"));
+    check("field-cc2", values.cc2 !== "", t("msg_cc2"), t("lbl_cc2"));
+    check("field-cc3", values.cc3 !== "", t("msg_cc3"), t("lbl_cc3"));
     if (showCc3Reason) check("field-cc3-reason", values.cc3Reason.trim() !== "", t("msg_cc3_reason"), t("lbl_cc3_reason"));
 
     SQD_ITEMS.forEach((item, i) => {
@@ -140,8 +123,8 @@ export function SurveyForm() {
         service: values.service,
         customerType: values.customerType,
         cc1: values.cc1,
-        cc2: showCc2 ? values.cc2 : undefined,
-        cc3: showCc3 ? values.cc3 : undefined,
+        cc2: values.cc2,
+        cc3: values.cc3,
         cc3Reason: showCc3Reason ? values.cc3Reason : undefined,
         sqd1: values.sqd1,
         sqd2: values.sqd2,
@@ -394,7 +377,7 @@ export function SurveyForm() {
               </label>
               <label className="radio-option">
                 <input type="radio" name="cc1" value="3" checked={values.cc1 === "3"} onChange={(e) => set("cc1", e.target.value)} />{" "}
-                <span>{t("cc1_opt3")}</span> <span className="radio-skip">{t("cc1_skip")}</span>
+                <span>{t("cc1_opt3")}</span>
               </label>
             </div>
             <span className="field-error" role="alert">
@@ -402,61 +385,57 @@ export function SurveyForm() {
             </span>
           </fieldset>
 
-          <div className="conditional-block" id="cc2-block" hidden={!showCc2}>
-            <fieldset id="field-cc2" className={errors["field-cc2"] ? "has-error" : ""}>
-              <legend>{t("cc2_legend")}</legend>
-              <div className="radio-row">
-                <label className="radio-option">
-                  <input type="radio" name="cc2" value="1" checked={values.cc2 === "1"} onChange={(e) => set("cc2", e.target.value)} />{" "}
-                  <span>{t("cc2_opt1")}</span>
-                </label>
-                <label className="radio-option">
-                  <input type="radio" name="cc2" value="2" checked={values.cc2 === "2"} onChange={(e) => set("cc2", e.target.value)} />{" "}
-                  <span>{t("cc2_opt2")}</span>
-                </label>
-                <label className="radio-option">
-                  <input type="radio" name="cc2" value="3" checked={values.cc2 === "3"} onChange={(e) => set("cc2", e.target.value)} />{" "}
-                  <span>{t("cc2_opt3")}</span> <span className="radio-skip">{t("cc2_skip")}</span>
-                </label>
-              </div>
-              <span className="field-error" role="alert">
-                {errors["field-cc2"]}
-              </span>
-            </fieldset>
-          </div>
+          <fieldset id="field-cc2" className={errors["field-cc2"] ? "has-error" : ""}>
+            <legend>{t("cc2_legend")}</legend>
+            <div className="radio-row">
+              <label className="radio-option">
+                <input type="radio" name="cc2" value="1" checked={values.cc2 === "1"} onChange={(e) => set("cc2", e.target.value)} />{" "}
+                <span>{t("cc2_opt1")}</span>
+              </label>
+              <label className="radio-option">
+                <input type="radio" name="cc2" value="2" checked={values.cc2 === "2"} onChange={(e) => set("cc2", e.target.value)} />{" "}
+                <span>{t("cc2_opt2")}</span>
+              </label>
+              <label className="radio-option">
+                <input type="radio" name="cc2" value="3" checked={values.cc2 === "3"} onChange={(e) => set("cc2", e.target.value)} />{" "}
+                <span>{t("cc2_opt3")}</span>
+              </label>
+            </div>
+            <span className="field-error" role="alert">
+              {errors["field-cc2"]}
+            </span>
+          </fieldset>
 
-          <div className="conditional-block" id="cc3-block" hidden={!showCc3}>
-            <fieldset id="field-cc3" className={errors["field-cc3"] ? "has-error" : ""}>
-              <legend>{t("cc3_legend")}</legend>
-              <div className="radio-row">
-                <label className="radio-option">
-                  <input type="radio" name="cc3" value="1" checked={values.cc3 === "1"} onChange={(e) => set("cc3", e.target.value)} />{" "}
-                  <span>{t("cc3_opt1")}</span>
-                </label>
-                <label className="radio-option">
-                  <input type="radio" name="cc3" value="2" checked={values.cc3 === "2"} onChange={(e) => set("cc3", e.target.value)} />{" "}
-                  <span>{t("cc3_opt2")}</span>
-                </label>
-              </div>
-              <span className="field-error" role="alert">
-                {errors["field-cc3"]}
-              </span>
-            </fieldset>
+          <fieldset id="field-cc3" className={errors["field-cc3"] ? "has-error" : ""}>
+            <legend>{t("cc3_legend")}</legend>
+            <div className="radio-row">
+              <label className="radio-option">
+                <input type="radio" name="cc3" value="1" checked={values.cc3 === "1"} onChange={(e) => set("cc3", e.target.value)} />{" "}
+                <span>{t("cc3_opt1")}</span>
+              </label>
+              <label className="radio-option">
+                <input type="radio" name="cc3" value="2" checked={values.cc3 === "2"} onChange={(e) => set("cc3", e.target.value)} />{" "}
+                <span>{t("cc3_opt2")}</span>
+              </label>
+            </div>
+            <span className="field-error" role="alert">
+              {errors["field-cc3"]}
+            </span>
+          </fieldset>
 
-            <div className="conditional-block" id="cc3-reason-block" hidden={!showCc3Reason}>
-              <div className={`field${errors["field-cc3-reason"] ? " has-error" : ""}`} id="field-cc3-reason">
-                <label htmlFor="cc3Reason">{t("lbl_why_not")}</label>
-                <input
-                  type="text"
-                  id="cc3Reason"
-                  aria-describedby="cc3Reason-error"
-                  value={values.cc3Reason}
-                  onChange={(e) => set("cc3Reason", e.target.value)}
-                />
-                <span className="field-error" id="cc3Reason-error" role="alert">
-                  {errors["field-cc3-reason"]}
-                </span>
-              </div>
+          <div className="conditional-block" id="cc3-reason-block" hidden={!showCc3Reason}>
+            <div className={`field${errors["field-cc3-reason"] ? " has-error" : ""}`} id="field-cc3-reason">
+              <label htmlFor="cc3Reason">{t("lbl_why_not")}</label>
+              <input
+                type="text"
+                id="cc3Reason"
+                aria-describedby="cc3Reason-error"
+                value={values.cc3Reason}
+                onChange={(e) => set("cc3Reason", e.target.value)}
+              />
+              <span className="field-error" id="cc3Reason-error" role="alert">
+                {errors["field-cc3-reason"]}
+              </span>
             </div>
           </div>
         </section>

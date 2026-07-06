@@ -852,12 +852,6 @@ fieldset.has-error { background: var(--danger-100); }
   cursor: pointer;
 }
 .radio-option input { margin-top: 0.2rem; flex: none; width: 18px; height: 18px; accent-color: var(--blue-600); }
-.radio-option .radio-skip {
-  display: block;
-  font-size: 0.78rem;
-  color: var(--ink-400);
-  font-style: italic;
-}
 
 .conditional-block {
   margin-top: 1rem;
@@ -883,7 +877,7 @@ fieldset.has-error { background: var(--danger-100); }
 }
 .likert-head > span:first-child { text-align: left; }
 .likert-head > span { padding: 0.75rem 0.5rem; }
-.likert-head .emoji { display: block; font-size: 1.15rem; margin-bottom: 0.2rem; }
+.likert-head .emoji { display: block; font-size: 1.75rem; margin-bottom: 0.2rem; }
 
 .likert-row {
   display: grid;
@@ -935,7 +929,7 @@ fieldset.has-error { background: var(--danger-100); }
     color: var(--ink-500);
     padding-inline: 2px;
   }
-  .likert-scale-mobile .emoji { display: block; font-size: 1.15rem; margin-bottom: 0.2rem; }
+  .likert-scale-mobile .emoji { display: block; font-size: 1.75rem; margin-bottom: 0.2rem; }
   .likert-row .likert-cell {
     flex: 1 1 0;
     padding: 0.75rem 0;
