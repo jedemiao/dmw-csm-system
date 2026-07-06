@@ -11,5 +11,5 @@ export async function POST(request: Request) {
 
   await destroySession();
   const siteOrigin = await getSiteOrigin();
-  return NextResponse.redirect(new URL("/admin/login", siteOrigin));
+  return NextResponse.redirect(new URL("/admin/login", siteOrigin), 303);
 }
