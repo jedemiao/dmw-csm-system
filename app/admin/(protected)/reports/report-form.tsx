@@ -84,6 +84,7 @@ export function ReportForm({
   const [saved, setSaved] = useState(false);
   const confirmDialogRef = useRef<HTMLDialogElement>(null);
   const [pendingDownload, setPendingDownload] = useState<{ filename: string; label: string } | null>(null);
+  const isDownloadingRef = useRef(false);
 
   const [serviceTx, setServiceTx] = useState(initialServiceTx);
   const [plan, setPlan] = useState<ImprovementPlanRow[]>(
@@ -159,49 +160,54 @@ export function ReportForm({
   }
 
   function confirmDownload() {
-    if (!pendingDownload) return;
+    if (!pendingDownload || isDownloadingRef.current) return;
+    isDownloadingRef.current = true;
     const { filename } = pendingDownload;
     confirmDialogRef.current?.close();
 
     setSaved(false);
     startTransition(async () => {
-      // The PDF route reads saved report data from the database, not from this
-      // form's state, so unsaved edits (e.g. Description/Analysis text) would
-      // silently be missing from the download unless we save first.
-      await saveReportMeta(currentMeta());
-      setSaved(true);
+      try {
+        // The PDF route reads saved report data from the database, not from this
+        // form's state, so unsaved edits (e.g. Description/Analysis text) would
+        // silently be missing from the download unless we save first.
+        await saveReportMeta(currentMeta());
+        setSaved(true);
 
-      const res = await fetch(pdfHref);
-      if (!res.ok) {
-        alert("Failed to generate the report. Please try again.");
-        return;
-      }
-      const blob = await res.blob();
-
-      // Chrome/Edge: let the admin pick the destination folder via the native
-      // save dialog. Falls back to a normal browser download (Firefox/Safari,
-      // or if the admin cancels the picker) since that API isn't universal.
-      if (window.showSaveFilePicker) {
-        try {
-          const handle = await window.showSaveFilePicker({
-            suggestedName: filename,
-            types: [{ description: "PDF document", accept: { "application/pdf": [".pdf"] } }],
-          });
-          const writable = await handle.createWritable();
-          await writable.write(blob);
-          await writable.close();
+        const res = await fetch(pdfHref);
+        if (!res.ok) {
+          alert("Failed to generate the report. Please try again.");
           return;
-        } catch (err) {
-          if (err instanceof Error && err.name === "AbortError") return;
         }
-      }
+        const blob = await res.blob();
 
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      a.click();
-      URL.revokeObjectURL(url);
+        // Chrome/Edge: let the admin pick the destination folder via the native
+        // save dialog. Falls back to a normal browser download (Firefox/Safari,
+        // or if the admin cancels the picker) since that API isn't universal.
+        if (window.showSaveFilePicker) {
+          try {
+            const handle = await window.showSaveFilePicker({
+              suggestedName: filename,
+              types: [{ description: "PDF document", accept: { "application/pdf": [".pdf"] } }],
+            });
+            const writable = await handle.createWritable();
+            await writable.write(blob);
+            await writable.close();
+            return;
+          } catch (err) {
+            if (err instanceof Error && err.name === "AbortError") return;
+          }
+        }
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+      } finally {
+        isDownloadingRef.current = false;
+      }
     });
   }
 
@@ -445,7 +451,7 @@ export function ReportForm({
           <button type="button" className="btn btn-secondary" onClick={closeDownloadConfirm}>
             Cancel
           </button>
-          <button type="button" className="btn btn-primary" onClick={confirmDownload}>
+          <button type="button" className="btn btn-primary" onClick={confirmDownload} disabled={isPending}>
             Download
           </button>
         </div>
