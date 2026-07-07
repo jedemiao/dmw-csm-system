@@ -1,14 +1,15 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import Image from "next/image";
-import { LockKey, User } from "@phosphor-icons/react";
+import { Eye, EyeSlash, LockKey, User } from "@phosphor-icons/react";
 import { login, type LoginState } from "@/lib/auth/actions";
 
 const INITIAL_STATE: LoginState = { error: null };
 
 export function LoginForm() {
   const [state, formAction, pending] = useActionState(login, INITIAL_STATE);
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
     <form action={formAction} className="form-shell login-card">
@@ -41,7 +42,23 @@ export function LoginForm() {
           <label htmlFor="password">Password</label>
           <div className="input-icon">
             <LockKey size={18} aria-hidden="true" />
-            <input type="password" id="password" name="password" autoComplete="current-password" required />
+            <input
+              type={showPassword ? "text" : "password"}
+              id="password"
+              name="password"
+              autoComplete="current-password"
+              required
+              className="has-toggle"
+            />
+            <button
+              type="button"
+              className="input-icon__toggle"
+              onClick={() => setShowPassword((v) => !v)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              aria-pressed={showPassword}
+            >
+              {showPassword ? <EyeSlash size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
+            </button>
           </div>
         </div>
         <button type="submit" className="btn btn-primary btn-block" disabled={pending}>

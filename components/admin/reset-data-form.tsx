@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { LockKey, Warning } from "@phosphor-icons/react";
+import { Eye, EyeSlash, LockKey, Warning } from "@phosphor-icons/react";
 
 type DeletedCounts = {
   surveyResponses: number;
@@ -13,6 +13,8 @@ type DeletedCounts = {
 export function ResetDataForm() {
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<DeletedCounts | null>(null);
@@ -76,14 +78,24 @@ export function ResetDataForm() {
         <div className="input-icon">
           <LockKey size={18} aria-hidden="true" />
           <input
-            type="password"
+            type={showPassword ? "text" : "password"}
             id="reset-password"
             name="password"
             autoComplete="current-password"
             required
+            className="has-toggle"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
+          <button
+            type="button"
+            className="input-icon__toggle"
+            onClick={() => setShowPassword((v) => !v)}
+            aria-label={showPassword ? "Hide password" : "Show password"}
+            aria-pressed={showPassword}
+          >
+            {showPassword ? <EyeSlash size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
+          </button>
         </div>
       </div>
 
@@ -92,15 +104,25 @@ export function ResetDataForm() {
         <div className="input-icon">
           <LockKey size={18} aria-hidden="true" />
           <input
-            type="password"
+            type={showPasswordConfirm ? "text" : "password"}
             id="reset-password-confirm"
             name="passwordConfirm"
             autoComplete="current-password"
             required
+            className="has-toggle"
             aria-describedby="reset-password-confirm-error"
             value={passwordConfirm}
             onChange={(e) => setPasswordConfirm(e.target.value)}
           />
+          <button
+            type="button"
+            className="input-icon__toggle"
+            onClick={() => setShowPasswordConfirm((v) => !v)}
+            aria-label={showPasswordConfirm ? "Hide password" : "Show password"}
+            aria-pressed={showPasswordConfirm}
+          >
+            {showPasswordConfirm ? <EyeSlash size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
+          </button>
         </div>
         <span className="field-error" id="reset-password-confirm-error" role="alert">
           {mismatch ? "Passwords don't match." : ""}

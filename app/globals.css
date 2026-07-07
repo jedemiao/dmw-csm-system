@@ -758,6 +758,25 @@ main { display: block; }
 .field .input-icon input[type="password"] {
   padding-left: 2.6rem;
 }
+.input-icon .input-icon__toggle {
+  position: absolute;
+  right: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink-400);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+.input-icon .input-icon__toggle:hover { color: var(--ink-700); }
+.field .input-icon input.has-toggle {
+  padding-right: 2.6rem;
+}
 
 .form-section {
   padding: 1.75rem 2rem;
