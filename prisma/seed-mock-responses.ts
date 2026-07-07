@@ -33,9 +33,10 @@ function randomSqd(): number | null {
   return 5;
 }
 
-function randomDateInMonth(year: number, monthIndex: number): Date {
+function randomDateInMonth(year: number, monthIndex: number, maxDay?: number): Date {
   const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
-  const day = 1 + Math.floor(Math.random() * daysInMonth);
+  const cap = maxDay ? Math.min(maxDay, daysInMonth) : daysInMonth;
+  const day = 1 + Math.floor(Math.random() * cap);
   const hour = Math.floor(Math.random() * 24);
   const minute = Math.floor(Math.random() * 60);
   return new Date(year, monthIndex, day, hour, minute);
@@ -81,8 +82,10 @@ async function main() {
   for (let i = 0; i < MONTHS_BACK; i++) {
     const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
     const count = perMonth + (i < remainder ? 1 : 0);
+    // The current month (i === 0) must not hand out days after today.
+    const maxDay = i === 0 ? now.getDate() : undefined;
     for (let j = 0; j < count; j++) {
-      responses.push(buildResponse(randomDateInMonth(monthDate.getFullYear(), monthDate.getMonth())));
+      responses.push(buildResponse(randomDateInMonth(monthDate.getFullYear(), monthDate.getMonth(), maxDay)));
     }
   }
 
