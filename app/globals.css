@@ -605,6 +605,8 @@ main { display: block; }
 }
 [data-theme="dark"] .btn-secondary { color: #fff; }
 .btn-secondary:hover { border-color: var(--blue-600); color: var(--blue-600); }
+.btn-danger { background: var(--danger-600); color: #fff; }
+.btn-danger:hover { background: #8f1f30; }
 .btn-block { width: 100%; }
 .btn[disabled] { opacity: 0.55; cursor: not-allowed; }
 
@@ -962,6 +964,30 @@ fieldset.has-error { background: var(--danger-100); }
   margin: 1.5rem 2rem 0;
 }
 .alert-error { background: var(--danger-100); color: var(--danger-600); }
+.alert-success { background: var(--success-100); color: var(--success-600); }
+
+dialog.confirm-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 1.5rem 1.75rem;
+  background: var(--surface);
+  color: var(--ink-900);
+  max-width: 26rem;
+  width: calc(100% - 2rem);
+  box-shadow: var(--shadow-md);
+}
+dialog.confirm-dialog::backdrop { background: rgb(10 19 48 / 0.55); }
+[data-theme="dark"] dialog.confirm-dialog {
+  box-shadow: 0 24px 60px rgb(0 0 0 / 0.55), 0 0 0 1px rgb(255 255 255 / 0.08);
+}
+[data-theme="dark"] dialog.confirm-dialog::backdrop { background: rgb(0 0 0 / 0.65); }
+dialog.confirm-dialog h2 { font-size: 1.05rem; margin: 0 0 0.75rem; }
+dialog.confirm-dialog p { margin: 0; color: var(--ink-500); font-size: 0.9rem; }
 .alert svg { flex: none; width: 20px; height: 20px; margin-top: 0.1rem; }
 .alert[hidden] { display: none; }
 .alert-summary { margin: 0; color: inherit; font-weight: 600; }

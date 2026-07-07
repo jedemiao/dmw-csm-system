@@ -9,6 +9,7 @@ import {
   ChartBar,
   FilePdf,
   Gauge,
+  Gear,
   IconProps,
   ListBullets,
   QrCode,
@@ -32,6 +33,7 @@ const NAV_ITEMS: NavItem[] = [
 export function AdminSidebar({ role, username }: { role: string; username: string }) {
   const [open, setOpen] = useState(true);
   const pathname = usePathname();
+  const navItems = role === "ADMIN" ? [...NAV_ITEMS, { href: "/admin/settings", label: "Settings", Icon: Gear }] : NAV_ITEMS;
 
   return (
     <nav className={`admin-sidebar${open ? "" : " admin-sidebar--collapsed"}`} aria-label="Admin navigation">
@@ -47,7 +49,7 @@ export function AdminSidebar({ role, username }: { role: string; username: strin
       </div>
 
       <div className="admin-sidebar__links">
-        {NAV_ITEMS.map(({ href, label, Icon }) => {
+        {navItems.map(({ href, label, Icon }) => {
           const isActive = href === "/admin" ? pathname === href : pathname.startsWith(href);
           return (
             <Link

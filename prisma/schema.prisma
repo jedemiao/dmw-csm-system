@@ -150,6 +150,19 @@ model Report {
   @@unique([periodType, year, period])
 }
 
+// Append-only trail for destructive/administrative actions. Written before the
+// action executes so a record survives even if the action itself fails partway.
+model AuditLog {
+  id                  String   @id @default(cuid())
+  action              String
+  performedByUsername String
+  performedByName     String
+  details             Json?
+  createdAt           DateTime @default(now())
+
+  @@index([createdAt])
+}
+
 model ReportDownload {
   id         String           @id @default(cuid())
   periodType ReportPeriodType
