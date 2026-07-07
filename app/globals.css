@@ -890,6 +890,11 @@ fieldset.has-error { background: var(--danger-100); }
   margin: 0;
   padding: 0;
   align-items: center;
+  /* Browsers give <fieldset> a default min-width: min-content that CSS width/flex
+     rules don't override. Longer translated labels (e.g. Tagalog) then push this
+     past the card's available width instead of wrapping, clipping content on the
+     right edge. */
+  min-width: 0;
 }
 .likert-row:nth-child(odd) { background: var(--surface); }
 .likert-row .field-error { grid-column: 1 / -1; padding: 0 1rem 0.75rem; }
