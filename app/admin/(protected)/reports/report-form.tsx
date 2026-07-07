@@ -1,10 +1,36 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { DownloadSimple, FloppyDisk, Plus, Trash } from "@phosphor-icons/react";
 import { saveReportMeta, type ImprovementPlanRow, type ServiceTransactionRow } from "./actions";
-import { MONTH_NAMES, QUARTER_LABELS, SEMESTER_LABELS, type ReportPeriodType } from "@/lib/reports/constants";
+import {
+  getPeriodLabel,
+  getPeriodSlug,
+  MONTH_NAMES,
+  QUARTER_LABELS,
+  SEMESTER_LABELS,
+  type ReportPeriodType,
+} from "@/lib/reports/constants";
+
+// The File System Access API (Chrome/Edge) isn't in TS's default DOM lib yet —
+// declared narrowly here so we can feature-detect it without `any`.
+interface SaveFilePickerOptions {
+  suggestedName?: string;
+  types?: { description: string; accept: Record<string, string[]> }[];
+}
+interface FileSystemWritableStream {
+  write(data: Blob): Promise<void>;
+  close(): Promise<void>;
+}
+interface FileSystemFileHandleLike {
+  createWritable(): Promise<FileSystemWritableStream>;
+}
+declare global {
+  interface Window {
+    showSaveFilePicker?: (options?: SaveFilePickerOptions) => Promise<FileSystemFileHandleLike>;
+  }
+}
 
 const PERIOD_TYPE_LABELS: Record<ReportPeriodType, string> = {
   MONTH: "Month",
@@ -56,6 +82,8 @@ export function ReportForm({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [saved, setSaved] = useState(false);
+  const confirmDialogRef = useRef<HTMLDialogElement>(null);
+  const [pendingDownload, setPendingDownload] = useState<{ filename: string; label: string } | null>(null);
 
   const [serviceTx, setServiceTx] = useState(initialServiceTx);
   const [plan, setPlan] = useState<ImprovementPlanRow[]>(
@@ -118,7 +146,23 @@ export function ReportForm({
     });
   }
 
-  function handleDownload() {
+  function openDownloadConfirm() {
+    setPendingDownload({
+      filename: `CSM-Report-${getPeriodSlug(periodType, year, period)}.pdf`,
+      label: getPeriodLabel(periodType, year, period),
+    });
+    confirmDialogRef.current?.showModal();
+  }
+
+  function closeDownloadConfirm() {
+    confirmDialogRef.current?.close();
+  }
+
+  function confirmDownload() {
+    if (!pendingDownload) return;
+    const { filename } = pendingDownload;
+    confirmDialogRef.current?.close();
+
     setSaved(false);
     startTransition(async () => {
       // The PDF route reads saved report data from the database, not from this
@@ -126,7 +170,38 @@ export function ReportForm({
       // silently be missing from the download unless we save first.
       await saveReportMeta(currentMeta());
       setSaved(true);
-      window.location.href = pdfHref;
+
+      const res = await fetch(pdfHref);
+      if (!res.ok) {
+        alert("Failed to generate the report. Please try again.");
+        return;
+      }
+      const blob = await res.blob();
+
+      // Chrome/Edge: let the admin pick the destination folder via the native
+      // save dialog. Falls back to a normal browser download (Firefox/Safari,
+      // or if the admin cancels the picker) since that API isn't universal.
+      if (window.showSaveFilePicker) {
+        try {
+          const handle = await window.showSaveFilePicker({
+            suggestedName: filename,
+            types: [{ description: "PDF document", accept: { "application/pdf": [".pdf"] } }],
+          });
+          const writable = await handle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+          return;
+        } catch (err) {
+          if (err instanceof Error && err.name === "AbortError") return;
+        }
+      }
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
     });
   }
 
@@ -353,11 +428,28 @@ export function ReportForm({
         <button type="button" className="btn btn-primary" onClick={handleSave} disabled={isPending}>
           <FloppyDisk size={16} /> {isPending ? "Saving…" : "Save"}
         </button>
-        <button type="button" className="btn btn-secondary" onClick={handleDownload} disabled={isPending}>
+        <button type="button" className="btn btn-secondary" onClick={openDownloadConfirm} disabled={isPending}>
           <DownloadSimple size={16} /> {isPending ? "Saving…" : "Download PDF"}
         </button>
         {saved && !isPending && <span style={{ color: "var(--ink-500)", fontSize: "0.85rem" }}>Saved.</span>}
       </div>
+
+      <dialog ref={confirmDialogRef} className="confirm-dialog" onCancel={() => setPendingDownload(null)}>
+        <h2>Confirm</h2>
+        {pendingDownload && (
+          <p>
+            Download the CSM report {pendingDownload.label} as &quot;{pendingDownload.filename}&quot;?
+          </p>
+        )}
+        <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end", marginTop: "1.25rem" }}>
+          <button type="button" className="btn btn-secondary" onClick={closeDownloadConfirm}>
+            Cancel
+          </button>
+          <button type="button" className="btn btn-primary" onClick={confirmDownload}>
+            Download
+          </button>
+        </div>
+      </dialog>
     </div>
   );
 }
