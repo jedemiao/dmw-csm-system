@@ -1,10 +1,19 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { MONTH_NAMES, QUARTER_LABELS, SEMESTER_LABELS, type AnalyticsPeriodType } from "@/lib/reports/constants";
+import {
+  MONTH_NAMES,
+  QUARTER_LABELS,
+  SEMESTER_LABELS,
+  getWeekNumberForDate,
+  getWeekRangeLabel,
+  getWeeksInYear,
+  type AnalyticsPeriodType,
+} from "@/lib/reports/constants";
 
 const RANGE_LABELS: Record<AnalyticsPeriodType, string> = {
   ALL: "All time",
+  WEEK: "Week",
   MONTH: "Month",
   QUARTER: "Quarter",
   SEMESTER: "Semester",
@@ -35,6 +44,11 @@ export function AnalyticsFilters({
   function changeType(nextType: AnalyticsPeriodType) {
     if (nextType === periodType) return;
     const now = new Date();
+    if (nextType === "WEEK") {
+      const current = getWeekNumberForDate(new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())));
+      navigate(nextType, current.year, current.week);
+      return;
+    }
     const defaultPeriod =
       nextType === "MONTH"
         ? now.getMonth() + 1
@@ -58,6 +72,18 @@ export function AnalyticsFilters({
           ))}
         </select>
       </div>
+      {periodType === "WEEK" && (
+        <div className="field" style={{ marginBottom: 0 }}>
+          <label htmlFor="analytics-week">Week</label>
+          <select id="analytics-week" value={period} onChange={(e) => navigate(periodType, year, Number(e.target.value))}>
+            {Array.from({ length: getWeeksInYear(year) }, (_, i) => i + 1).map((week) => (
+              <option key={week} value={week}>
+                Week {week} ({getWeekRangeLabel(year, week)})
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
       {periodType === "MONTH" && (
         <div className="field" style={{ marginBottom: 0 }}>
           <label htmlFor="analytics-month">Month</label>
@@ -101,7 +127,11 @@ export function AnalyticsFilters({
             id="analytics-year"
             type="number"
             value={year}
-            onChange={(e) => navigate(periodType, Number(e.target.value) || year, period)}
+            onChange={(e) => {
+              const nextYear = Number(e.target.value) || year;
+              const nextPeriod = periodType === "WEEK" ? Math.min(period, getWeeksInYear(nextYear)) : period;
+              navigate(periodType, nextYear, nextPeriod);
+            }}
           />
         </div>
       )}

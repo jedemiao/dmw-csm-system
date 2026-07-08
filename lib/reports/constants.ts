@@ -54,8 +54,56 @@ export const AGE_BUCKETS = [
 
 export type ReportPeriodType = "MONTH" | "QUARTER" | "SEMESTER" | "YEAR";
 
+// Superset used by the analytics/overview dashboards, which additionally support a
+// "Week" range. Official ARTA report generation (lib/reports/aggregate.ts,
+// app/admin/(protected)/reports) stays on ReportPeriodType only — weekly is not a
+// recognized ARTA reporting period.
+export type DateRangePeriodType = ReportPeriodType | "WEEK";
+
 const QUARTER_ORDINALS = ["1st", "2nd", "3rd", "4th"] as const;
 const SEMESTER_ORDINALS = ["1st", "2nd"] as const;
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const MS_PER_WEEK = 7 * MS_PER_DAY;
+
+// Monday on or before Jan 1 of `year` (UTC). Anchors this file's Monday-start week
+// numbering: week 1 is the week containing Jan 1, so it can start in December.
+function startOfYearMonday(year: number): Date {
+  const jan1 = new Date(Date.UTC(year, 0, 1));
+  const daysSinceMonday = (jan1.getUTCDay() + 6) % 7;
+  return new Date(jan1.getTime() - daysSinceMonday * MS_PER_DAY);
+}
+
+// Number of weeks in `year` under this file's week numbering (52 or 53).
+export function getWeeksInYear(year: number): number {
+  return Math.round((startOfYearMonday(year + 1).getTime() - startOfYearMonday(year).getTime()) / MS_PER_WEEK);
+}
+
+// The (year, week) pair containing `date`, under this file's week numbering. `date`'s
+// own year is used unless `date` already falls in the following year's week 1 (which
+// can start a few days before Dec 31).
+export function getWeekNumberForDate(date: Date): { year: number; week: number } {
+  const calendarYear = date.getUTCFullYear();
+  const year = date.getTime() >= startOfYearMonday(calendarYear + 1).getTime() ? calendarYear + 1 : calendarYear;
+  const week = Math.floor((date.getTime() - startOfYearMonday(year).getTime()) / MS_PER_WEEK) + 1;
+  return { year, week };
+}
+
+// period: WEEK -> 1-53, Monday-Sunday.
+function getWeekRange(year: number, week: number): { start: Date; end: Date } {
+  const start = new Date(startOfYearMonday(year).getTime() + (week - 1) * MS_PER_WEEK);
+  return { start, end: new Date(start.getTime() + MS_PER_WEEK) };
+}
+
+// Human-readable date span for a week, e.g. "Jun 29–Jul 5, 2026" or, across a year
+// boundary, "Dec 29, 2025–Jan 4, 2026".
+export function getWeekRangeLabel(year: number, week: number): string {
+  const { start } = getWeekRange(year, week);
+  const end = new Date(start.getTime() + 6 * MS_PER_DAY);
+  const fmt = (d: Date) => `${MONTH_NAMES[d.getUTCMonth()].slice(0, 3)} ${d.getUTCDate()}`;
+  return start.getUTCFullYear() === end.getUTCFullYear()
+    ? `${fmt(start)}–${fmt(end)}, ${end.getUTCFullYear()}`
+    : `${fmt(start)}, ${start.getUTCFullYear()}–${fmt(end)}, ${end.getUTCFullYear()}`;
+}
 
 // Calendar quarters: Q1 Jan-Mar, Q2 Apr-Jun, Q3 Jul-Sep, Q4 Oct-Dec.
 export const QUARTER_LABELS = ["Q1 (Jan–Mar)", "Q2 (Apr–Jun)", "Q3 (Jul–Sep)", "Q4 (Oct–Dec)"] as const;
@@ -73,8 +121,11 @@ export function getSemesterMonths(semester: number): [number, number, number, nu
   return [start, start + 1, start + 2, start + 3, start + 4, start + 5];
 }
 
-// period: MONTH -> 1-12, QUARTER -> 1-4, SEMESTER -> 1-2, YEAR -> ignored (always the full year).
-export function getPeriodRange(periodType: ReportPeriodType, year: number, period: number): { start: Date; end: Date } {
+// period: WEEK -> 1-53, MONTH -> 1-12, QUARTER -> 1-4, SEMESTER -> 1-2, YEAR -> ignored (always the full year).
+export function getPeriodRange(periodType: DateRangePeriodType, year: number, period: number): { start: Date; end: Date } {
+  if (periodType === "WEEK") {
+    return getWeekRange(year, period);
+  }
   if (periodType === "MONTH") {
     return { start: new Date(Date.UTC(year, period - 1, 1)), end: new Date(Date.UTC(year, period, 1)) };
   }
@@ -89,8 +140,9 @@ export function getPeriodRange(periodType: ReportPeriodType, year: number, perio
   return { start: new Date(Date.UTC(year, 0, 1)), end: new Date(Date.UTC(year + 1, 0, 1)) };
 }
 
-// period: MONTH -> 1-12, QUARTER -> 1-4, SEMESTER -> 1-2, YEAR -> ignored (always the full year).
-export function getPeriodLabel(periodType: ReportPeriodType, year: number, period: number): string {
+// period: WEEK -> 1-53, MONTH -> 1-12, QUARTER -> 1-4, SEMESTER -> 1-2, YEAR -> ignored (always the full year).
+export function getPeriodLabel(periodType: DateRangePeriodType, year: number, period: number): string {
+  if (periodType === "WEEK") return `For the Week of ${getWeekRangeLabel(year, period)}`;
   if (periodType === "MONTH") return `For the Month of ${MONTH_NAMES[period - 1]} ${year}`;
   if (periodType === "QUARTER") {
     const [startMonth, , endMonth] = getQuarterMonths(period);
@@ -105,10 +157,16 @@ export function getPeriodLabel(periodType: ReportPeriodType, year: number, perio
   return `For the Year ${year}`;
 }
 
-// The period immediately before the given one, wrapping into the prior year (period: MONTH ->
-// 1-12, QUARTER -> 1-4, SEMESTER -> 1-2, YEAR -> ignored). Used for period-over-period trends.
-export function getPreviousPeriod(periodType: ReportPeriodType, year: number, period: number): { year: number; period: number } {
+// The period immediately before the given one, wrapping into the prior year (period: WEEK ->
+// 1-53, MONTH -> 1-12, QUARTER -> 1-4, SEMESTER -> 1-2, YEAR -> ignored). Used for
+// period-over-period trends.
+export function getPreviousPeriod(periodType: DateRangePeriodType, year: number, period: number): { year: number; period: number } {
   if (periodType === "YEAR") return { year: year - 1, period: 0 };
+  if (periodType === "WEEK") {
+    if (period > 1) return { year, period: period - 1 };
+    const prevYear = year - 1;
+    return { year: prevYear, period: getWeeksInYear(prevYear) };
+  }
   const max = periodType === "QUARTER" ? 4 : periodType === "SEMESTER" ? 2 : 12;
   return period <= 1 ? { year: year - 1, period: max } : { year, period: period - 1 };
 }
@@ -153,7 +211,7 @@ export function parseReportQuery(
   return { periodType, year, period };
 }
 
-export type AnalyticsPeriodType = "ALL" | ReportPeriodType;
+export type AnalyticsPeriodType = "ALL" | DateRangePeriodType;
 
 // Parses `?range=&year=&period=` for the analytics dashboard filter. Unlike report
 // queries (which always need a concrete saved period), "ALL" — no date filter — is a
@@ -168,6 +226,18 @@ export function parseAnalyticsQuery(
   }
 
   const rawYear = Number(raw.year);
+
+  if (upper === "WEEK") {
+    const nowDate = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+    const currentWeek = getWeekNumberForDate(nowDate);
+    const year = Number.isInteger(rawYear) && rawYear >= 2000 && rawYear <= 2100 ? rawYear : currentWeek.year;
+    const maxWeek = getWeeksInYear(year);
+    const defaultPeriod = year === currentWeek.year ? Math.min(currentWeek.week, maxWeek) : 1;
+    const rawPeriod = Number(raw.period);
+    const period = Number.isInteger(rawPeriod) && rawPeriod >= 1 && rawPeriod <= maxWeek ? rawPeriod : defaultPeriod;
+    return { periodType: "WEEK", year, period };
+  }
+
   const year = Number.isInteger(rawYear) && rawYear >= 2000 && rawYear <= 2100 ? rawYear : now.getFullYear();
   return { periodType: "ALL", year, period: 0 };
 }
