@@ -25,6 +25,7 @@ export const SERVICES = [
   "Alternative Dispute Resolution/SENA",
   "Adjudication",
   "Prosecution",
+  "Regulation and Licensing",
 ] as const;
 
 export const DEFAULT_AGENCY = "Department of Migrant Workers (DMW) Regional Office XIII";
