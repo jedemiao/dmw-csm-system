@@ -1459,5 +1459,5 @@ dialog.confirm-dialog p { margin: 0; color: var(--ink-500); font-size: 0.9rem; }
 }
 .data-table th { color: var(--ink-500); font-weight: 700; background: var(--surface-sunken); }
 .data-table tr:last-child td { border-bottom: 0; }
-.data-table__row--highlighted td { background: var(--blue-100); }
-.data-table__row--highlighted td:first-child { box-shadow: inset 3px 0 0 var(--blue-600); }
+.data-table__row--highlighted:hover td { background: var(--blue-100); }
+.data-table__row--highlighted:hover td:first-child { box-shadow: inset 3px 0 0 var(--blue-600); }

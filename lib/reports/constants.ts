@@ -105,6 +105,14 @@ export function getPeriodLabel(periodType: ReportPeriodType, year: number, perio
   return `For the Year ${year}`;
 }
 
+// The period immediately before the given one, wrapping into the prior year (period: MONTH ->
+// 1-12, QUARTER -> 1-4, SEMESTER -> 1-2, YEAR -> ignored). Used for period-over-period trends.
+export function getPreviousPeriod(periodType: ReportPeriodType, year: number, period: number): { year: number; period: number } {
+  if (periodType === "YEAR") return { year: year - 1, period: 0 };
+  const max = periodType === "QUARTER" ? 4 : periodType === "SEMESTER" ? 2 : 12;
+  return period <= 1 ? { year: year - 1, period: max } : { year, period: period - 1 };
+}
+
 // Short, filesystem-safe slug for report filenames, e.g. "July-2026", "Q3-2026", "S1-2026", "2026".
 export function getPeriodSlug(periodType: ReportPeriodType, year: number, period: number): string {
   if (periodType === "MONTH") return `${MONTH_NAMES[period - 1]}-${year}`;

@@ -15,19 +15,21 @@ export function AnalyticsFilters({
   periodType,
   year,
   period,
+  basePath = "/admin/analytics",
 }: {
   periodType: AnalyticsPeriodType;
   year: number;
   period: number;
+  basePath?: string;
 }) {
   const router = useRouter();
 
   function navigate(nextType: AnalyticsPeriodType, nextYear: number, nextPeriod: number) {
     if (nextType === "ALL") {
-      router.push("/admin/analytics");
+      router.push(basePath);
       return;
     }
-    router.push(`/admin/analytics?range=${nextType.toLowerCase()}&year=${nextYear}&period=${nextPeriod}`);
+    router.push(`${basePath}?range=${nextType.toLowerCase()}&year=${nextYear}&period=${nextPeriod}`);
   }
 
   function changeType(nextType: AnalyticsPeriodType) {
