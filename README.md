@@ -33,7 +33,7 @@ npx prisma db seed
 npm run dev
 ```
 
-The app runs at `http://localhost:3000`. The public survey is at `/survey`; the admin dashboard is at `/admin` (see `prisma/seed.ts` / `prisma/add-admins.ts` for admin accounts).
+The app runs at `http://localhost:3001`. The public survey is at `/survey`; the admin dashboard is at `/admin` (see `prisma/seed.ts` / `prisma/add-admins.ts` for admin accounts).
 
 ### Environment variables
 

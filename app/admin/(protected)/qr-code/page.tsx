@@ -3,7 +3,7 @@ import { getSiteOrigin } from "@/lib/site-url";
 
 export default async function AdminQrCodePage() {
   const origin = await getSiteOrigin();
-  const surveyUrl = `${origin}/survey`;
+  const surveyUrl = `${origin}/#main`;
 
   return (
     <div>

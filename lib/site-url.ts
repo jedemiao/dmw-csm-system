@@ -9,7 +9,7 @@ const LOCAL_HOST_PATTERN = /^(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\
 // this keeps working unchanged whenever the app lands on its eventual host.
 export async function getSiteOrigin(): Promise<string> {
   const h = await headers();
-  const host = h.get("host") ?? "localhost:3000";
+  const host = h.get("host") ?? "localhost:3001";
   const proto = h.get("x-forwarded-proto") ?? (LOCAL_HOST_PATTERN.test(host) ? "http" : "https");
   return `${proto}://${host}`;
 }

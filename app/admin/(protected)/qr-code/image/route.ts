@@ -15,7 +15,7 @@ const SEAL_PATH = path.join(process.cwd(), "public/images/dmw_logo.png");
 
 export async function GET(request: NextRequest) {
   const origin = await getSiteOrigin();
-  const surveyUrl = `${origin}/survey`;
+  const surveyUrl = `${origin}/#main`;
 
   const qrPng = await QRCode.toBuffer(surveyUrl, {
     type: "png",
