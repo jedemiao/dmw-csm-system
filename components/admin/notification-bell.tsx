@@ -34,8 +34,20 @@ export function NotificationBell() {
   const [phase, setPhase] = useState<PanelPhase>("closed");
   const [count, setCount] = useState(0);
   const [items, setItems] = useState<NotificationItem[]>([]);
-  const [lastSeen, setLastSeen] = useState("");
-  const lastSeenRef = useRef("");
+  // First visit on this browser: anchor to now so the badge doesn't flood
+  // with every response submitted before the admin ever opened the bell.
+  // `lastSeen` never appears in the initial (SSR) markup — `items` starts
+  // empty either way — so it's safe to read localStorage synchronously here
+  // instead of setting it from an effect after mount.
+  const [lastSeen, setLastSeen] = useState(() => {
+    if (typeof window === "undefined") return "";
+    try {
+      return localStorage.getItem(LAST_SEEN_KEY) ?? new Date().toISOString();
+    } catch {
+      return new Date().toISOString();
+    }
+  });
+  const lastSeenRef = useRef(lastSeen);
   // The API's clock, refreshed on every poll — used instead of the browser's
   // clock when advancing the "seen" cursor so admin-machine clock drift can't
   // hide newly-inserted rows (see markAllRead).
@@ -69,24 +81,18 @@ export function NotificationBell() {
     }
   }, []);
 
+  // Persists the anchor computed above the first time this browser has no
+  // stored value yet — a no-op on every later run, since by then storage
+  // already holds a value.
   useEffect(() => {
-    let stored: string | null = null;
     try {
-      stored = localStorage.getItem(LAST_SEEN_KEY);
+      if (!localStorage.getItem(LAST_SEEN_KEY)) localStorage.setItem(LAST_SEEN_KEY, lastSeen);
     } catch {
       // storage unavailable
     }
-    // First visit on this browser: anchor to now so the badge doesn't flood
-    // with every response submitted before the admin ever opened the bell.
-    const initial = stored ?? new Date().toISOString();
-    setLastSeen(initial);
-    lastSeenRef.current = initial;
-    try {
-      localStorage.setItem(LAST_SEEN_KEY, initial);
-    } catch {
-      // storage unavailable
-    }
+  }, [lastSeen]);
 
+  useEffect(() => {
     poll();
     const interval = setInterval(poll, POLL_MS);
 

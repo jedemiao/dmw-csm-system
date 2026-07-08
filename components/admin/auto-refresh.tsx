@@ -9,7 +9,10 @@ import { useRouter } from "next/navigation";
 export function AutoRefresh({ intervalMs = 10000 }: { intervalMs?: number }) {
   const router = useRouter();
   const routerRef = useRef(router);
-  routerRef.current = router;
+
+  useEffect(() => {
+    routerRef.current = router;
+  }, [router]);
 
   useEffect(() => {
     const id = setInterval(() => {
