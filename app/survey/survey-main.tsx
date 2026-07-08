@@ -1,11 +1,18 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useLang } from "@/lib/i18n/lang-context";
 import { SurveyForm } from "./survey-form";
 
 export function SurveyMain() {
   const { lang, setLang, t } = useLang();
+  const [consented, setConsented] = useState(false);
+  const [agreed, setAgreed] = useState(false);
+
+  function confirmConsent() {
+    setConsented(true);
+  }
 
   return (
     <main id="main">
@@ -41,7 +48,27 @@ export function SurveyMain() {
       </div>
 
       <div className="container" style={{ paddingBlock: "2.5rem" }}>
-        <SurveyForm />
+        {consented ? (
+          <SurveyForm />
+        ) : (
+          <div className="consent-card">
+            <h2 id="consent-title">{t("consent_h2")}</h2>
+            <p>{t("consent_instruction")}</p>
+            <div className="consent-card__body">
+              <p>{t("consent_body_p1")}</p>
+              <p>{t("consent_body_p2")}</p>
+            </div>
+            <label className="consent-checkbox">
+              <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} />
+              <span>{t("consent_checkbox_label")}</span>
+            </label>
+            <div className="consent-card__actions">
+              <button type="button" className="btn btn-primary" onClick={confirmConsent} disabled={!agreed}>
+                {t("consent_agree_btn")}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </main>
   );

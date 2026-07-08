@@ -8,6 +8,15 @@ export const TRANSLATIONS: Record<Lang, Record<string, string>> = {
       "Answer honestly. It takes about two minutes and every question below is required unless marked optional.",
     breadcrumb_current: "Take the survey",
 
+    consent_h2: "Consent and Data Privacy Declaration",
+    consent_instruction: "Please read the statement below and place a check (✓) in the box if you agree.",
+    consent_body_p1:
+      "I have read and understood the Confidentiality and Data Privacy Notice. I voluntarily consent to the collection, processing, storage, and use of the information I have provided in this Customer Satisfaction Measurement Report (CSMR) by the Department of Migrant Workers (DMW) for the purposes of measuring client satisfaction, evaluating service performance, conducting statistical analysis, and improving its programs and services.",
+    consent_body_p2:
+      "I understand that my personal information shall be treated with strict confidentiality and processed in accordance with Republic Act No. 10173 (Data Privacy Act of 2012) and its Implementing Rules and Regulations. I likewise understand that my responses will be used only for legitimate government purposes and will not be disclosed to unauthorized persons or entities except as authorized by law.",
+    consent_checkbox_label: "I have read and understood this notice and I agree to the terms above.",
+    consent_agree_btn: "I Agree, Continue",
+
     doc_tagline: "Help us serve you better!",
     form_intro:
       "This short Client Satisfaction Measurement (CSM) survey aims to track the customer experience of government offices. Your answers will enable this office to provide a better service.",
@@ -41,7 +50,7 @@ export const TRANSLATIONS: Record<Lang, Record<string, string>> = {
     cc3_legend: "CC3. Did you use the Citizen's Charter as a guide for the service you availed?",
     cc3_opt1: "Yes, I was able to use the CC",
     cc3_opt2: "No, I was not able to use the CC",
-    lbl_why_not: "Why not?",
+    lbl_why_not: "What's the reason? Feel free to share your thoughts.",
 
     s3_h3: "Rate your experience",
     s3_hint: "For SQD1 to SQD8, choose the rating that best matches your experience with this online transaction.",
@@ -115,6 +124,15 @@ export const TRANSLATIONS: Record<Lang, Record<string, string>> = {
       "Sumagot nang tapat. Aabutin ito ng humigit-kumulang dalawang minuto at kinakailangang sagutan ang bawat tanong sa ibaba maliban kung markadong opsyonal.",
     breadcrumb_current: "Sagutan ang Survey",
 
+    consent_h2: "Pahintulot at Deklarasyon sa Pagkapribado ng Datos",
+    consent_instruction: "Pakibasa ang pahayag sa ibaba at lagyan ng tsek (✓) ang kahon kung sumasang-ayon ka.",
+    consent_body_p1:
+      "Nabasa at naunawaan ko ang Confidentiality and Data Privacy Notice. Kusang-loob akong pumapayag sa pangangalap, pagproseso, pag-iimbak, at paggamit ng impormasyong ibinigay ko sa Customer Satisfaction Measurement Report (CSMR) na ito ng Department of Migrant Workers (DMW) para sa layuning sukatin ang kasiyahan ng kliyente, suriin ang performance ng serbisyo, magsagawa ng istatistikal na pagsusuri, at mapabuti ang mga programa at serbisyo nito.",
+    consent_body_p2:
+      "Nauunawaan ko na ang aking personal na impormasyon ay ituturing nang lubos na kompidensyal at ipoproseso alinsunod sa Republic Act No. 10173 (Data Privacy Act of 2012) at ang mga Implementing Rules and Regulations nito. Nauunawaan ko rin na ang aking mga sagot ay gagamitin lamang para sa lehitimong layunin ng pamahalaan at hindi ibubunyag sa mga hindi awtorisadong tao o entidad maliban kung pinahihintulutan ng batas.",
+    consent_checkbox_label: "Nabasa at naunawaan ko ang pahayag na ito at sumasang-ayon ako sa mga tuntuning nabanggit sa itaas.",
+    consent_agree_btn: "Sumasang-ayon Ako, Magpatuloy",
+
     doc_tagline: "Tulungan kaming mas mapaglingkuran ka!",
     form_intro:
       "Layunin ng maikling survey na ito na subaybayan ang karanasan ng mga kliyente sa mga tanggapan ng gobyerno. Ang iyong mga sagot ay makatutulong upang mapabuti pa ng tanggapang ito ang serbisyo nito.",
@@ -148,7 +166,7 @@ export const TRANSLATIONS: Record<Lang, Record<string, string>> = {
     cc3_legend: "CC3. Ginamit mo ba ang Citizen's Charter bilang gabay para sa serbisyong kinuha mo?",
     cc3_opt1: "Oo, nagamit ko ang CC",
     cc3_opt2: "Hindi, hindi ko nagamit ang CC",
-    lbl_why_not: "Bakit hindi?",
+    lbl_why_not: "Ano ang dahilan? Malaya kang magbahagi ng iyong saloobin.",
 
     s3_h3: "I-rate ang Iyong Karanasan",
     s3_hint: "Para sa SQD1 hanggang SQD8, piliin ang rating na pinakaangkop sa iyong karanasan sa online transaksyong ito.",
