@@ -284,12 +284,18 @@ export default async function AdminAnalyticsPage({
               <p className="stat-tile__label" style={{ marginBottom: "0.6rem" }}>
                 Key findings
               </p>
-              <ul style={{ margin: 0, paddingLeft: "1.1rem", display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-                {findings.map((finding) => (
-                  <li key={finding} style={{ fontSize: "0.85rem", color: "var(--ink-700)" }}>
-                    {finding}
-                  </li>
-                ))}
+              <ul style={{ margin: 0, paddingLeft: "1.1rem", listStyle: "disc" }}>
+                {findings.map((finding) => {
+                  const colonIdx = finding.indexOf(":");
+                  const label = colonIdx >= 0 ? finding.slice(0, colonIdx + 1) : null;
+                  const rest = colonIdx >= 0 ? finding.slice(colonIdx + 1) : finding;
+                  return (
+                    <li key={finding} style={{ fontSize: "0.85rem", color: "var(--ink-700)", marginBottom: "0.6rem" }}>
+                      {label && <strong>{label}</strong>}
+                      {rest}
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           </div>
