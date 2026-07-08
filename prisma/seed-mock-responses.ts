@@ -1,15 +1,17 @@
 import "dotenv/config";
 import { PrismaClient } from "../generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { REGIONS, SERVICES } from "../lib/constants/survey-options";
+import { SERVICES } from "../lib/constants/survey-options";
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
 
 // One-off script to backfill sample SurveyResponse rows spread across the last
 // N calendar months, for testing month/quarter/semester/year report periods.
-const TOTAL_RESPONSES = 100;
+// Region fixed to Caraga since this deployment only serves that regional office.
+const TOTAL_RESPONSES = 200;
 const MONTHS_BACK = 12;
+const REGION = "Region XIII – Caraga";
 
 const CC1_VALUES = ["AWARE_BEFORE", "AWARE_ON_SITE", "NOT_AWARE"] as const;
 const CC2_VALUES = ["EASY_TO_FIND", "HARD_TO_FIND", "NOT_SEEN"] as const;
@@ -33,12 +35,18 @@ function randomSqd(): number | null {
   return 5;
 }
 
-function randomDateInMonth(year: number, monthIndex: number, maxDay?: number): Date {
+function randomDateInMonth(year: number, monthIndex: number, maxDay?: number, now?: Date): Date {
   const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
   const cap = maxDay ? Math.min(maxDay, daysInMonth) : daysInMonth;
   const day = 1 + Math.floor(Math.random() * cap);
-  const hour = Math.floor(Math.random() * 24);
-  const minute = Math.floor(Math.random() * 60);
+  // When the roll lands on today (the capped boundary of the current-month bucket), the
+  // hour/minute must also stay within "so far today" — otherwise this can hand out a
+  // createdAt later than the real current time, which poisons the admin notification
+  // bell's "seen" cursor into the future the moment that row is clicked (it never sees
+  // anything as unread again). Only the day was being capped before, not the time-of-day.
+  const isToday = now !== undefined && day === maxDay && day === now.getDate();
+  const hour = isToday ? Math.floor(Math.random() * (now.getHours() + 1)) : Math.floor(Math.random() * 24);
+  const minute = isToday && hour === now.getHours() ? Math.floor(Math.random() * (now.getMinutes() + 1)) : Math.floor(Math.random() * 60);
   return new Date(year, monthIndex, day, hour, minute);
 }
 
@@ -53,7 +61,7 @@ function buildResponse(createdAt: Date) {
   return {
     age: 18 + Math.floor(Math.random() * 50),
     sex: pick(SEX_VALUES),
-    region: pick(REGIONS),
+    region: REGION,
     service: pick(SERVICES),
     customerType: pick(CUSTOMER_TYPES),
     cc1,
@@ -85,12 +93,12 @@ async function main() {
     // The current month (i === 0) must not hand out days after today.
     const maxDay = i === 0 ? now.getDate() : undefined;
     for (let j = 0; j < count; j++) {
-      responses.push(buildResponse(randomDateInMonth(monthDate.getFullYear(), monthDate.getMonth(), maxDay)));
+      responses.push(buildResponse(randomDateInMonth(monthDate.getFullYear(), monthDate.getMonth(), maxDay, now)));
     }
   }
 
   await prisma.surveyResponse.createMany({ data: responses });
-  console.log(`Seeded ${responses.length} sample survey responses across the last ${MONTHS_BACK} months.`);
+  console.log(`Seeded ${responses.length} sample survey responses for ${REGION} across the last ${MONTHS_BACK} months.`);
 }
 
 main()

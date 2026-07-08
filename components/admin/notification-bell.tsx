@@ -36,6 +36,10 @@ export function NotificationBell() {
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [lastSeen, setLastSeen] = useState("");
   const lastSeenRef = useRef("");
+  // The API's clock, refreshed on every poll — used instead of the browser's
+  // clock when advancing the "seen" cursor so admin-machine clock drift can't
+  // hide newly-inserted rows (see markAllRead).
+  const serverTimeRef = useRef("");
   const phaseRef = useRef(phase);
   const panelRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -56,9 +60,10 @@ export function NotificationBell() {
         cache: "no-store",
       });
       if (!res.ok) return;
-      const data: { unreadCount: number; items: NotificationItem[] } = await res.json();
+      const data: { unreadCount: number; items: NotificationItem[]; serverTime?: string } = await res.json();
       setCount(data.unreadCount);
       setItems(data.items);
+      if (data.serverTime) serverTimeRef.current = data.serverTime;
     } catch {
       // Transient network error; the next poll retries.
     }
@@ -160,7 +165,11 @@ export function NotificationBell() {
   }
 
   function markAllRead() {
-    const now = new Date().toISOString();
+    // Prefer the server's clock over the browser's — if the admin machine's
+    // clock runs ahead of the DB server's, anchoring to client time here made
+    // every row inserted afterward (by the server's clock) look like it was
+    // already "seen," so the bell would stop notifying about real new rows.
+    const now = serverTimeRef.current || new Date().toISOString();
     setLastSeen(now);
     lastSeenRef.current = now;
     try {
@@ -179,10 +188,15 @@ export function NotificationBell() {
   // them), so re-poll for the real server-computed count instead of guessing.
   function markItemRead(createdAt: string) {
     if (createdAt <= lastSeenRef.current) return;
-    setLastSeen(createdAt);
-    lastSeenRef.current = createdAt;
+    // Never advance the cursor past the real current time — a row with a bad/future
+    // createdAt (e.g. corrupted seed data, or a clock-skewed submission) would otherwise
+    // push "seen" ahead of now and silently swallow every genuinely new row after it.
+    const now = serverTimeRef.current || new Date().toISOString();
+    const next = createdAt > now ? now : createdAt;
+    setLastSeen(next);
+    lastSeenRef.current = next;
     try {
-      localStorage.setItem(LAST_SEEN_KEY, createdAt);
+      localStorage.setItem(LAST_SEEN_KEY, next);
     } catch {
       // storage unavailable
     }
