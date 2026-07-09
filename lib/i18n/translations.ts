@@ -77,7 +77,7 @@ export const TRANSLATIONS: Record<Lang, Record<string, string>> = {
     sqd4_dim: "Communication",
     sqd5_q: "SQD5. I paid an acceptable amount of fees for my transaction.",
     sqd5_dim: "Costs",
-    sqd6_q: "SQD6. I am confident my online transaction was secure.",
+    sqd6_q: "SQD6. I was treated fairly, or 'walang palakasan', in my transaction.",
     sqd6_dim: "Integrity",
     sqd7_q: "SQD7. The office's online support was available, or, if asked questions, was quick to respond.",
     sqd7_dim: "Assurance",
