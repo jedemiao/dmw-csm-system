@@ -207,23 +207,24 @@ function LabeledCountTable({ title, rows }: { title: string; rows: { label: stri
 
 // Section D/E/G are a single bordered box of free text on the paper form — a numbered
 // list for D (remarks), a plain paragraph for E and G.
+//
+// Deliberately not built from Cell: Cell wraps its children in a <Text>, which is fine
+// for a plain string but breaks a multi-line list — nesting the block-level <View> of
+// stacked <Text> lines inside another <Text> flattens them into one run-on paragraph
+// instead of separate lines. This renders the bordered box directly instead.
 function BoxedText({ lines }: { lines: string[] }) {
   return (
-    <View style={{ ...s.table }}>
-      <View style={s.tr} wrap={false}>
-        <Cell width="100%" first last>
-          <View>
-            {lines.length === 0 ? (
-              <Text style={s.boxText}> </Text>
-            ) : (
-              lines.map((line, i) => (
-                <Text style={s.boxText} key={i}>
-                  {i + 1}. {line}
-                </Text>
-              ))
-            )}
-          </View>
-        </Cell>
+    <View style={s.table}>
+      <View style={{ ...s.td, ...s.tdFirst, ...s.tdLastRow, width: "100%" }} wrap={false}>
+        {lines.length === 0 ? (
+          <Text style={s.boxText}> </Text>
+        ) : (
+          lines.map((line, i) => (
+            <Text style={s.boxText} key={i}>
+              {i + 1}. {line}
+            </Text>
+          ))
+        )}
       </View>
     </View>
   );
