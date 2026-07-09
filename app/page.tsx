@@ -82,6 +82,12 @@ export default function HomePage() {
                   <br />
                   Agree
                 </li>
+                <li>
+                  <span className="emoji" aria-hidden="true">
+                    ➖
+                  </span>
+                  N/A
+                </li>
               </ul>
               <p className="hero__panel-note">
                 This is the official ARTA Client Satisfaction Measurement scale used across Philippine government
