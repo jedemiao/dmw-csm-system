@@ -6,7 +6,7 @@ import { getPeriodLabel, getPeriodRange, parseAnalyticsQuery } from "@/lib/repor
 import { AnalyticsFilters } from "./analytics/analytics-filters";
 import { BreakdownBarChart } from "./analytics/analytics-charts";
 
-const SQD_FIELDS = ["sqd1", "sqd2", "sqd3", "sqd4", "sqd5", "sqd6", "sqd7", "sqd8"] as const;
+const SQD_FIELDS = ["sqd0", "sqd1", "sqd2", "sqd3", "sqd4", "sqd5", "sqd6", "sqd7", "sqd8"] as const;
 
 // Order mirrors the CSM form's rating scale, most positive first, N/A last.
 const RATING_CATEGORIES = [
@@ -50,27 +50,34 @@ export default async function AdminOverviewPage({
   const where = range ? { createdAt: { gte: range.start, lt: range.end } } : {};
   const scopeLabel = periodType === "ALL" ? "All time" : getPeriodLabel(periodType, year, period);
 
-  const [total, thisWeek, sqdAvg, sqd0Avg, cc1Groups, cc2Groups, cc3Groups, recent, sqd0Groups, ...sqdGroups] =
-    await Promise.all([
-      prisma.surveyResponse.count({ where }),
-      prisma.surveyResponse.count({ where: { createdAt: { gte: startOfWeek() } } }),
-      prisma.surveyResponse.aggregate({
-        where,
-        _avg: { sqd1: true, sqd2: true, sqd3: true, sqd4: true, sqd5: true, sqd6: true, sqd7: true, sqd8: true },
-      }),
-      prisma.surveyResponse.aggregate({ where, _avg: { sqd0: true } }),
-      prisma.surveyResponse.groupBy({ where, by: ["cc1"], _count: true }),
-      prisma.surveyResponse.groupBy({ where, by: ["cc2"], _count: true }),
-      prisma.surveyResponse.groupBy({ where, by: ["cc3"], _count: true }),
-      prisma.surveyResponse.findMany({
-        where,
-        orderBy: { createdAt: "desc" },
-        take: 6,
-        select: { id: true, region: true, service: true, customerType: true, createdAt: true },
-      }),
-      prisma.surveyResponse.groupBy({ where, by: ["sqd0"], _count: true }),
-      ...SQD_FIELDS.map((field) => prisma.surveyResponse.groupBy({ where, by: [field as "sqd1"], _count: true })),
-    ]);
+  const [total, thisWeek, sqdAvg, cc1Groups, cc2Groups, cc3Groups, recent, ...sqdGroups] = await Promise.all([
+    prisma.surveyResponse.count({ where }),
+    prisma.surveyResponse.count({ where: { createdAt: { gte: startOfWeek() } } }),
+    prisma.surveyResponse.aggregate({
+      where,
+      _avg: {
+        sqd0: true,
+        sqd1: true,
+        sqd2: true,
+        sqd3: true,
+        sqd4: true,
+        sqd5: true,
+        sqd6: true,
+        sqd7: true,
+        sqd8: true,
+      },
+    }),
+    prisma.surveyResponse.groupBy({ where, by: ["cc1"], _count: true }),
+    prisma.surveyResponse.groupBy({ where, by: ["cc2"], _count: true }),
+    prisma.surveyResponse.groupBy({ where, by: ["cc3"], _count: true }),
+    prisma.surveyResponse.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      take: 6,
+      select: { id: true, region: true, service: true, customerType: true, createdAt: true },
+    }),
+    ...SQD_FIELDS.map((field) => prisma.surveyResponse.groupBy({ where, by: [field as "sqd1"], _count: true })),
+  ]);
 
   const ratingBreakdown = RATING_CATEGORIES.map(({ value, label }) => {
     const count = SQD_FIELDS.reduce((sum, field, i) => {
@@ -81,12 +88,8 @@ export default async function AdminOverviewPage({
     return { label, count };
   });
 
-  const sqd0Breakdown = RATING_CATEGORIES.map(({ value, label }) => ({
-    label,
-    count: sqd0Groups.find((g) => g.sqd0 === value)?._count ?? 0,
-  }));
-
   const avgValues = [
+    sqdAvg._avg.sqd0,
     sqdAvg._avg.sqd1,
     sqdAvg._avg.sqd2,
     sqdAvg._avg.sqd3,
@@ -167,18 +170,6 @@ export default async function AdminOverviewPage({
           </div>
         </div>
         <div className="stat-card">
-          <span className="stat-card__icon stat-card__icon--gold">
-            <Star size={20} aria-hidden="true" />
-          </span>
-          <div>
-            <p className="stat-card__label">Avg. SQD0 (Overall satisfaction)</p>
-            <p className="stat-card__value">
-              {sqd0Avg._avg.sqd0 !== null ? sqd0Avg._avg.sqd0.toFixed(2) : "—"}{" "}
-              <span style={{ fontSize: "1rem", color: "var(--ink-400)", fontWeight: 600 }}>/ 5</span>
-            </p>
-          </div>
-        </div>
-        <div className="stat-card">
           <span className="stat-card__icon">
             <ShieldCheck size={20} aria-hidden="true" />
           </span>
@@ -190,23 +181,9 @@ export default async function AdminOverviewPage({
       </div>
 
       <div style={{ marginBottom: "2rem" }}>
-        <h2 style={{ fontSize: "1.05rem", marginBottom: "0.25rem" }}>SQD0 rating breakdown</h2>
-        <p style={{ color: "var(--ink-500)", fontSize: "0.85rem", marginBottom: "0.75rem" }}>
-          Overall satisfaction ratings across responses in this period, by rating category.
-        </p>
-        <div className="stat-tile">
-          {total === 0 ? (
-            <p style={{ color: "var(--ink-400)", fontSize: "0.85rem" }}>No data yet.</p>
-          ) : (
-            <BreakdownBarChart data={sqd0Breakdown} />
-          )}
-        </div>
-      </div>
-
-      <div style={{ marginBottom: "2rem" }}>
         <h2 style={{ fontSize: "1.05rem", marginBottom: "0.25rem" }}>SQD rating breakdown</h2>
         <p style={{ color: "var(--ink-500)", fontSize: "0.85rem", marginBottom: "0.75rem" }}>
-          All SQD1-8 ratings across responses in this period, by rating category.
+          All SQD0-8 ratings across responses in this period, by rating category.
         </p>
         <div className="stat-tile">
           {total === 0 ? (

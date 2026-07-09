@@ -8,6 +8,7 @@ import { BreakdownBarChart, SqdBarChart, VolumeLineChart } from "./analytics-cha
 import { AnalyticsFilters } from "./analytics-filters";
 
 const SQD_DIMENSIONS = [
+  { key: "sqd0", label: "Overall Satisfaction" },
   { key: "sqd1", label: "Responsiveness" },
   { key: "sqd2", label: "Reliability" },
   { key: "sqd3", label: "Access and Facilities" },
@@ -48,7 +49,6 @@ export default async function AdminAnalyticsPage({
   const [
     totalResponses,
     sqdAvg,
-    sqd0Groups,
     cc1Groups,
     cc2Groups,
     cc3Groups,
@@ -62,9 +62,18 @@ export default async function AdminAnalyticsPage({
     prisma.surveyResponse.count({ where }),
     prisma.surveyResponse.aggregate({
       where,
-      _avg: { sqd1: true, sqd2: true, sqd3: true, sqd4: true, sqd5: true, sqd6: true, sqd7: true, sqd8: true },
+      _avg: {
+        sqd0: true,
+        sqd1: true,
+        sqd2: true,
+        sqd3: true,
+        sqd4: true,
+        sqd5: true,
+        sqd6: true,
+        sqd7: true,
+        sqd8: true,
+      },
     }),
-    prisma.surveyResponse.groupBy({ where, by: ["sqd0"], _count: true }),
     prisma.surveyResponse.groupBy({ where, by: ["cc1"], _count: true }),
     prisma.surveyResponse.groupBy({ where, by: ["cc2"], _count: true }),
     prisma.surveyResponse.groupBy({ where, by: ["cc3"], _count: true }),
@@ -78,26 +87,29 @@ export default async function AdminAnalyticsPage({
       GROUP BY day
       ORDER BY day ASC
     `,
-    // Per-service satisfaction: agree/answered/scoreSum summed across all 8 SQD dimensions,
-    // same "% Agree, N/A excluded" methodology as the official ARTA report (lib/reports/aggregate.ts).
+    // Per-service satisfaction: agree/answered/scoreSum summed across all 9 SQD questions
+    // (SQD0-8), same "% Agree, N/A excluded" methodology as the official ARTA report
+    // (lib/reports/aggregate.ts) plus the standalone SQD0 question folded in.
     prisma.$queryRaw<Array<{ service: string; total: bigint; agree: bigint; answered: bigint; scoreSum: bigint }>>`
       SELECT
         service,
         COUNT(*)::bigint AS total,
         SUM(
+          (CASE WHEN sqd0 IN (4,5) THEN 1 ELSE 0 END) +
           (CASE WHEN sqd1 IN (4,5) THEN 1 ELSE 0 END) + (CASE WHEN sqd2 IN (4,5) THEN 1 ELSE 0 END) +
           (CASE WHEN sqd3 IN (4,5) THEN 1 ELSE 0 END) + (CASE WHEN sqd4 IN (4,5) THEN 1 ELSE 0 END) +
           (CASE WHEN sqd5 IN (4,5) THEN 1 ELSE 0 END) + (CASE WHEN sqd6 IN (4,5) THEN 1 ELSE 0 END) +
           (CASE WHEN sqd7 IN (4,5) THEN 1 ELSE 0 END) + (CASE WHEN sqd8 IN (4,5) THEN 1 ELSE 0 END)
         )::bigint AS agree,
         SUM(
+          (CASE WHEN sqd0 IS NOT NULL THEN 1 ELSE 0 END) +
           (CASE WHEN sqd1 IS NOT NULL THEN 1 ELSE 0 END) + (CASE WHEN sqd2 IS NOT NULL THEN 1 ELSE 0 END) +
           (CASE WHEN sqd3 IS NOT NULL THEN 1 ELSE 0 END) + (CASE WHEN sqd4 IS NOT NULL THEN 1 ELSE 0 END) +
           (CASE WHEN sqd5 IS NOT NULL THEN 1 ELSE 0 END) + (CASE WHEN sqd6 IS NOT NULL THEN 1 ELSE 0 END) +
           (CASE WHEN sqd7 IS NOT NULL THEN 1 ELSE 0 END) + (CASE WHEN sqd8 IS NOT NULL THEN 1 ELSE 0 END)
         )::bigint AS answered,
         SUM(
-          COALESCE(sqd1,0) + COALESCE(sqd2,0) + COALESCE(sqd3,0) + COALESCE(sqd4,0) +
+          COALESCE(sqd0,0) + COALESCE(sqd1,0) + COALESCE(sqd2,0) + COALESCE(sqd3,0) + COALESCE(sqd4,0) +
           COALESCE(sqd5,0) + COALESCE(sqd6,0) + COALESCE(sqd7,0) + COALESCE(sqd8,0)
         )::bigint AS "scoreSum"
       FROM "SurveyResponse"
@@ -105,15 +117,15 @@ export default async function AdminAnalyticsPage({
       GROUP BY service
       ORDER BY total DESC
     `,
-    // Rating descriptor breakdown: every SQD1-8 answer in scope, bucketed by scale value (1-5, N/A).
+    // Rating descriptor breakdown: every SQD0-8 answer in scope, bucketed by scale value (1-5, N/A).
     prisma.$queryRaw<Array<{ c5: bigint; c4: bigint; c3: bigint; c2: bigint; c1: bigint; cna: bigint }>>`
       SELECT
-        SUM((CASE WHEN sqd1 = 5 THEN 1 ELSE 0 END) + (CASE WHEN sqd2 = 5 THEN 1 ELSE 0 END) + (CASE WHEN sqd3 = 5 THEN 1 ELSE 0 END) + (CASE WHEN sqd4 = 5 THEN 1 ELSE 0 END) + (CASE WHEN sqd5 = 5 THEN 1 ELSE 0 END) + (CASE WHEN sqd6 = 5 THEN 1 ELSE 0 END) + (CASE WHEN sqd7 = 5 THEN 1 ELSE 0 END) + (CASE WHEN sqd8 = 5 THEN 1 ELSE 0 END))::bigint AS c5,
-        SUM((CASE WHEN sqd1 = 4 THEN 1 ELSE 0 END) + (CASE WHEN sqd2 = 4 THEN 1 ELSE 0 END) + (CASE WHEN sqd3 = 4 THEN 1 ELSE 0 END) + (CASE WHEN sqd4 = 4 THEN 1 ELSE 0 END) + (CASE WHEN sqd5 = 4 THEN 1 ELSE 0 END) + (CASE WHEN sqd6 = 4 THEN 1 ELSE 0 END) + (CASE WHEN sqd7 = 4 THEN 1 ELSE 0 END) + (CASE WHEN sqd8 = 4 THEN 1 ELSE 0 END))::bigint AS c4,
-        SUM((CASE WHEN sqd1 = 3 THEN 1 ELSE 0 END) + (CASE WHEN sqd2 = 3 THEN 1 ELSE 0 END) + (CASE WHEN sqd3 = 3 THEN 1 ELSE 0 END) + (CASE WHEN sqd4 = 3 THEN 1 ELSE 0 END) + (CASE WHEN sqd5 = 3 THEN 1 ELSE 0 END) + (CASE WHEN sqd6 = 3 THEN 1 ELSE 0 END) + (CASE WHEN sqd7 = 3 THEN 1 ELSE 0 END) + (CASE WHEN sqd8 = 3 THEN 1 ELSE 0 END))::bigint AS c3,
-        SUM((CASE WHEN sqd1 = 2 THEN 1 ELSE 0 END) + (CASE WHEN sqd2 = 2 THEN 1 ELSE 0 END) + (CASE WHEN sqd3 = 2 THEN 1 ELSE 0 END) + (CASE WHEN sqd4 = 2 THEN 1 ELSE 0 END) + (CASE WHEN sqd5 = 2 THEN 1 ELSE 0 END) + (CASE WHEN sqd6 = 2 THEN 1 ELSE 0 END) + (CASE WHEN sqd7 = 2 THEN 1 ELSE 0 END) + (CASE WHEN sqd8 = 2 THEN 1 ELSE 0 END))::bigint AS c2,
-        SUM((CASE WHEN sqd1 = 1 THEN 1 ELSE 0 END) + (CASE WHEN sqd2 = 1 THEN 1 ELSE 0 END) + (CASE WHEN sqd3 = 1 THEN 1 ELSE 0 END) + (CASE WHEN sqd4 = 1 THEN 1 ELSE 0 END) + (CASE WHEN sqd5 = 1 THEN 1 ELSE 0 END) + (CASE WHEN sqd6 = 1 THEN 1 ELSE 0 END) + (CASE WHEN sqd7 = 1 THEN 1 ELSE 0 END) + (CASE WHEN sqd8 = 1 THEN 1 ELSE 0 END))::bigint AS c1,
-        SUM((CASE WHEN sqd1 IS NULL THEN 1 ELSE 0 END) + (CASE WHEN sqd2 IS NULL THEN 1 ELSE 0 END) + (CASE WHEN sqd3 IS NULL THEN 1 ELSE 0 END) + (CASE WHEN sqd4 IS NULL THEN 1 ELSE 0 END) + (CASE WHEN sqd5 IS NULL THEN 1 ELSE 0 END) + (CASE WHEN sqd6 IS NULL THEN 1 ELSE 0 END) + (CASE WHEN sqd7 IS NULL THEN 1 ELSE 0 END) + (CASE WHEN sqd8 IS NULL THEN 1 ELSE 0 END))::bigint AS cna
+        SUM((CASE WHEN sqd0 = 5 THEN 1 ELSE 0 END) + (CASE WHEN sqd1 = 5 THEN 1 ELSE 0 END) + (CASE WHEN sqd2 = 5 THEN 1 ELSE 0 END) + (CASE WHEN sqd3 = 5 THEN 1 ELSE 0 END) + (CASE WHEN sqd4 = 5 THEN 1 ELSE 0 END) + (CASE WHEN sqd5 = 5 THEN 1 ELSE 0 END) + (CASE WHEN sqd6 = 5 THEN 1 ELSE 0 END) + (CASE WHEN sqd7 = 5 THEN 1 ELSE 0 END) + (CASE WHEN sqd8 = 5 THEN 1 ELSE 0 END))::bigint AS c5,
+        SUM((CASE WHEN sqd0 = 4 THEN 1 ELSE 0 END) + (CASE WHEN sqd1 = 4 THEN 1 ELSE 0 END) + (CASE WHEN sqd2 = 4 THEN 1 ELSE 0 END) + (CASE WHEN sqd3 = 4 THEN 1 ELSE 0 END) + (CASE WHEN sqd4 = 4 THEN 1 ELSE 0 END) + (CASE WHEN sqd5 = 4 THEN 1 ELSE 0 END) + (CASE WHEN sqd6 = 4 THEN 1 ELSE 0 END) + (CASE WHEN sqd7 = 4 THEN 1 ELSE 0 END) + (CASE WHEN sqd8 = 4 THEN 1 ELSE 0 END))::bigint AS c4,
+        SUM((CASE WHEN sqd0 = 3 THEN 1 ELSE 0 END) + (CASE WHEN sqd1 = 3 THEN 1 ELSE 0 END) + (CASE WHEN sqd2 = 3 THEN 1 ELSE 0 END) + (CASE WHEN sqd3 = 3 THEN 1 ELSE 0 END) + (CASE WHEN sqd4 = 3 THEN 1 ELSE 0 END) + (CASE WHEN sqd5 = 3 THEN 1 ELSE 0 END) + (CASE WHEN sqd6 = 3 THEN 1 ELSE 0 END) + (CASE WHEN sqd7 = 3 THEN 1 ELSE 0 END) + (CASE WHEN sqd8 = 3 THEN 1 ELSE 0 END))::bigint AS c3,
+        SUM((CASE WHEN sqd0 = 2 THEN 1 ELSE 0 END) + (CASE WHEN sqd1 = 2 THEN 1 ELSE 0 END) + (CASE WHEN sqd2 = 2 THEN 1 ELSE 0 END) + (CASE WHEN sqd3 = 2 THEN 1 ELSE 0 END) + (CASE WHEN sqd4 = 2 THEN 1 ELSE 0 END) + (CASE WHEN sqd5 = 2 THEN 1 ELSE 0 END) + (CASE WHEN sqd6 = 2 THEN 1 ELSE 0 END) + (CASE WHEN sqd7 = 2 THEN 1 ELSE 0 END) + (CASE WHEN sqd8 = 2 THEN 1 ELSE 0 END))::bigint AS c2,
+        SUM((CASE WHEN sqd0 = 1 THEN 1 ELSE 0 END) + (CASE WHEN sqd1 = 1 THEN 1 ELSE 0 END) + (CASE WHEN sqd2 = 1 THEN 1 ELSE 0 END) + (CASE WHEN sqd3 = 1 THEN 1 ELSE 0 END) + (CASE WHEN sqd4 = 1 THEN 1 ELSE 0 END) + (CASE WHEN sqd5 = 1 THEN 1 ELSE 0 END) + (CASE WHEN sqd6 = 1 THEN 1 ELSE 0 END) + (CASE WHEN sqd7 = 1 THEN 1 ELSE 0 END) + (CASE WHEN sqd8 = 1 THEN 1 ELSE 0 END))::bigint AS c1,
+        SUM((CASE WHEN sqd0 IS NULL THEN 1 ELSE 0 END) + (CASE WHEN sqd1 IS NULL THEN 1 ELSE 0 END) + (CASE WHEN sqd2 IS NULL THEN 1 ELSE 0 END) + (CASE WHEN sqd3 IS NULL THEN 1 ELSE 0 END) + (CASE WHEN sqd4 IS NULL THEN 1 ELSE 0 END) + (CASE WHEN sqd5 IS NULL THEN 1 ELSE 0 END) + (CASE WHEN sqd6 IS NULL THEN 1 ELSE 0 END) + (CASE WHEN sqd7 IS NULL THEN 1 ELSE 0 END) + (CASE WHEN sqd8 IS NULL THEN 1 ELSE 0 END))::bigint AS cna
       FROM "SurveyResponse"
       ${dateFilter}
     `,
@@ -130,7 +142,17 @@ export default async function AdminAnalyticsPage({
           const prevAgg = await prisma.surveyResponse.aggregate({
             where: { createdAt: { gte: prevRange.start, lt: prevRange.end } },
             _count: true,
-            _avg: { sqd1: true, sqd2: true, sqd3: true, sqd4: true, sqd5: true, sqd6: true, sqd7: true, sqd8: true },
+            _avg: {
+              sqd0: true,
+              sqd1: true,
+              sqd2: true,
+              sqd3: true,
+              sqd4: true,
+              sqd5: true,
+              sqd6: true,
+              sqd7: true,
+              sqd8: true,
+            },
           });
           const avgValues = SQD_DIMENSIONS.map(({ key }) => prevAgg._avg[key as keyof typeof prevAgg._avg]).filter(
             (v): v is number => v != null,
@@ -165,24 +187,6 @@ export default async function AdminAnalyticsPage({
   const descriptorData = RATING_DESCRIPTORS.map(({ key, label }) => ({ label, count: descriptorCounts[key] }));
   const answeredCount = descriptorCounts.c5 + descriptorCounts.c4 + descriptorCounts.c3 + descriptorCounts.c2 + descriptorCounts.c1;
   const overallRatingPct = pct(descriptorCounts.c5 + descriptorCounts.c4, answeredCount);
-
-  // SQD0 is a standalone overall-satisfaction question, tracked separately from the
-  // SQD1-8 composite everything above this is built on.
-  const sqd0Counts = {
-    c5: sqd0Groups.find((g) => g.sqd0 === 5)?._count ?? 0,
-    c4: sqd0Groups.find((g) => g.sqd0 === 4)?._count ?? 0,
-    c3: sqd0Groups.find((g) => g.sqd0 === 3)?._count ?? 0,
-    c2: sqd0Groups.find((g) => g.sqd0 === 2)?._count ?? 0,
-    c1: sqd0Groups.find((g) => g.sqd0 === 1)?._count ?? 0,
-    cna: sqd0Groups.find((g) => g.sqd0 === null)?._count ?? 0,
-  };
-  const sqd0Data = RATING_DESCRIPTORS.map(({ key, label }) => ({ label, count: sqd0Counts[key] }));
-  const sqd0Answered = sqd0Counts.c5 + sqd0Counts.c4 + sqd0Counts.c3 + sqd0Counts.c2 + sqd0Counts.c1;
-  const sqd0RatingPct = pct(sqd0Counts.c5 + sqd0Counts.c4, sqd0Answered);
-  const sqd0Avg =
-    sqd0Answered > 0
-      ? (sqd0Counts.c5 * 5 + sqd0Counts.c4 * 4 + sqd0Counts.c3 * 3 + sqd0Counts.c2 * 2 + sqd0Counts.c1 * 1) / sqd0Answered
-      : null;
 
   // Union of the official service catalog and any service names actually present in the
   // data (older responses may predate a catalog change) — every offered service gets a row,
@@ -323,29 +327,6 @@ export default async function AdminAnalyticsPage({
       </section>
 
       <section>
-        <h2 style={{ fontSize: "1.1rem", marginBottom: "0.25rem" }}>SQD0: Overall satisfaction</h2>
-        <p style={{ color: "var(--ink-500)", fontSize: "0.85rem", marginBottom: "0.75rem" }}>
-          Standalone overall-satisfaction question, tracked separately from the SQD1-8 composite — {scopeLabel}.
-        </p>
-        {totalResponses === 0 ? (
-          <div className="stat-tile">
-            <p style={{ color: "var(--ink-400)", fontSize: "0.85rem" }}>No data yet for this period.</p>
-          </div>
-        ) : (
-          <div className="stat-tile">
-            <p className="stat-tile__label">Overall rating (Agree + Strongly Agree)</p>
-            <p className="stat-tile__value">{sqd0RatingPct !== null ? `${sqd0RatingPct}%` : "—"}</p>
-            <p style={{ color: "var(--ink-500)", fontSize: "0.8rem", marginTop: "0.35rem" }}>
-              {sqd0Avg !== null ? `${sqd0Avg.toFixed(2)} / 5 average` : "No data"}
-            </p>
-            <div style={{ marginTop: "1rem" }}>
-              <BreakdownBarChart data={sqd0Data} />
-            </div>
-          </div>
-        )}
-      </section>
-
-      <section>
         <h2 style={{ fontSize: "1.1rem", marginBottom: "0.75rem" }}>Average SQD score by dimension</h2>
         <div className="stat-tile">
           <SqdBarChart data={sqdData} />
@@ -407,7 +388,7 @@ export default async function AdminAnalyticsPage({
       <section>
         <h2 style={{ fontSize: "1.1rem", marginBottom: "0.25rem" }}>Satisfaction rating by service</h2>
         <p style={{ color: "var(--ink-500)", fontSize: "0.85rem", marginBottom: "0.75rem" }}>
-          Share of SQD1-8 ratings that were &quot;Agree&quot; or &quot;Strongly Agree&quot;, per service (N/A ratings excluded).
+          Share of SQD0-8 ratings that were &quot;Agree&quot; or &quot;Strongly Agree&quot;, per service (N/A ratings excluded).
         </p>
         <div className="data-table-wrap">
           <table className="data-table">

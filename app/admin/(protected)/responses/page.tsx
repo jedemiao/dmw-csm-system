@@ -76,7 +76,7 @@ export default async function AdminResponsesPage({
   const data: ResponseRow[] = rows.map((r) => {
     // Null sqd values are N/A answers — exclude them so a dimension marked N/A doesn't
     // drag the average down like a low score would.
-    const answered = [r.sqd1, r.sqd2, r.sqd3, r.sqd4, r.sqd5, r.sqd6, r.sqd7, r.sqd8].filter(
+    const answered = [r.sqd0, r.sqd1, r.sqd2, r.sqd3, r.sqd4, r.sqd5, r.sqd6, r.sqd7, r.sqd8].filter(
       (v): v is number => v !== null,
     );
     return {
