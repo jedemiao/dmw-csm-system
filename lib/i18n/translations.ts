@@ -81,7 +81,7 @@ export const TRANSLATIONS: Record<Lang, Record<string, string>> = {
     sqd6_dim: "Integrity",
     sqd7_q: "SQD7. I was treated courteously by the staff, and (whenever I asked for help) they were willing to assist me.",
     sqd7_dim: "Assurance",
-    sqd8_q: "SQD8. I got what I needed from the government office.",
+    sqd8_q: "SQD8. I got what I needed from the government office, and if denied, this was sufficiently explained to me.",
     sqd8_dim: "Outcome",
 
     s4_h3: "Anything else?",
@@ -197,7 +197,7 @@ export const TRANSLATIONS: Record<Lang, Record<string, string>> = {
     sqd6_dim: "Integridad",
     sqd7_q: "SQD7. Magalang akong trinato ng mga tauhan, at (kung sakali ako ay humingi ng tulong) alam ko na sila ay handang tumulong sa akin.",
     sqd7_dim: "Katiyakan",
-    sqd8_q: "SQD8. Nakuha ko ang kailangan ko mula sa tanggapan ng gobyerno.",
+    sqd8_q: "SQD8. Nakuha ko ang kinakailangan ko mula sa tanggapan ng gobyerno, kung tinanggihan man, ito ay sapat na ipinaliwanag sa akin.",
     sqd8_dim: "Resulta",
 
     s4_h3: "May Iba Ka Pa Bang Gustong Sabihin?",
