@@ -48,6 +48,7 @@ export default async function AdminAnalyticsPage({
   const [
     totalResponses,
     sqdAvg,
+    sqd0Groups,
     cc1Groups,
     cc2Groups,
     cc3Groups,
@@ -63,6 +64,7 @@ export default async function AdminAnalyticsPage({
       where,
       _avg: { sqd1: true, sqd2: true, sqd3: true, sqd4: true, sqd5: true, sqd6: true, sqd7: true, sqd8: true },
     }),
+    prisma.surveyResponse.groupBy({ where, by: ["sqd0"], _count: true }),
     prisma.surveyResponse.groupBy({ where, by: ["cc1"], _count: true }),
     prisma.surveyResponse.groupBy({ where, by: ["cc2"], _count: true }),
     prisma.surveyResponse.groupBy({ where, by: ["cc3"], _count: true }),
@@ -163,6 +165,24 @@ export default async function AdminAnalyticsPage({
   const descriptorData = RATING_DESCRIPTORS.map(({ key, label }) => ({ label, count: descriptorCounts[key] }));
   const answeredCount = descriptorCounts.c5 + descriptorCounts.c4 + descriptorCounts.c3 + descriptorCounts.c2 + descriptorCounts.c1;
   const overallRatingPct = pct(descriptorCounts.c5 + descriptorCounts.c4, answeredCount);
+
+  // SQD0 is a standalone overall-satisfaction question, tracked separately from the
+  // SQD1-8 composite everything above this is built on.
+  const sqd0Counts = {
+    c5: sqd0Groups.find((g) => g.sqd0 === 5)?._count ?? 0,
+    c4: sqd0Groups.find((g) => g.sqd0 === 4)?._count ?? 0,
+    c3: sqd0Groups.find((g) => g.sqd0 === 3)?._count ?? 0,
+    c2: sqd0Groups.find((g) => g.sqd0 === 2)?._count ?? 0,
+    c1: sqd0Groups.find((g) => g.sqd0 === 1)?._count ?? 0,
+    cna: sqd0Groups.find((g) => g.sqd0 === null)?._count ?? 0,
+  };
+  const sqd0Data = RATING_DESCRIPTORS.map(({ key, label }) => ({ label, count: sqd0Counts[key] }));
+  const sqd0Answered = sqd0Counts.c5 + sqd0Counts.c4 + sqd0Counts.c3 + sqd0Counts.c2 + sqd0Counts.c1;
+  const sqd0RatingPct = pct(sqd0Counts.c5 + sqd0Counts.c4, sqd0Answered);
+  const sqd0Avg =
+    sqd0Answered > 0
+      ? (sqd0Counts.c5 * 5 + sqd0Counts.c4 * 4 + sqd0Counts.c3 * 3 + sqd0Counts.c2 * 2 + sqd0Counts.c1 * 1) / sqd0Answered
+      : null;
 
   // Union of the official service catalog and any service names actually present in the
   // data (older responses may predate a catalog change) — every offered service gets a row,
@@ -297,6 +317,29 @@ export default async function AdminAnalyticsPage({
                   );
                 })}
               </ul>
+            </div>
+          </div>
+        )}
+      </section>
+
+      <section>
+        <h2 style={{ fontSize: "1.1rem", marginBottom: "0.25rem" }}>SQD0: Overall satisfaction</h2>
+        <p style={{ color: "var(--ink-500)", fontSize: "0.85rem", marginBottom: "0.75rem" }}>
+          Standalone overall-satisfaction question, tracked separately from the SQD1-8 composite — {scopeLabel}.
+        </p>
+        {totalResponses === 0 ? (
+          <div className="stat-tile">
+            <p style={{ color: "var(--ink-400)", fontSize: "0.85rem" }}>No data yet for this period.</p>
+          </div>
+        ) : (
+          <div className="stat-tile">
+            <p className="stat-tile__label">Overall rating (Agree + Strongly Agree)</p>
+            <p className="stat-tile__value">{sqd0RatingPct !== null ? `${sqd0RatingPct}%` : "—"}</p>
+            <p style={{ color: "var(--ink-500)", fontSize: "0.8rem", marginTop: "0.35rem" }}>
+              {sqd0Avg !== null ? `${sqd0Avg.toFixed(2)} / 5 average` : "No data"}
+            </p>
+            <div style={{ marginTop: "1rem" }}>
+              <BreakdownBarChart data={sqd0Data} />
             </div>
           </div>
         )}

@@ -86,6 +86,7 @@ async function main() {
       cc2,
       cc3,
       cc3Reason,
+      sqd0: randomSqd(),
       sqd1: randomSqd(),
       sqd2: randomSqd(),
       sqd3: randomSqd(),

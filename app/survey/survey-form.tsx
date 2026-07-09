@@ -19,7 +19,7 @@ type Values = {
   cc3: string;
   cc3Reason: string;
   remarks: string;
-} & Record<`sqd${1 | 2 | 3 | 4 | 5 | 6 | 7 | 8}`, string>;
+} & Record<`sqd${0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8}`, string>;
 
 const INITIAL_VALUES: Values = {
   age: "",
@@ -31,6 +31,7 @@ const INITIAL_VALUES: Values = {
   cc2: "",
   cc3: "",
   cc3Reason: "",
+  sqd0: "",
   sqd1: "",
   sqd2: "",
   sqd3: "",
@@ -94,8 +95,8 @@ export function SurveyForm() {
     check("field-cc3", values.cc3 !== "", t("msg_cc3"), t("lbl_cc3"));
     if (showCc3Reason) check("field-cc3-reason", values.cc3Reason.trim() !== "", t("msg_cc3_reason"), t("lbl_cc3_reason"));
 
-    SQD_ITEMS.forEach((item, i) => {
-      check(`field-${item.name}`, values[item.name as keyof Values] !== "", t("msg_sqd"), `SQD${i + 1}`);
+    SQD_ITEMS.forEach((item) => {
+      check(`field-${item.name}`, values[item.name as keyof Values] !== "", t("msg_sqd"), item.name.toUpperCase());
     });
 
     setErrors(nextErrors);
@@ -126,6 +127,7 @@ export function SurveyForm() {
         cc2: values.cc2,
         cc3: values.cc3,
         cc3Reason: showCc3Reason ? values.cc3Reason : undefined,
+        sqd0: values.sqd0,
         sqd1: values.sqd1,
         sqd2: values.sqd2,
         sqd3: values.sqd3,

@@ -55,6 +55,7 @@ async function getAggregateForRange(start: Date, end: Date) {
     regionGroups,
     ageRows,
     remarkRows,
+    sqd0Groups,
     ...sqdGroups
   ] = await Promise.all([
     prisma.surveyResponse.count({ where }),
@@ -71,6 +72,7 @@ async function getAggregateForRange(start: Date, end: Date) {
       select: { remarks: true },
       orderBy: { createdAt: "asc" },
     }),
+    prisma.surveyResponse.groupBy({ where, by: ["sqd0"], _count: true }),
     ...SQD_DIMENSIONS.map(({ key }) => prisma.surveyResponse.groupBy({ where, by: [key as "sqd1"], _count: true })),
   ]);
 
@@ -109,6 +111,18 @@ async function getAggregateForRange(start: Date, end: Date) {
     return { key, label, counts: [...counts, naCount], responses, ratingPct: pct(agree, responses) };
   });
 
+  // SQD0 is a standalone overall-satisfaction question, not part of the SQD1-8 composite
+  // ARTA's methodology is defined over — aggregated the same way but kept separate below.
+  const sqd0Counts = [1, 2, 3, 4, 5].map((value) => sqd0Groups.find((g) => g.sqd0 === value)?._count ?? 0);
+  const sqd0NaCount = sqd0Groups.find((g) => g.sqd0 === null)?._count ?? 0;
+  const sqd0Responses = sqd0Counts.reduce((a, b) => a + b, 0);
+  const sqd0Agree = sqd0Counts[3] + sqd0Counts[4];
+  const sqd0 = {
+    counts: [...sqd0Counts, sqd0NaCount],
+    responses: sqd0Responses,
+    ratingPct: pct(sqd0Agree, sqd0Responses),
+  };
+
   const sex = (["MALE", "FEMALE"] as const).map((value) => ({
     label: SEX_LABELS[value],
     count: sexGroups.find((g) => g.sex === value)?._count ?? 0,
@@ -146,6 +160,7 @@ async function getAggregateForRange(start: Date, end: Date) {
     cc1,
     cc2,
     cc3,
+    sqd0,
     sqd,
     sqdOverall: { ...sqdOverall, ratingPct: pct(sqdOverallAgree, sqdOverall.responses) },
     sex,

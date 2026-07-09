@@ -52,6 +52,7 @@ export async function submitSurvey(input: unknown): Promise<{ id: string }> {
       cc2: CC2_MAP[data.cc2],
       cc3: CC3_MAP[data.cc3],
       cc3Reason: data.cc3Reason || undefined,
+      sqd0: toSqd(data.sqd0),
       sqd1: toSqd(data.sqd1),
       sqd2: toSqd(data.sqd2),
       sqd3: toSqd(data.sqd3),

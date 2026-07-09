@@ -67,6 +67,8 @@ export const TRANSLATIONS: Record<Lang, Record<string, string>> = {
     vh_sa: "Strongly agree",
     vh_na: "Not applicable",
 
+    sqd0_q: "SQD0. I was satisfied with the service I received at the office I visited.",
+    sqd0_dim: "Overall Satisfaction",
     sqd1_q: "SQD1. The time I spent for the processing of my transaction was reasonable.",
     sqd1_dim: "Responsiveness",
     sqd2_q: "SQD2. The office followed the required documents and steps based on the information provided.",
@@ -183,6 +185,8 @@ export const TRANSLATIONS: Record<Lang, Record<string, string>> = {
     vh_sa: "Lubos na sumasang-ayon",
     vh_na: "Hindi aplikable",
 
+    sqd0_q: "SQD0. Nasiyahan ako sa serbisyo na aking natanggap sa napuntahan na tanggapan.",
+    sqd0_dim: "Kabuuang Kasiyahan",
     sqd1_q: "SQD1. Makatwiran ang oras na aking ginugol para sa pagproseso ng aking transaksyon.",
     sqd1_dim: "Pagtugon",
     sqd2_q: "SQD2. Ang opisina ay sumusunod sa mga kinakailangang dokumento at mga hakbang batay sa impormasyong ibinigay.",

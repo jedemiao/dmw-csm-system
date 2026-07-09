@@ -4,7 +4,7 @@ Digitizes and administers the Anti-Red Tape Authority's mandatory Client Satisfa
 
 ## What it does
 
-- **Public survey form** (`/survey`) — the official CSM form (demographics, CC1-CC3 Citizen's Charter awareness, SQD1-8 satisfaction items), accessed by clients via a QR code posted at the service counter. No login required.
+- **Public survey form** (`/survey`) — the official CSM form (demographics, CC1-CC3 Citizen's Charter awareness, SQD0 overall satisfaction, SQD1-8 satisfaction items), accessed by clients via a QR code posted at the service counter. No login required.
 - **Admin dashboard** (`/admin`) — internal reporting for DMW staff: response browsing, analytics, generated PDF reports (monthly/quarterly/semester/annual), and the printable QR code. Requires an admin login.
 
 ## Stack

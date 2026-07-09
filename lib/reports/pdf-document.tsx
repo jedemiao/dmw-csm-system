@@ -398,7 +398,7 @@ export function CsmReportDocument({
         </Text>
 
         <Text style={s.subLabel}>B.2 Service Quality Dimension (SQD)</Text>
-        <SqdResultsTable title="SQD0 Results:" rows={[]} overall={data.sqdOverall} overallLabel="SQD0: Overall" />
+        <SqdResultsTable title="SQD0 Results:" rows={[]} overall={data.sqd0} overallLabel="SQD0: Overall" />
         <SqdResultsTable title="SQD1-8 Results:" rows={data.sqd} overall={data.sqdOverall} overallLabel="Overall" />
         <Text style={s.analysis}>
           <Text style={s.analysisLabel}>Description/Analysis: </Text>

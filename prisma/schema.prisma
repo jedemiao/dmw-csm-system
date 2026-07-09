@@ -63,6 +63,9 @@ model SurveyResponse {
 
   // Null means the respondent marked this dimension N/A (e.g. costs on a free transaction) —
   // excluded from that dimension's rating average and % rating, not counted as a low score.
+  // sqd0 is a standalone overall-satisfaction question, kept separate from the SQD1-8
+  // composite that ARTA's methodology is defined over.
+  sqd0 Int? @db.SmallInt
   sqd1 Int? @db.SmallInt
   sqd2 Int? @db.SmallInt
   sqd3 Int? @db.SmallInt

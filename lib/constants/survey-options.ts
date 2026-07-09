@@ -31,6 +31,7 @@ export const SERVICES = [
 export const DEFAULT_AGENCY = "Department of Migrant Workers (DMW) Regional Office XIII";
 
 export const SQD_ITEMS = [
+  { name: "sqd0", qKey: "sqd0_q", dimKey: "sqd0_dim" },
   { name: "sqd1", qKey: "sqd1_q", dimKey: "sqd1_dim" },
   { name: "sqd2", qKey: "sqd2_q", dimKey: "sqd2_dim" },
   { name: "sqd3", qKey: "sqd3_q", dimKey: "sqd3_dim" },

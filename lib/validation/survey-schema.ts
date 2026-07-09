@@ -16,6 +16,7 @@ export const surveyFormSchema = z
     cc3: z.enum(["1", "2"]),
     cc3Reason: z.string().trim().optional(),
 
+    sqd0: sqdValue,
     sqd1: sqdValue,
     sqd2: sqdValue,
     sqd3: sqdValue,
