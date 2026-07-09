@@ -52,6 +52,7 @@ export function ReportForm({
   period,
   totalResponses,
   serviceTransactions: initialServiceTx,
+  autoServiceTransactions,
   improvementPlan: initialPlan,
   summaryAnalysis: initialSummary,
   ccAnalysis: initialCc,
@@ -68,6 +69,7 @@ export function ReportForm({
   period: number;
   totalResponses: number;
   serviceTransactions: ServiceTransactionRow[];
+  autoServiceTransactions: ServiceTransactionRow[];
   improvementPlan: ImprovementPlanRow[];
   summaryAnalysis: string;
   ccAnalysis: string;
@@ -87,6 +89,7 @@ export function ReportForm({
   const isDownloadingRef = useRef(false);
 
   const [serviceTx, setServiceTx] = useState(initialServiceTx);
+  const autoTxMap = new Map(autoServiceTransactions.map((r) => [r.service, r.totalTransactions]));
   const [plan, setPlan] = useState<ImprovementPlanRow[]>(
     initialPlan.length ? initialPlan : [{ recommendation: "", actionPlan: "", timeline: "" }],
   );
@@ -125,7 +128,10 @@ export function ReportForm({
       periodType,
       year,
       period,
-      serviceTransactions: serviceTx,
+      // Only persist rows that actually diverge from the live-computed auto value —
+      // an unedited field should keep tracking live response totals on every future
+      // load instead of freezing at whatever number happened to be showing on save.
+      serviceTransactions: serviceTx.filter((r) => r.totalTransactions !== autoTxMap.get(r.service)),
       improvementPlan: plan.filter((r) => r.recommendation.trim() || r.actionPlan.trim() || r.timeline.trim()),
       summaryAnalysis,
       ccAnalysis,
@@ -287,7 +293,11 @@ export function ReportForm({
       </div>
 
       <section>
-        <h2 style={{ fontSize: "1.05rem", marginBottom: "0.5rem" }}>A. Summary</h2>
+        <h2 style={{ fontSize: "1.05rem", marginBottom: "0.25rem" }}>A. Summary</h2>
+        <p style={{ color: "var(--ink-500)", fontSize: "0.85rem", marginBottom: "0.5rem" }}>
+          Total transactions auto-fills from actual survey responses (or, for quarter/semester/year reports, the
+          rolled-up monthly figures) and keeps updating automatically unless you edit a value.
+        </p>
         {serviceTx.length === 0 ? (
           <p style={{ color: "var(--ink-500)", fontSize: "0.9rem" }}>No survey responses for this service breakdown yet.</p>
         ) : (

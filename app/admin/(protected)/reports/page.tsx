@@ -34,13 +34,22 @@ export default async function AdminReportsPage({
   // Lists every defined service, not just ones with responses this period — the report
   // template expects zero-client services to show explicitly (see its "Zero-Client Service" note)
   // rather than being silently omitted.
-  const serviceTransactions: ServiceTransactionRow[] = SERVICES.map((service) => ({
+  //
+  // "Auto" is the live-computed default (rolled-up figure, else survey response count) —
+  // kept separate from the saved value so the form can tell "still following the live
+  // total" apart from "staff typed in a different number." Only rows that actually
+  // diverge from auto get persisted on save (see report-form.tsx), so an unedited field
+  // keeps tracking live data indefinitely instead of freezing at whatever it was on first save.
+  const autoServiceTransactions: ServiceTransactionRow[] = SERVICES.map((service) => ({
     service,
     totalTransactions:
-      savedServiceTx.get(service) ??
       rolledUp?.find((r) => r.service === service)?.totalTransactions ??
       data.serviceCounts.find((r) => r.service === service)?.responses ??
       0,
+  }));
+  const serviceTransactions: ServiceTransactionRow[] = autoServiceTransactions.map((row) => ({
+    service: row.service,
+    totalTransactions: savedServiceTx.get(row.service) ?? row.totalTransactions,
   }));
 
   return (
@@ -64,6 +73,7 @@ export default async function AdminReportsPage({
         period={period}
         totalResponses={data.totalResponses}
         serviceTransactions={serviceTransactions}
+        autoServiceTransactions={autoServiceTransactions}
         improvementPlan={(meta?.improvementPlan as ImprovementPlanRow[] | undefined) ?? []}
         summaryAnalysis={meta?.summaryAnalysis ?? ""}
         ccAnalysis={meta?.ccAnalysis ?? ""}
