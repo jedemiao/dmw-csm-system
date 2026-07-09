@@ -53,7 +53,7 @@ export const TRANSLATIONS: Record<Lang, Record<string, string>> = {
     lbl_why_not: "What's the reason? Feel free to share your thoughts.",
 
     s3_h3: "Rate your experience",
-    s3_hint: "For SQD1 to SQD8, choose the rating that best matches your experience with this online transaction.",
+    s3_hint: "For SQD0 to SQD8, choose the rating that best matches your experience with this online transaction.",
     scale_sd: "Strongly Disagree",
     scale_d: "Disagree",
     scale_n: "Neither",
@@ -171,7 +171,7 @@ export const TRANSLATIONS: Record<Lang, Record<string, string>> = {
     lbl_why_not: "Ano ang dahilan? Malaya kang magbahagi ng iyong saloobin.",
 
     s3_h3: "I-rate ang Iyong Karanasan",
-    s3_hint: "Para sa SQD1 hanggang SQD8, piliin ang rating na pinakaangkop sa iyong karanasan sa online transaksyong ito.",
+    s3_hint: "Para sa SQD0 hanggang SQD8, piliin ang rating na pinakaangkop sa iyong karanasan sa online transaksyong ito.",
     scale_sd: "Lubos na Hindi Sumasang-ayon",
     scale_d: "Hindi Sumasang-ayon",
     scale_n: "Di Sigurado",
