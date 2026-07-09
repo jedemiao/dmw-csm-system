@@ -73,7 +73,7 @@ function buildResponse(createdAt: Date) {
     sqd2: randomSqd(),
     sqd3: randomSqd(),
     sqd4: randomSqd(),
-    sqd5: randomSqd(),
+    sqd5: null,
     sqd6: randomSqd(),
     sqd7: randomSqd(),
     sqd8: randomSqd(),
