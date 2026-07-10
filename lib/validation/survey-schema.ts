@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { REGIONS, SERVICES } from "@/lib/constants/survey-options";
 
-const sqdValue = z.enum(["1", "2", "3", "4", "5", "NA"]);
+const sqdValue = z.enum(["1", "2", "3", "4", "5"]);
+const sqdValueWithNA = z.enum(["1", "2", "3", "4", "5", "NA"]);
 
 export const surveyFormSchema = z
   .object({
@@ -21,7 +22,7 @@ export const surveyFormSchema = z
     sqd2: sqdValue,
     sqd3: sqdValue,
     sqd4: sqdValue,
-    sqd5: sqdValue,
+    sqd5: sqdValueWithNA,
     sqd6: sqdValue,
     sqd7: sqdValue,
     sqd8: sqdValue,

@@ -457,42 +457,48 @@ export function SurveyForm() {
               ))}
             </div>
 
-            {SQD_ITEMS.map((item) => (
-              <fieldset
-                key={item.name}
-                className={`likert-row${errors[`field-${item.name}`] ? " has-error" : ""}`}
-                id={`field-${item.name}`}
-                aria-labelledby={`${item.name}-label`}
-              >
-                <div className="likert-question" id={`${item.name}-label`}>
-                  <span>{t(item.qKey)}</span>
-                  <span className="dimension">{t(item.dimKey)}</span>
-                </div>
-                <div className="likert-scale-mobile" aria-hidden="true">
-                  {SCALE_OPTIONS.map((opt) => (
-                    <span key={opt.value}>
-                      <span className="emoji">{opt.emoji}</span>
-                      <span>{t(opt.scaleKey)}</span>
-                    </span>
+            {SQD_ITEMS.map((item) => {
+              const options = item.allowsNA
+                ? SCALE_OPTIONS
+                : SCALE_OPTIONS.filter((opt) => opt.value !== "NA");
+
+              return (
+                <fieldset
+                  key={item.name}
+                  className={`likert-row${errors[`field-${item.name}`] ? " has-error" : ""}`}
+                  id={`field-${item.name}`}
+                  aria-labelledby={`${item.name}-label`}
+                >
+                  <div className="likert-question" id={`${item.name}-label`}>
+                    <span>{t(item.qKey)}</span>
+                    <span className="dimension">{t(item.dimKey)}</span>
+                  </div>
+                  <div className="likert-scale-mobile" aria-hidden="true">
+                    {options.map((opt) => (
+                      <span key={opt.value}>
+                        <span className="emoji">{opt.emoji}</span>
+                        <span>{t(opt.scaleKey)}</span>
+                      </span>
+                    ))}
+                  </div>
+                  {options.map((opt) => (
+                    <label className="likert-cell" key={opt.value}>
+                      <span className="visually-hidden">{t(opt.vhKey)}</span>
+                      <input
+                        type="radio"
+                        name={item.name}
+                        value={opt.value}
+                        checked={values[item.name as keyof Values] === opt.value}
+                        onChange={(e) => set(item.name as keyof Values, e.target.value)}
+                      />
+                    </label>
                   ))}
-                </div>
-                {SCALE_OPTIONS.map((opt) => (
-                  <label className="likert-cell" key={opt.value}>
-                    <span className="visually-hidden">{t(opt.vhKey)}</span>
-                    <input
-                      type="radio"
-                      name={item.name}
-                      value={opt.value}
-                      checked={values[item.name as keyof Values] === opt.value}
-                      onChange={(e) => set(item.name as keyof Values, e.target.value)}
-                    />
-                  </label>
-                ))}
-                <span className="field-error" role="alert">
-                  {errors[`field-${item.name}`]}
-                </span>
-              </fieldset>
-            ))}
+                  <span className="field-error" role="alert">
+                    {errors[`field-${item.name}`]}
+                  </span>
+                </fieldset>
+              );
+            })}
           </div>
         </section>
 

@@ -31,15 +31,15 @@ export const SERVICES = [
 export const DEFAULT_AGENCY = "Department of Migrant Workers (DMW) Regional Office XIII";
 
 export const SQD_ITEMS = [
-  { name: "sqd0", qKey: "sqd0_q", dimKey: "sqd0_dim" },
-  { name: "sqd1", qKey: "sqd1_q", dimKey: "sqd1_dim" },
-  { name: "sqd2", qKey: "sqd2_q", dimKey: "sqd2_dim" },
-  { name: "sqd3", qKey: "sqd3_q", dimKey: "sqd3_dim" },
-  { name: "sqd4", qKey: "sqd4_q", dimKey: "sqd4_dim" },
-  { name: "sqd5", qKey: "sqd5_q", dimKey: "sqd5_dim" },
-  { name: "sqd6", qKey: "sqd6_q", dimKey: "sqd6_dim" },
-  { name: "sqd7", qKey: "sqd7_q", dimKey: "sqd7_dim" },
-  { name: "sqd8", qKey: "sqd8_q", dimKey: "sqd8_dim" },
+  { name: "sqd0", qKey: "sqd0_q", dimKey: "sqd0_dim", allowsNA: false },
+  { name: "sqd1", qKey: "sqd1_q", dimKey: "sqd1_dim", allowsNA: false },
+  { name: "sqd2", qKey: "sqd2_q", dimKey: "sqd2_dim", allowsNA: false },
+  { name: "sqd3", qKey: "sqd3_q", dimKey: "sqd3_dim", allowsNA: false },
+  { name: "sqd4", qKey: "sqd4_q", dimKey: "sqd4_dim", allowsNA: false },
+  { name: "sqd5", qKey: "sqd5_q", dimKey: "sqd5_dim", allowsNA: true },
+  { name: "sqd6", qKey: "sqd6_q", dimKey: "sqd6_dim", allowsNA: false },
+  { name: "sqd7", qKey: "sqd7_q", dimKey: "sqd7_dim", allowsNA: false },
+  { name: "sqd8", qKey: "sqd8_q", dimKey: "sqd8_dim", allowsNA: false },
 ] as const;
 
 export const SCALE_OPTIONS = [
