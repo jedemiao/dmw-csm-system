@@ -1,9 +1,9 @@
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { LangProvider } from "@/lib/i18n/lang-context";
-import { SurveyMain } from "./survey-main";
+import { DivisionPicker } from "./division-picker";
 
-export default function SurveyPage() {
+export default function SurveyPickerPage() {
   return (
     <>
       <a className="skip-link" href="#main">
@@ -11,7 +11,7 @@ export default function SurveyPage() {
       </a>
       <SiteHeader variant="survey" />
       <LangProvider>
-        <SurveyMain />
+        <DivisionPicker />
       </LangProvider>
       <SiteFooter variant="survey" />
     </>

@@ -4,6 +4,7 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { SEX_LABELS, CUSTOMER_TYPE_LABELS, CC1_LABELS } from "@/lib/constants/enum-labels";
+import { getDivisionLabel, type Division, type DivisionMeta } from "@/lib/constants/divisions";
 
 export type ResponseRow = {
   id: string;
@@ -12,6 +13,7 @@ export type ResponseRow = {
   age: number;
   sex: string;
   region: string;
+  division: Division;
   service: string;
   customerType: string;
   cc1: string;
@@ -30,6 +32,7 @@ const columns = [
   columnHelper.accessor("age", { header: "Age" }),
   columnHelper.accessor("sex", { header: "Sex", cell: (info) => SEX_LABELS[info.getValue()] ?? info.getValue() }),
   columnHelper.accessor("region", { header: "Region" }),
+  columnHelper.accessor("division", { header: "Division", cell: (info) => getDivisionLabel(info.getValue()) }),
   columnHelper.accessor("service", { header: "Service" }),
   columnHelper.accessor("customerType", {
     header: "Customer type",
@@ -55,6 +58,7 @@ export function ResponsesTable({
   filters,
   regions,
   services,
+  divisions,
   highlightId,
   referenceSearch,
 }: {
@@ -62,9 +66,10 @@ export function ResponsesTable({
   page: number;
   pageCount: number;
   sortDir: "asc" | "desc";
-  filters: { region: string; service: string; customerType: string };
+  filters: { region: string; service: string; customerType: string; division: string };
   regions: readonly string[];
   services: readonly string[];
+  divisions?: readonly DivisionMeta[];
   highlightId?: string | null;
   referenceSearch: string;
 }) {
@@ -125,6 +130,28 @@ export function ResponsesTable({
             minWidth: "220px",
           }}
         />
+        {divisions && (
+          <select
+            aria-label="Division"
+            value={filters.division}
+            onChange={(e) => updateParams({ division: e.target.value || null })}
+            style={{
+              padding: "0.5rem 0.75rem",
+              borderRadius: "var(--radius-sm)",
+              border: "1px solid var(--border-strong)",
+              background: "var(--surface)",
+              color: "var(--ink-900)",
+              fontSize: "0.85rem",
+            }}
+          >
+            <option value="">Division: All</option>
+            {divisions.map((d) => (
+              <option key={d.slug} value={d.slug}>
+                {d.label}
+              </option>
+            ))}
+          </select>
+        )}
         {filterFields.map((field) => (
           <select
             key={field.key}

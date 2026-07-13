@@ -1,10 +1,10 @@
 import { renderToBuffer } from "@react-pdf/renderer";
-import { requireAdmin } from "@/lib/auth/dal";
+import { requireAdmin, resolveDivisionFilter } from "@/lib/auth/dal";
 import { getReportAggregate, getRolledUpServiceTransactions } from "@/lib/reports/aggregate";
 import { CsmReportDocument } from "@/lib/reports/pdf-document";
-import { getPeriodLabel, getPeriodSlug, parseReportQuery } from "@/lib/reports/constants";
+import { getPeriodLabel, getPeriodSlug, parseReportQuery, DIVISION_REPORT_NAMES } from "@/lib/reports/constants";
 import { prisma } from "@/lib/db";
-import { SERVICES } from "@/lib/constants/survey-options";
+import { DIVISIONS, SERVICES_BY_DIVISION } from "@/lib/constants/divisions";
 
 export async function GET(req: Request) {
   const admin = await requireAdmin();
@@ -15,12 +15,16 @@ export async function GET(req: Request) {
     year: searchParams.get("year") ?? undefined,
     period: searchParams.get("period") ?? undefined,
   });
+  // resolveDivisionFilter forces a scoped admin's own division regardless of what's
+  // requested, so this query param can't be used to download another division's report.
+  const division = resolveDivisionFilter(admin, searchParams.get("division") ?? undefined) ?? DIVISIONS[0].value;
+  const services = SERVICES_BY_DIVISION[division];
 
   try {
     const [data, meta, rolledUp] = await Promise.all([
-      getReportAggregate(periodType, year, period),
-      prisma.report.findUnique({ where: { periodType_year_period: { periodType, year, period } } }),
-      periodType === "MONTH" ? Promise.resolve(null) : getRolledUpServiceTransactions(periodType, year, period),
+      getReportAggregate(periodType, year, period, division),
+      prisma.report.findUnique({ where: { periodType_year_period_division: { periodType, year, period, division } } }),
+      periodType === "MONTH" ? Promise.resolve(null) : getRolledUpServiceTransactions(periodType, year, period, division),
     ]);
 
     const savedServiceTx = new Map(
@@ -28,7 +32,7 @@ export async function GET(req: Request) {
         (r) => [r.service, r.totalTransactions],
       ),
     );
-    const serviceTransactions = SERVICES.map((service) => ({
+    const serviceTransactions = services.map((service) => ({
       service,
       totalTransactions:
         savedServiceTx.get(service) ??
@@ -44,6 +48,7 @@ export async function GET(req: Request) {
       CsmReportDocument({
         data,
         periodLabel: getPeriodLabel(periodType, year, period),
+        divisionLabel: DIVISION_REPORT_NAMES[division],
         serviceTransactions,
         improvementPlan,
         summaryAnalysis: meta?.summaryAnalysis ?? "",
@@ -65,6 +70,7 @@ export async function GET(req: Request) {
         periodType,
         year,
         period,
+        division,
         periodLabel: getPeriodLabel(periodType, year, period),
         filename,
         downloadedByName: admin.name,

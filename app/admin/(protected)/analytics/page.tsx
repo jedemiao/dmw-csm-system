@@ -1,9 +1,10 @@
 import { prisma } from "@/lib/db";
 import { Prisma } from "@/generated/prisma/client";
 import { CC1_LABELS, CC2_LABELS, CC3_LABELS, CUSTOMER_TYPE_LABELS } from "@/lib/constants/enum-labels";
-import { SERVICES } from "@/lib/constants/survey-options";
+import { ALL_SERVICES, DIVISIONS, SERVICES_BY_DIVISION } from "@/lib/constants/divisions";
 import { getPeriodLabel, getPeriodRange, getPreviousPeriod, parseAnalyticsQuery } from "@/lib/reports/constants";
 import { AutoRefresh } from "@/components/admin/auto-refresh";
+import { requireAdmin, resolveDivisionFilter } from "@/lib/auth/dal";
 import { BreakdownBarChart, SqdBarChart, VolumeLineChart } from "./analytics-charts";
 import { AnalyticsFilters } from "./analytics-filters";
 
@@ -38,13 +39,24 @@ function pct(count: number, total: number): number | null {
 export default async function AdminAnalyticsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ range?: string; year?: string; period?: string }>;
+  searchParams: Promise<{ range?: string; year?: string; period?: string; division?: string }>;
 }) {
+  const user = await requireAdmin();
   const params = await searchParams;
   const { periodType, year, period } = parseAnalyticsQuery(params);
   const range = periodType === "ALL" ? null : getPeriodRange(periodType, year, period);
-  const where = range ? { createdAt: { gte: range.start, lt: range.end } } : {};
-  const dateFilter = range ? Prisma.sql`WHERE "createdAt" >= ${range.start} AND "createdAt" < ${range.end}` : Prisma.empty;
+  const isOversight = user.division === null;
+  const divisionFilter = resolveDivisionFilter(user, params.division);
+
+  const where = {
+    ...(range ? { createdAt: { gte: range.start, lt: range.end } } : {}),
+    ...(divisionFilter ? { division: divisionFilter } : {}),
+  };
+
+  const sqlConditions: Prisma.Sql[] = [];
+  if (range) sqlConditions.push(Prisma.sql`"createdAt" >= ${range.start} AND "createdAt" < ${range.end}`);
+  if (divisionFilter) sqlConditions.push(Prisma.sql`"division" = ${divisionFilter}::"Division"`);
+  const dateFilter = sqlConditions.length > 0 ? Prisma.sql`WHERE ${Prisma.join(sqlConditions, " AND ")}` : Prisma.empty;
 
   const [
     totalResponses,
@@ -140,7 +152,10 @@ export default async function AdminAnalyticsPage({
           const prev = getPreviousPeriod(periodType, year, period);
           const prevRange = getPeriodRange(periodType, prev.year, prev.period);
           const prevAgg = await prisma.surveyResponse.aggregate({
-            where: { createdAt: { gte: prevRange.start, lt: prevRange.end } },
+            where: {
+              createdAt: { gte: prevRange.start, lt: prevRange.end },
+              ...(divisionFilter ? { division: divisionFilter } : {}),
+            },
             _count: true,
             _avg: {
               sqd0: true,
@@ -203,8 +218,9 @@ export default async function AdminAnalyticsPage({
       ] as const;
     }),
   );
-  const knownServices = new Set<string>(SERVICES);
-  const allServiceNames = [...SERVICES, ...[...serviceRatingMap.keys()].filter((s) => !knownServices.has(s))];
+  const catalogServices = divisionFilter ? SERVICES_BY_DIVISION[divisionFilter] : ALL_SERVICES;
+  const knownServices = new Set<string>(catalogServices);
+  const allServiceNames = [...catalogServices, ...[...serviceRatingMap.keys()].filter((s) => !knownServices.has(s))];
   const serviceRatings = allServiceNames
     .map((service) => serviceRatingMap.get(service) ?? { service, total: 0, ratingPct: null, avgScore: null })
     .sort((a, b) => (b.ratingPct ?? -1) - (a.ratingPct ?? -1));
@@ -277,7 +293,13 @@ export default async function AdminAnalyticsPage({
       </div>
 
       <section>
-        <AnalyticsFilters periodType={periodType} year={year} period={period} />
+        <AnalyticsFilters
+          periodType={periodType}
+          year={year}
+          period={period}
+          division={isOversight ? (params.division ?? "") : ""}
+          divisions={isOversight ? DIVISIONS : undefined}
+        />
         <p style={{ color: "var(--ink-500)", fontSize: "0.85rem", marginTop: "0.6rem" }}>
           {scopeLabel} — {totalResponses} response{totalResponses === 1 ? "" : "s"}
         </p>

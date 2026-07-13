@@ -1,7 +1,9 @@
 import { ChatCircleText, CalendarCheck, Star, ShieldCheck, ClipboardText } from "@phosphor-icons/react/ssr";
 import { prisma } from "@/lib/db";
 import { CC1_LABELS, CC2_LABELS, CC3_LABELS } from "@/lib/constants/enum-labels";
+import { DIVISIONS } from "@/lib/constants/divisions";
 import { AutoRefresh } from "@/components/admin/auto-refresh";
+import { requireAdmin, resolveDivisionFilter } from "@/lib/auth/dal";
 import { getPeriodLabel, getPeriodRange, parseAnalyticsQuery } from "@/lib/reports/constants";
 import { AnalyticsFilters } from "./analytics/analytics-filters";
 import { BreakdownBarChart } from "./analytics/analytics-charts";
@@ -42,17 +44,25 @@ function timeAgo(date: Date): string {
 export default async function AdminOverviewPage({
   searchParams,
 }: {
-  searchParams: Promise<{ range?: string; year?: string; period?: string }>;
+  searchParams: Promise<{ range?: string; year?: string; period?: string; division?: string }>;
 }) {
+  const user = await requireAdmin();
   const params = await searchParams;
   const { periodType, year, period } = parseAnalyticsQuery(params);
   const range = periodType === "ALL" ? null : getPeriodRange(periodType, year, period);
-  const where = range ? { createdAt: { gte: range.start, lt: range.end } } : {};
+  const isOversight = user.division === null;
+  const divisionFilter = resolveDivisionFilter(user, params.division);
+  const where = {
+    ...(range ? { createdAt: { gte: range.start, lt: range.end } } : {}),
+    ...(divisionFilter ? { division: divisionFilter } : {}),
+  };
   const scopeLabel = periodType === "ALL" ? "All time" : getPeriodLabel(periodType, year, period);
 
   const [total, thisWeek, sqdAvg, cc1Groups, cc2Groups, cc3Groups, recent, ...sqdGroups] = await Promise.all([
     prisma.surveyResponse.count({ where }),
-    prisma.surveyResponse.count({ where: { createdAt: { gte: startOfWeek() } } }),
+    prisma.surveyResponse.count({
+      where: { createdAt: { gte: startOfWeek() }, ...(divisionFilter ? { division: divisionFilter } : {}) },
+    }),
     prisma.surveyResponse.aggregate({
       where,
       _avg: {
@@ -133,7 +143,14 @@ export default async function AdminOverviewPage({
       </p>
 
       <div style={{ marginBottom: "1.5rem" }}>
-        <AnalyticsFilters periodType={periodType} year={year} period={period} basePath="/admin" />
+        <AnalyticsFilters
+          periodType={periodType}
+          year={year}
+          period={period}
+          division={isOversight ? (params.division ?? "") : ""}
+          divisions={isOversight ? DIVISIONS : undefined}
+          basePath="/admin"
+        />
         <p style={{ color: "var(--ink-500)", fontSize: "0.85rem", marginTop: "0.6rem" }}>
           {scopeLabel} — {total.toLocaleString()} response{total === 1 ? "" : "s"}
         </p>

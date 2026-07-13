@@ -1,7 +1,7 @@
 import "server-only";
 import { prisma } from "@/lib/db";
 import { CC1_LABELS, CC2_LABELS, CC3_LABELS, SEX_LABELS } from "@/lib/constants/enum-labels";
-import { SERVICES } from "@/lib/constants/survey-options";
+import { SERVICES_BY_DIVISION, type Division } from "@/lib/constants/divisions";
 import {
   AGE_BUCKETS,
   REPORT_REGION_ORDER,
@@ -41,8 +41,9 @@ export type ReportAggregate = Awaited<ReturnType<typeof getAggregateForRange>>;
 // Kept for call sites that only ever dealt with the monthly shape.
 export type MonthlyAggregate = ReportAggregate;
 
-async function getAggregateForRange(start: Date, end: Date) {
-  const where = { createdAt: { gte: start, lt: end } };
+async function getAggregateForRange(start: Date, end: Date, division: Division) {
+  const where = { createdAt: { gte: start, lt: end }, division };
+  const services = SERVICES_BY_DIVISION[division];
 
   const [
     totalResponses,
@@ -77,7 +78,7 @@ async function getAggregateForRange(start: Date, end: Date) {
   ]);
 
   const serviceCountMap = new Map(serviceGroups.map((g) => [g.service, g._count]));
-  const serviceCounts = SERVICES.filter((s) => (serviceCountMap.get(s) ?? 0) > 0).map((service) => ({
+  const serviceCounts = services.filter((s) => (serviceCountMap.get(s) ?? 0) > 0).map((service) => ({
     service,
     responses: serviceCountMap.get(service) ?? 0,
   }));
@@ -171,31 +172,31 @@ async function getAggregateForRange(start: Date, end: Date) {
   };
 }
 
-export async function getMonthlyAggregate(year: number, month: number) {
+export async function getMonthlyAggregate(year: number, month: number, division: Division) {
   const { start, end } = getPeriodRange("MONTH", year, month);
-  return { periodType: "MONTH" as const, year, period: month, ...(await getAggregateForRange(start, end)) };
+  return { periodType: "MONTH" as const, year, period: month, division, ...(await getAggregateForRange(start, end, division)) };
 }
 
-export async function getQuarterlyAggregate(year: number, quarter: number) {
+export async function getQuarterlyAggregate(year: number, quarter: number, division: Division) {
   const { start, end } = getPeriodRange("QUARTER", year, quarter);
-  return { periodType: "QUARTER" as const, year, period: quarter, ...(await getAggregateForRange(start, end)) };
+  return { periodType: "QUARTER" as const, year, period: quarter, division, ...(await getAggregateForRange(start, end, division)) };
 }
 
-export async function getSemesterAggregate(year: number, semester: number) {
+export async function getSemesterAggregate(year: number, semester: number, division: Division) {
   const { start, end } = getPeriodRange("SEMESTER", year, semester);
-  return { periodType: "SEMESTER" as const, year, period: semester, ...(await getAggregateForRange(start, end)) };
+  return { periodType: "SEMESTER" as const, year, period: semester, division, ...(await getAggregateForRange(start, end, division)) };
 }
 
-export async function getAnnualAggregate(year: number) {
+export async function getAnnualAggregate(year: number, division: Division) {
   const { start, end } = getPeriodRange("YEAR", year, 0);
-  return { periodType: "YEAR" as const, year, period: 0, ...(await getAggregateForRange(start, end)) };
+  return { periodType: "YEAR" as const, year, period: 0, division, ...(await getAggregateForRange(start, end, division)) };
 }
 
-export async function getReportAggregate(periodType: ReportPeriodType, year: number, period: number) {
-  if (periodType === "MONTH") return getMonthlyAggregate(year, period);
-  if (periodType === "QUARTER") return getQuarterlyAggregate(year, period);
-  if (periodType === "SEMESTER") return getSemesterAggregate(year, period);
-  return getAnnualAggregate(year);
+export async function getReportAggregate(periodType: ReportPeriodType, year: number, period: number, division: Division) {
+  if (periodType === "MONTH") return getMonthlyAggregate(year, period, division);
+  if (periodType === "QUARTER") return getQuarterlyAggregate(year, period, division);
+  if (periodType === "SEMESTER") return getSemesterAggregate(year, period, division);
+  return getAnnualAggregate(year, division);
 }
 
 // Suggests "Total Transactions" defaults for a quarterly/annual report by summing the
@@ -206,6 +207,7 @@ export async function getRolledUpServiceTransactions(
   periodType: ReportPeriodType,
   year: number,
   period: number,
+  division: Division,
 ): Promise<ServiceTransactionRow[]> {
   const months =
     periodType === "QUARTER"
@@ -215,7 +217,7 @@ export async function getRolledUpServiceTransactions(
         : Array.from({ length: 12 }, (_, i) => i + 1);
 
   const savedReports = await prisma.report.findMany({
-    where: { periodType: "MONTH", year, period: { in: months } },
+    where: { periodType: "MONTH", year, period: { in: months }, division },
   });
   const savedByMonth = new Map(savedReports.map((r) => [r.period, r.serviceTransactions as ServiceTransactionRow[]]));
 
@@ -225,10 +227,11 @@ export async function getRolledUpServiceTransactions(
     if (saved) {
       for (const row of saved) totals.set(row.service, (totals.get(row.service) ?? 0) + row.totalTransactions);
     } else {
-      const monthData = await getMonthlyAggregate(year, month);
+      const monthData = await getMonthlyAggregate(year, month, division);
       for (const row of monthData.serviceCounts) totals.set(row.service, (totals.get(row.service) ?? 0) + row.responses);
     }
   }
 
-  return SERVICES.filter((s) => totals.has(s)).map((service) => ({ service, totalTransactions: totals.get(service)! }));
+  const services = SERVICES_BY_DIVISION[division];
+  return services.filter((s) => totals.has(s)).map((service) => ({ service, totalTransactions: totals.get(service)! }));
 }

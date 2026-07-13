@@ -3,9 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useLang } from "@/lib/i18n/lang-context";
+import type { DivisionMeta } from "@/lib/constants/divisions";
 import { SurveyForm } from "./survey-form";
 
-export function SurveyMain() {
+export function SurveyMain({ division }: { division: DivisionMeta }) {
   const { lang, setLang, t } = useLang();
   const [consented, setConsented] = useState(false);
   const [agreed, setAgreed] = useState(false);
@@ -49,7 +50,7 @@ export function SurveyMain() {
 
       <div className="container" style={{ paddingBlock: "2.5rem" }}>
         {consented ? (
-          <SurveyForm />
+          <SurveyForm division={division} />
         ) : (
           <div className="consent-card">
             <h2 id="consent-title">{t("consent_h2")}</h2>

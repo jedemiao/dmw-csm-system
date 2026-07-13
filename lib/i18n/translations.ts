@@ -31,6 +31,7 @@ export const TRANSLATIONS: Record<Lang, Record<string, string>> = {
     lbl_region: "Region",
     opt_outside_ph: "Outside the Philippines",
     lbl_agency: "Agency visited",
+    lbl_division: "Division",
     lbl_service: "Service availed",
     lbl_customer_type: "Customer type",
     opt_citizen: "Citizen",
@@ -118,6 +119,15 @@ export const TRANSLATIONS: Record<Lang, Record<string, string>> = {
     lbl_cc2: "CC2",
     lbl_cc3: "CC3",
     lbl_cc3_reason: "CC3 reason",
+
+    picker_eyebrow: "Client Satisfaction Measurement",
+    picker_h1: "Which division did you visit?",
+    picker_lead: "Select the division for the transaction you're rating.",
+    picker_breadcrumb: "Take the survey",
+    division_fad: "Finance and Administrative Division (FAD)",
+    division_mwptd: "Migrant Workers Protection Division (MWPtD)",
+    division_mwpsd: "Migrant Workers Processing Division (MWPsD)",
+    division_wrsd: "Welfare and Reintegration Services Division (WRSD)",
   },
   tl: {
     page_eyebrow: "Pagsukat ng Kasiyahan ng Kliyente",
@@ -149,6 +159,7 @@ export const TRANSLATIONS: Record<Lang, Record<string, string>> = {
     lbl_region: "Rehiyon",
     opt_outside_ph: "Sa Labas ng Pilipinas",
     lbl_agency: "Ahensiyang Binisita",
+    lbl_division: "Dibisyon",
     lbl_service: "Serbisyong Kinuha",
     lbl_customer_type: "Uri ng Kliyente",
     opt_citizen: "Mamamayan",
@@ -235,6 +246,15 @@ export const TRANSLATIONS: Record<Lang, Record<string, string>> = {
     lbl_cc2: "CC2",
     lbl_cc3: "CC3",
     lbl_cc3_reason: "Dahilan sa CC3",
+
+    picker_eyebrow: "Pagsukat ng Kasiyahan ng Kliyente",
+    picker_h1: "Aling dibisyon ang binisita mo?",
+    picker_lead: "Piliin ang dibisyon para sa transaksiyong iyong bibigyan ng rating.",
+    picker_breadcrumb: "Sagutan ang Survey",
+    division_fad: "Finance and Administrative Division (FAD)",
+    division_mwptd: "Migrant Workers Protection Division (MWPtD)",
+    division_mwpsd: "Migrant Workers Processing Division (MWPsD)",
+    division_wrsd: "Welfare and Reintegration Services Division (WRSD)",
   },
 };
 

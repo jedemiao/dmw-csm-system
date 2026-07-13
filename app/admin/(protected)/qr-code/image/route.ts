@@ -4,6 +4,8 @@ import path from "node:path";
 import QRCode from "qrcode";
 import sharp from "sharp";
 import { getSiteOrigin } from "@/lib/site-url";
+import { requireAdmin, canAccessDivision } from "@/lib/auth/dal";
+import { getDivisionBySlug } from "@/lib/constants/divisions";
 
 const QR_SIZE = 900;
 // Seal covers ~22% of the QR's width, centered. Error-correction level H
@@ -14,8 +16,18 @@ const SEAL_PADDING = Math.round(SEAL_SIZE * 0.12);
 const SEAL_PATH = path.join(process.cwd(), "public/images/dmw_logo.png");
 
 export async function GET(request: NextRequest) {
+  const user = await requireAdmin();
+  const slug = request.nextUrl.searchParams.get("division");
+  const division = slug ? getDivisionBySlug(slug) : undefined;
+  if (!division) {
+    return new Response("Missing or invalid division.", { status: 400 });
+  }
+  if (!canAccessDivision(user, division.value)) {
+    return new Response("Forbidden", { status: 403 });
+  }
+
   const origin = await getSiteOrigin();
-  const surveyUrl = `${origin}/#main`;
+  const surveyUrl = `${origin}/survey/${division.slug}`;
 
   const qrPng = await QRCode.toBuffer(surveyUrl, {
     type: "png",

@@ -7,9 +7,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <div className="admin-shell">
-      <AdminSidebar role={user.role} username={user.username} />
+      <AdminSidebar role={user.role} username={user.username} division={user.division} />
       <div className="admin-main">
-        <AdminTopbar name={user.name} />
+        <AdminTopbar name={user.name} division={user.division} />
         <main className="admin-main__content">{children}</main>
       </div>
     </div>

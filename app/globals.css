@@ -648,6 +648,19 @@ main { display: block; }
 .info-card h3 { font-size: 1.05rem; margin-bottom: 0.4rem; }
 .info-card p { font-size: 0.9rem; margin-bottom: 0; color: var(--ink-500); }
 
+.info-card--link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.info-card--link:hover,
+.info-card--link:focus-visible {
+  border-color: var(--navy-800);
+  box-shadow: 0 0 0 1px var(--navy-800);
+}
+.info-card--link h3 { margin-bottom: 0; }
+
 .steps {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

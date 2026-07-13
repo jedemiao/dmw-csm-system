@@ -3,7 +3,8 @@ import crypto from "node:crypto";
 import bcrypt from "bcrypt";
 import { PrismaClient } from "../generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { REGIONS, SERVICES } from "../lib/constants/survey-options";
+import { REGIONS } from "../lib/constants/survey-options";
+import { DIVISIONS, SERVICES_BY_DIVISION } from "../lib/constants/divisions";
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
@@ -90,6 +91,7 @@ async function main() {
         passwordHash,
         name: "Client Satisfaction Measurement",
         role: "ADMIN",
+        division: null,
       },
     });
 
@@ -127,11 +129,14 @@ async function main() {
     const sqd7 = randomSqd();
     const sqd8 = randomSqd();
 
+    const division = pick(DIVISIONS).value;
+
     return {
       age: 18 + Math.floor(Math.random() * 50),
       sex: pick(SEX_VALUES),
       region: pick(REGIONS),
-      service: pick(SERVICES),
+      division,
+      service: pick(SERVICES_BY_DIVISION[division]),
       customerType: pick(CUSTOMER_TYPES),
       cc1,
       cc2,

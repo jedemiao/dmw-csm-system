@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { ClockCounterClockwise } from "@phosphor-icons/react/ssr";
 import { getReportAggregate, getRolledUpServiceTransactions } from "@/lib/reports/aggregate";
-import { SERVICES } from "@/lib/constants/survey-options";
+import { DIVISIONS, SERVICES_BY_DIVISION } from "@/lib/constants/divisions";
+import { requireAdmin, resolveDivisionFilter } from "@/lib/auth/dal";
 import { getReportMeta } from "./actions";
 import { ReportForm } from "./report-form";
 import type { ImprovementPlanRow, ServiceTransactionRow } from "./actions";
@@ -17,15 +18,19 @@ const REPORT_TITLES: Record<ReportPeriodType, string> = {
 export default async function AdminReportsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ type?: string; year?: string; period?: string }>;
+  searchParams: Promise<{ type?: string; year?: string; period?: string; division?: string }>;
 }) {
+  const user = await requireAdmin();
   const params = await searchParams;
   const { periodType, year, period } = parseReportQuery(params);
+  const isOversight = user.division === null;
+  const division = resolveDivisionFilter(user, params.division) ?? DIVISIONS[0].value;
+  const services = SERVICES_BY_DIVISION[division];
 
   const [data, meta, rolledUp] = await Promise.all([
-    getReportAggregate(periodType, year, period),
-    getReportMeta(periodType, year, period),
-    periodType === "MONTH" ? Promise.resolve(null) : getRolledUpServiceTransactions(periodType, year, period),
+    getReportAggregate(periodType, year, period, division),
+    getReportMeta(periodType, year, period, division),
+    periodType === "MONTH" ? Promise.resolve(null) : getRolledUpServiceTransactions(periodType, year, period, division),
   ]);
 
   const savedServiceTx = new Map(
@@ -40,7 +45,7 @@ export default async function AdminReportsPage({
   // total" apart from "staff typed in a different number." Only rows that actually
   // diverge from auto get persisted on save (see report-form.tsx), so an unedited field
   // keeps tracking live data indefinitely instead of freezing at whatever it was on first save.
-  const autoServiceTransactions: ServiceTransactionRow[] = SERVICES.map((service) => ({
+  const autoServiceTransactions: ServiceTransactionRow[] = services.map((service) => ({
     service,
     totalTransactions:
       rolledUp?.find((r) => r.service === service)?.totalTransactions ??
@@ -67,10 +72,12 @@ export default async function AdminReportsPage({
       </div>
 
       <ReportForm
-        key={`${periodType}-${year}-${period}`}
+        key={`${periodType}-${year}-${period}-${division}`}
         periodType={periodType}
         year={year}
         period={period}
+        division={division}
+        divisions={isOversight ? DIVISIONS : undefined}
         totalResponses={data.totalResponses}
         serviceTransactions={serviceTransactions}
         autoServiceTransactions={autoServiceTransactions}

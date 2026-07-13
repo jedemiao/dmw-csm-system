@@ -19,15 +19,6 @@ export const REGIONS = [
   "Outside the Philippines",
 ] as const;
 
-export const SERVICES = [
-  "Provision of Legal Assistance",
-  "Extended Other Forms of Assistance",
-  "Alternative Dispute Resolution/SENA",
-  "Adjudication",
-  "Prosecution",
-  "Regulation and Licensing",
-] as const;
-
 export const DEFAULT_AGENCY = "Department of Migrant Workers (DMW) Regional Office XIII";
 
 export const SQD_ITEMS = [

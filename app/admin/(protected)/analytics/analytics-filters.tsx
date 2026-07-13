@@ -10,6 +10,7 @@ import {
   getWeeksInYear,
   type AnalyticsPeriodType,
 } from "@/lib/reports/constants";
+import type { DivisionMeta } from "@/lib/constants/divisions";
 
 const RANGE_LABELS: Record<AnalyticsPeriodType, string> = {
   ALL: "All time",
@@ -24,21 +25,37 @@ export function AnalyticsFilters({
   periodType,
   year,
   period,
+  division = "",
+  divisions,
   basePath = "/admin/analytics",
 }: {
   periodType: AnalyticsPeriodType;
   year: number;
   period: number;
+  division?: string;
+  divisions?: readonly DivisionMeta[];
   basePath?: string;
 }) {
   const router = useRouter();
 
-  function navigate(nextType: AnalyticsPeriodType, nextYear: number, nextPeriod: number) {
-    if (nextType === "ALL") {
-      router.push(basePath);
-      return;
+  function buildUrl(nextType: AnalyticsPeriodType, nextYear: number, nextPeriod: number, nextDivision: string) {
+    const qs = new URLSearchParams();
+    if (nextType !== "ALL") {
+      qs.set("range", nextType.toLowerCase());
+      qs.set("year", String(nextYear));
+      qs.set("period", String(nextPeriod));
     }
-    router.push(`${basePath}?range=${nextType.toLowerCase()}&year=${nextYear}&period=${nextPeriod}`);
+    if (nextDivision) qs.set("division", nextDivision);
+    const qsStr = qs.toString();
+    return qsStr ? `${basePath}?${qsStr}` : basePath;
+  }
+
+  function navigate(nextType: AnalyticsPeriodType, nextYear: number, nextPeriod: number) {
+    router.push(buildUrl(nextType, nextYear, nextPeriod, division));
+  }
+
+  function navigateDivision(nextDivision: string) {
+    router.push(buildUrl(periodType, year, period, nextDivision));
   }
 
   function changeType(nextType: AnalyticsPeriodType) {
@@ -62,6 +79,19 @@ export function AnalyticsFilters({
 
   return (
     <div style={{ display: "flex", gap: "0.75rem", alignItems: "flex-end", flexWrap: "wrap" }}>
+      {divisions && (
+        <div className="field" style={{ marginBottom: 0 }}>
+          <label htmlFor="analytics-division">Division</label>
+          <select id="analytics-division" value={division} onChange={(e) => navigateDivision(e.target.value)}>
+            <option value="">All divisions</option>
+            {divisions.map((d) => (
+              <option key={d.slug} value={d.slug}>
+                {d.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
       <div className="field" style={{ marginBottom: 0 }}>
         <label htmlFor="analytics-range">Range</label>
         <select id="analytics-range" value={periodType} onChange={(e) => changeType(e.target.value as AnalyticsPeriodType)}>

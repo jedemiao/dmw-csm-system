@@ -40,6 +40,13 @@ enum AdminRole {
   ADMIN
 }
 
+enum Division {
+  FAD
+  MWPTD
+  MWPSD
+  WRSD
+}
+
 enum ReportPeriodType {
   MONTH
   QUARTER
@@ -53,6 +60,7 @@ model SurveyResponse {
   sex          Sex
   region       String
   agency       String       @default("Department of Migrant Workers (DMW) Regional Office XIII")
+  division     Division
   service      String
   customerType CustomerType
 
@@ -82,6 +90,7 @@ model SurveyResponse {
   @@index([region])
   @@index([service])
   @@index([customerType])
+  @@index([division])
 }
 
 model AdminUser {
@@ -90,6 +99,8 @@ model AdminUser {
   passwordHash String
   name         String
   role         AdminRole @default(STAFF)
+  // Null means an oversight admin who sees/manages all divisions combined.
+  division     Division?
   isActive     Boolean   @default(true)
   createdAt    DateTime  @default(now())
   sessions     Session[]
@@ -131,6 +142,7 @@ model Report {
   periodType ReportPeriodType
   year       Int
   period     Int // MONTH: 1-12, QUARTER: 1-4, SEMESTER: 1-2, YEAR: always 0
+  division   Division
 
   // Not derivable from survey responses - entered by staff.
   serviceTransactions Json // [{ service: string, totalTransactions: number }]
@@ -150,7 +162,7 @@ model Report {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([periodType, year, period])
+  @@unique([periodType, year, period, division])
 }
 
 // Append-only trail for destructive/administrative actions. Written before the
@@ -171,6 +183,7 @@ model ReportDownload {
   periodType ReportPeriodType
   year       Int
   period     Int
+  division   Division
 
   // Snapshots at download time, so history stays accurate if labels/admin names change later.
   periodLabel      String

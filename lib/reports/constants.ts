@@ -1,6 +1,14 @@
+import type { Division } from "@/lib/constants/divisions";
+
 export const BUREAU_NAME = "DEPARTMENT OF MIGRANT WORKERS";
 export const OFFICE_NAME = "REGIONAL OFFICE XIII";
-export const DIVISION_NAME = "MIGRANT WORKERS PROTECTION DIVISION";
+// All-caps to match this report header's existing style (BUREAU_NAME/OFFICE_NAME above).
+export const DIVISION_REPORT_NAMES: Record<Division, string> = {
+  FAD: "FINANCE AND ADMINISTRATIVE DIVISION",
+  MWPTD: "MIGRANT WORKERS PROTECTION DIVISION",
+  MWPSD: "MIGRANT WORKERS PROCESSING DIVISION",
+  WRSD: "WELFARE AND REINTEGRATION SERVICES DIVISION",
+};
 export const OFFICE_LOCATION = "3RD FLOOR ESQUINA DOS BLDG.";
 export const OFFICE_ADDRESS = "3rd floor, Esquina Dos Building, J.C. Aquino Avenue cor. Doongan Road, Butuan City, Agusan del Norte, 8600";
 export const OFFICE_WEBSITE = "www.dmw.gov.ph";

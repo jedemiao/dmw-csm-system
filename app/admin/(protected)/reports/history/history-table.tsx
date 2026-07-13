@@ -42,6 +42,7 @@ export function HistoryTable({ rows }: { rows: ReportDownloadRow[] }) {
           <thead>
             <tr>
               <th>Report</th>
+              <th>Division</th>
               <th>File</th>
               <th>Downloaded by</th>
               <th>Downloaded at</th>
@@ -52,6 +53,7 @@ export function HistoryTable({ rows }: { rows: ReportDownloadRow[] }) {
             {rows.map((row) => (
               <tr key={row.id}>
                 <td>{row.periodLabel}</td>
+                <td>{row.divisionLabel}</td>
                 <td>{row.filename}</td>
                 <td>{row.downloadedByName}</td>
                 <td>{new Date(row.downloadedAt).toLocaleString("en-PH", { dateStyle: "medium", timeStyle: "short" })}</td>
@@ -81,7 +83,7 @@ export function HistoryTable({ rows }: { rows: ReportDownloadRow[] }) {
             ))}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={5} style={{ textAlign: "center", color: "var(--ink-400)", padding: "1.5rem" }}>
+                <td colSpan={6} style={{ textAlign: "center", color: "var(--ink-400)", padding: "1.5rem" }}>
                   No downloads yet.
                 </td>
               </tr>

@@ -12,13 +12,18 @@ export async function GET(request: Request) {
 
   const sinceParam = new URL(request.url).searchParams.get("since");
   const since = sinceParam ? new Date(sinceParam) : null;
-  const unreadWhere = since && !Number.isNaN(since.getTime()) ? { createdAt: { gt: since } } : undefined;
+  const divisionWhere = user.division ? { division: user.division } : {};
+  const unreadWhere = {
+    ...divisionWhere,
+    ...(since && !Number.isNaN(since.getTime()) ? { createdAt: { gt: since } } : {}),
+  };
 
   const [unreadCount, items] = await Promise.all([
     prisma.surveyResponse.count({ where: unreadWhere }),
     // Always the latest N, independent of `since` — the panel shows a
     // rolling recent-activity feed, not just what's arrived since last open.
     prisma.surveyResponse.findMany({
+      where: divisionWhere,
       orderBy: { createdAt: "desc" },
       take: MAX_ITEMS,
       select: { id: true, service: true, region: true, customerType: true, createdAt: true },

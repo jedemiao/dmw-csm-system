@@ -2,7 +2,7 @@ import "server-only";
 import { Document, Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer";
 import type { ReportAggregate } from "./aggregate";
 import type { ImprovementPlanRow, ServiceTransactionRow } from "@/app/admin/(protected)/reports/actions";
-import { BUREAU_NAME, DIVISION_NAME, OFFICE_LOCATION, OFFICE_NAME } from "./constants";
+import { BUREAU_NAME, OFFICE_LOCATION, OFFICE_NAME } from "./constants";
 import { HEADER_BANNER_PNG } from "./header-banner";
 
 const s = StyleSheet.create({
@@ -233,6 +233,7 @@ function BoxedText({ lines }: { lines: string[] }) {
 export function CsmReportDocument({
   data,
   periodLabel,
+  divisionLabel,
   serviceTransactions,
   improvementPlan,
   summaryAnalysis,
@@ -247,6 +248,7 @@ export function CsmReportDocument({
 }: {
   data: ReportAggregate;
   periodLabel: string;
+  divisionLabel: string;
   serviceTransactions: ServiceTransactionRow[];
   improvementPlan: ImprovementPlanRow[];
   summaryAnalysis: string;
@@ -272,7 +274,7 @@ export function CsmReportDocument({
         <Text style={s.metaLine}>Bureau/Service/ : {BUREAU_NAME}</Text>
         <Text style={s.metaLine}>Office (B/S/Os) : {OFFICE_NAME}</Text>
         <Text style={{ ...s.metaLine, marginBottom: 10 }}>
-          Division : {DIVISION_NAME}      Location : {OFFICE_LOCATION}
+          Division : {divisionLabel}      Location : {OFFICE_LOCATION}
         </Text>
 
         <Text style={s.sectionLabel}>A. Summary</Text>

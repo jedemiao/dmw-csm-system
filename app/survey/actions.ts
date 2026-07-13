@@ -4,6 +4,7 @@ import crypto from "node:crypto";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/db";
 import { surveyFormSchema } from "@/lib/validation/survey-schema";
+import { getDivisionBySlug } from "@/lib/constants/divisions";
 
 const SEX_MAP = { female: "FEMALE", male: "MALE" } as const;
 const CUSTOMER_TYPE_MAP = { citizen: "CITIZEN", business: "BUSINESS", government: "GOVERNMENT" } as const;
@@ -40,12 +41,15 @@ function toSqd(value: string): number | null {
 export async function submitSurvey(input: unknown): Promise<{ id: string }> {
   await enforceSubmissionThrottle();
   const data = surveyFormSchema.parse(input);
+  const division = getDivisionBySlug(data.division);
+  if (!division) throw new Error("Invalid division.");
 
   const response = await prisma.surveyResponse.create({
     data: {
       age: data.age,
       sex: SEX_MAP[data.sex],
       region: data.region,
+      division: division.value,
       service: data.service,
       customerType: CUSTOMER_TYPE_MAP[data.customerType],
       cc1: CC1_MAP[data.cc1],

@@ -12,6 +12,7 @@ import {
   SEMESTER_LABELS,
   type ReportPeriodType,
 } from "@/lib/reports/constants";
+import type { Division, DivisionMeta } from "@/lib/constants/divisions";
 
 // The File System Access API (Chrome/Edge) isn't in TS's default DOM lib yet —
 // declared narrowly here so we can feature-detect it without `any`.
@@ -50,6 +51,8 @@ export function ReportForm({
   periodType,
   year,
   period,
+  division,
+  divisions,
   totalResponses,
   serviceTransactions: initialServiceTx,
   autoServiceTransactions,
@@ -67,6 +70,8 @@ export function ReportForm({
   periodType: ReportPeriodType;
   year: number;
   period: number;
+  division: Division;
+  divisions?: readonly DivisionMeta[];
   totalResponses: number;
   serviceTransactions: ServiceTransactionRow[];
   autoServiceTransactions: ServiceTransactionRow[];
@@ -103,8 +108,10 @@ export function ReportForm({
   const [approvedByName, setApprovedByName] = useState(initialApprovedName);
   const [approvedByTitle, setApprovedByTitle] = useState(initialApprovedTitle);
 
-  function navigate(nextType: ReportPeriodType, nextYear: number, nextPeriod: number) {
-    router.push(`/admin/reports?type=${nextType.toLowerCase()}&year=${nextYear}&period=${nextPeriod}`);
+  function navigate(nextType: ReportPeriodType, nextYear: number, nextPeriod: number, nextDivision: Division) {
+    router.push(
+      `/admin/reports?type=${nextType.toLowerCase()}&year=${nextYear}&period=${nextPeriod}&division=${nextDivision.toLowerCase()}`,
+    );
   }
 
   function changeType(nextType: ReportPeriodType) {
@@ -118,16 +125,17 @@ export function ReportForm({
           : nextType === "SEMESTER"
             ? Math.floor(now.getMonth() / 6) + 1
             : 0;
-    navigate(nextType, year, defaultPeriod);
+    navigate(nextType, year, defaultPeriod, division);
   }
 
-  const pdfHref = `/admin/reports/pdf?type=${periodType.toLowerCase()}&year=${year}&period=${period}`;
+  const pdfHref = `/admin/reports/pdf?type=${periodType.toLowerCase()}&year=${year}&period=${period}&division=${division.toLowerCase()}`;
 
   function currentMeta() {
     return {
       periodType,
       year,
       period,
+      division,
       // Only persist rows that actually diverge from the live-computed auto value —
       // an unedited field should keep tracking live response totals on every future
       // load instead of freezing at whatever number happened to be showing on save.
@@ -220,6 +228,22 @@ export function ReportForm({
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.75rem", maxWidth: "56rem" }}>
       <div style={{ display: "flex", gap: "0.75rem", alignItems: "flex-end", flexWrap: "wrap" }}>
+        {divisions && (
+          <div className="field" style={{ marginBottom: 0 }}>
+            <label htmlFor="report-division">Division</label>
+            <select
+              id="report-division"
+              value={division}
+              onChange={(e) => navigate(periodType, year, period, e.target.value as Division)}
+            >
+              {divisions.map((d) => (
+                <option key={d.value} value={d.value}>
+                  {d.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <div className="field" style={{ marginBottom: 0 }}>
           <label htmlFor="report-type">Report type</label>
           <select
@@ -237,7 +261,7 @@ export function ReportForm({
         {periodType === "MONTH" && (
           <div className="field" style={{ marginBottom: 0 }}>
             <label htmlFor="report-month">Month</label>
-            <select id="report-month" value={period} onChange={(e) => navigate(periodType, year, Number(e.target.value))}>
+            <select id="report-month" value={period} onChange={(e) => navigate(periodType, year, Number(e.target.value), division)}>
               {MONTH_NAMES.map((name, i) => (
                 <option key={name} value={i + 1}>
                   {name}
@@ -252,7 +276,7 @@ export function ReportForm({
             <select
               id="report-quarter"
               value={period}
-              onChange={(e) => navigate(periodType, year, Number(e.target.value))}
+              onChange={(e) => navigate(periodType, year, Number(e.target.value), division)}
             >
               {QUARTER_LABELS.map((label, i) => (
                 <option key={label} value={i + 1}>
@@ -268,7 +292,7 @@ export function ReportForm({
             <select
               id="report-semester"
               value={period}
-              onChange={(e) => navigate(periodType, year, Number(e.target.value))}
+              onChange={(e) => navigate(periodType, year, Number(e.target.value), division)}
             >
               {SEMESTER_LABELS.map((label, i) => (
                 <option key={label} value={i + 1}>
@@ -284,7 +308,7 @@ export function ReportForm({
             id="report-year"
             type="number"
             value={year}
-            onChange={(e) => navigate(periodType, Number(e.target.value) || year, period)}
+            onChange={(e) => navigate(periodType, Number(e.target.value) || year, period, division)}
           />
         </div>
         <p style={{ color: "var(--ink-500)", fontSize: "0.85rem", marginBottom: "0.6rem" }}>

@@ -1,7 +1,9 @@
 import { prisma } from "@/lib/db";
-import { REGIONS, SERVICES } from "@/lib/constants/survey-options";
+import { REGIONS } from "@/lib/constants/survey-options";
+import { ALL_SERVICES, DIVISIONS, SERVICES_BY_DIVISION } from "@/lib/constants/divisions";
 import { toReferenceCode } from "@/lib/reference";
 import { AutoRefresh } from "@/components/admin/auto-refresh";
+import { requireAdmin, resolveDivisionFilter } from "@/lib/auth/dal";
 import { ResponsesTable, type ResponseRow } from "./responses-table";
 
 const PAGE_SIZE = 20;
@@ -12,6 +14,7 @@ type SearchParams = {
   region?: string;
   service?: string;
   customerType?: string;
+  division?: string;
   sort?: string;
   highlight?: string;
   reference?: string;
@@ -28,6 +31,7 @@ export default async function AdminResponsesPage({
 }: {
   searchParams: Promise<SearchParams>;
 }) {
+  const user = await requireAdmin();
   const params = await searchParams;
   let page = Math.max(1, Number(params.page) || 1);
   const sortDir = params.sort === "createdAt_asc" ? "asc" : "desc";
@@ -38,11 +42,16 @@ export default async function AdminResponsesPage({
 
   const referenceSuffix = params.reference ? referenceToIdSuffix(params.reference) : "";
 
+  const isOversight = user.division === null;
+  const divisionFilter = resolveDivisionFilter(user, params.division);
+  const serviceOptions = divisionFilter ? SERVICES_BY_DIVISION[divisionFilter] : ALL_SERVICES;
+
   const where = {
     ...(params.region && (REGIONS as readonly string[]).includes(params.region) ? { region: params.region } : {}),
-    ...(params.service && (SERVICES as readonly string[]).includes(params.service) ? { service: params.service } : {}),
+    ...(params.service && (serviceOptions as readonly string[]).includes(params.service) ? { service: params.service } : {}),
     ...(isValidCustomerType(customerType) ? { customerType } : {}),
     ...(referenceSuffix ? { id: { endsWith: referenceSuffix } } : {}),
+    ...(divisionFilter ? { division: divisionFilter } : {}),
   };
 
   // A notification link points at a response by id, not a page number — jump to
@@ -86,6 +95,7 @@ export default async function AdminResponsesPage({
       age: r.age,
       sex: r.sex,
       region: r.region,
+      division: r.division,
       service: r.service,
       customerType: r.customerType,
       cc1: r.cc1,
@@ -107,9 +117,15 @@ export default async function AdminResponsesPage({
         page={page}
         pageCount={pageCount}
         sortDir={sortDir}
-        filters={{ region: params.region ?? "", service: params.service ?? "", customerType: params.customerType ?? "" }}
+        filters={{
+          region: params.region ?? "",
+          service: params.service ?? "",
+          customerType: params.customerType ?? "",
+          division: isOversight ? (params.division ?? "") : "",
+        }}
         regions={REGIONS}
-        services={SERVICES}
+        services={serviceOptions}
+        divisions={isOversight ? DIVISIONS : undefined}
         highlightId={highlightId}
         referenceSearch={params.reference ?? ""}
       />

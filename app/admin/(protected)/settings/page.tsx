@@ -1,8 +1,10 @@
 import { requireAdminRole } from "@/lib/auth/dal";
+import { getDivisionLabel } from "@/lib/constants/divisions";
 import { ResetDataForm } from "@/components/admin/reset-data-form";
 
 export default async function AdminSettingsPage() {
-  await requireAdminRole();
+  const user = await requireAdminRole();
+  const scopeText = user.division ? `in ${getDivisionLabel(user.division)}` : "across every division";
 
   return (
     <div>
@@ -14,8 +16,9 @@ export default async function AdminSettingsPage() {
       <div className="info-card" style={{ maxWidth: "34rem", border: "none", background: "var(--surface-alt)" }}>
         <h3>Danger zone</h3>
         <p>
-          Reset all data removes every survey response, generated report, and report download record. Admin users and
-          sign-in history are not affected.
+          Reset all data removes every survey response, generated report, and report download record {scopeText}.
+          {user.division ? "" : " Submission-throttle records are also cleared."} Admin users and sign-in history are
+          not affected.
         </p>
         <div style={{ marginTop: "1.25rem" }}>
           <ResetDataForm />

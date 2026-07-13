@@ -29,13 +29,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Incorrect password." }, { status: 401 });
   }
 
+  // A division-scoped admin only wipes their own division's rows. Only an oversight
+  // admin (division = null) can do a full wipe, including SubmissionThrottle rows —
+  // those aren't division-taggable, so a scoped admin can't touch them at all.
+  const divisionScope = user.division;
+  const divisionWhere = divisionScope ? { division: divisionScope } : {};
+
   const [surveyResponses, reports, reportDownloads, submissionThrottles] = await Promise.all([
-    prisma.surveyResponse.count(),
-    prisma.report.count(),
-    prisma.reportDownload.count(),
-    prisma.submissionThrottle.count(),
+    prisma.surveyResponse.count({ where: divisionWhere }),
+    prisma.report.count({ where: divisionWhere }),
+    prisma.reportDownload.count({ where: divisionWhere }),
+    divisionScope ? Promise.resolve(0) : prisma.submissionThrottle.count(),
   ]);
-  const details = { surveyResponses, reports, reportDownloads, submissionThrottles };
+  const details = { division: divisionScope ?? "ALL", surveyResponses, reports, reportDownloads, submissionThrottles };
 
   // Logged before the delete so a record of the attempt survives even if the
   // deletion below fails partway through.
@@ -49,10 +55,10 @@ export async function POST(request: Request) {
   });
 
   await prisma.$transaction([
-    prisma.surveyResponse.deleteMany(),
-    prisma.report.deleteMany(),
-    prisma.reportDownload.deleteMany(),
-    prisma.submissionThrottle.deleteMany(),
+    prisma.surveyResponse.deleteMany({ where: divisionWhere }),
+    prisma.report.deleteMany({ where: divisionWhere }),
+    prisma.reportDownload.deleteMany({ where: divisionWhere }),
+    ...(divisionScope ? [] : [prisma.submissionThrottle.deleteMany()]),
   ]);
 
   return NextResponse.json({ ok: true, deleted: details });

@@ -15,6 +15,7 @@ import {
   QrCode,
   SignOut,
 } from "@phosphor-icons/react";
+import { getDivisionShortLabel, type Division } from "@/lib/constants/divisions";
 
 type NavItem = {
   href: string;
@@ -30,10 +31,19 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/admin/qr-code", label: "QR Code", Icon: QrCode },
 ];
 
-export function AdminSidebar({ role, username }: { role: string; username: string }) {
+export function AdminSidebar({
+  role,
+  username,
+  division,
+}: {
+  role: string;
+  username: string;
+  division: Division | null;
+}) {
   const [open, setOpen] = useState(true);
   const pathname = usePathname();
   const navItems = role === "ADMIN" ? [...NAV_ITEMS, { href: "/admin/settings", label: "Settings", Icon: Gear }] : NAV_ITEMS;
+  const scopeLabel = division ? getDivisionShortLabel(division) : "All divisions";
 
   return (
     <nav className={`admin-sidebar${open ? "" : " admin-sidebar--collapsed"}`} aria-label="Admin navigation">
@@ -43,7 +53,9 @@ export function AdminSidebar({ role, username }: { role: string; username: strin
         {open && (
           <div className="admin-sidebar__brand-text">
             <span className="admin-sidebar__brand-title">DMW</span>
-            <span className="admin-sidebar__brand-sub">{role.toLowerCase()}</span>
+            <span className="admin-sidebar__brand-sub">
+              {role.toLowerCase()} · {scopeLabel}
+            </span>
           </div>
         )}
       </div>

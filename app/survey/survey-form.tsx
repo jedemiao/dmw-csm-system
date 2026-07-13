@@ -4,7 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useLang } from "@/lib/i18n/lang-context";
-import { REGIONS, SERVICES, DEFAULT_AGENCY, SQD_ITEMS, SCALE_OPTIONS } from "@/lib/constants/survey-options";
+import { REGIONS, DEFAULT_AGENCY, SQD_ITEMS, SCALE_OPTIONS } from "@/lib/constants/survey-options";
+import { SERVICES_BY_DIVISION, type DivisionMeta } from "@/lib/constants/divisions";
 import { toReferenceCode } from "@/lib/reference";
 import { submitSurvey } from "./actions";
 
@@ -43,8 +44,9 @@ const INITIAL_VALUES: Values = {
   remarks: "",
 };
 
-export function SurveyForm() {
+export function SurveyForm({ division }: { division: DivisionMeta }) {
   const { t } = useLang();
+  const services = SERVICES_BY_DIVISION[division.value];
   const [values, setValues] = useState<Values>(INITIAL_VALUES);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [invalidItems, setInvalidItems] = useState<Array<{ id: string; label: string }>>([]);
@@ -121,6 +123,7 @@ export function SurveyForm() {
         sex: values.sex,
         region: values.region,
         agency: DEFAULT_AGENCY,
+        division: division.slug,
         service: values.service,
         customerType: values.customerType,
         cc1: values.cc1,
@@ -293,10 +296,14 @@ export function SurveyForm() {
             </div>
           </div>
 
-          <div className="field-grid field-grid--two" style={{ marginTop: "1.25rem" }}>
+          <div className="field-grid" style={{ marginTop: "1.25rem" }}>
             <div className="field" id="field-agency">
               <label htmlFor="agency">{t("lbl_agency")}</label>
               <input type="text" id="agency" value={DEFAULT_AGENCY} readOnly />
+            </div>
+            <div className="field" id="field-division">
+              <label htmlFor="division">{t("lbl_division")}</label>
+              <input type="text" id="division" value={division.label} readOnly />
             </div>
             <div className={`field${errors["field-service"] ? " has-error" : ""}`} id="field-service">
               <label htmlFor="service">{t("lbl_service")}</label>
@@ -308,7 +315,7 @@ export function SurveyForm() {
                 onChange={(e) => set("service", e.target.value)}
               >
                 <option value="">{t("opt_select")}</option>
-                {SERVICES.map((service) => (
+                {services.map((service) => (
                   <option key={service}>{service}</option>
                 ))}
               </select>
