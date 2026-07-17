@@ -28,7 +28,10 @@ type Values = {
   cc3: string;
   cc3Reason: string;
   remarks: string;
+  email: string;
 } & Record<`sqd${0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8}`, string>;
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const INITIAL_VALUES: Values = {
   age: "",
@@ -52,6 +55,7 @@ const INITIAL_VALUES: Values = {
   sqd7: "",
   sqd8: "",
   remarks: "",
+  email: "",
 };
 
 export function SurveyForm({ division }: { division: DivisionMeta }) {
@@ -157,6 +161,9 @@ export function SurveyForm({ division }: { division: DivisionMeta }) {
       check(`field-${item.name}`, values[item.name as keyof Values] !== "", t("msg_sqd"), item.name.toUpperCase());
     });
 
+    const emailTrimmed = values.email.trim();
+    check("field-email", emailTrimmed === "" || EMAIL_PATTERN.test(emailTrimmed), t("msg_email"), t("lbl_email"));
+
     setErrors(nextErrors);
     setInvalidItems(items);
 
@@ -196,6 +203,7 @@ export function SurveyForm({ division }: { division: DivisionMeta }) {
         sqd7: values.sqd7,
         sqd8: values.sqd8,
         remarks: values.remarks || undefined,
+        email: values.email.trim() || undefined,
       });
       setReference(toReferenceCode(response.id));
     } catch {
@@ -692,6 +700,22 @@ export function SurveyForm({ division }: { division: DivisionMeta }) {
               value={values.remarks}
               onChange={(e) => set("remarks", e.target.value)}
             />
+          </div>
+          <div className={`field${errors["field-email"] ? " has-error" : ""}`} id="field-email" style={{ marginTop: "1.25rem" }}>
+            <label htmlFor="email">
+              {t("lbl_email")} <span className="optional">{t("lbl_optional")}</span>
+            </label>
+            <input
+              type="email"
+              id="email"
+              placeholder={t("placeholder_email")}
+              aria-describedby="email-error"
+              value={values.email}
+              onChange={(e) => set("email", e.target.value)}
+            />
+            <span className="field-error" id="email-error" role="alert">
+              {errors["field-email"]}
+            </span>
           </div>
         </section>
 

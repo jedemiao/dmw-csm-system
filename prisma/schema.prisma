@@ -59,7 +59,7 @@ model SurveyResponse {
   age          Int
   sex          Sex
   region       String
-  agency       String       @default("Department of Migrant Workers (DMW) Regional Office XIII")
+  agency       String       @default("Department of Migrant Workers - RO XIII (Caraga)")
   division     Division
   services     String[]
   customerType CustomerType
@@ -84,6 +84,7 @@ model SurveyResponse {
   sqd8 Int? @db.SmallInt
 
   remarks   String?
+  email     String?
   createdAt DateTime @default(now())
 
   @@index([createdAt])

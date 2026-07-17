@@ -30,6 +30,11 @@ export const surveyFormSchema = z
     sqd8: sqdValue,
 
     remarks: z.string().trim().optional(),
+    email: z
+      .string()
+      .trim()
+      .optional()
+      .refine((v) => !v || z.string().email().safeParse(v).success, "Enter a valid email address."),
   })
   .superRefine((data, ctx) => {
     if (data.cc3 === "2" && !data.cc3Reason) {

@@ -19,7 +19,7 @@ export const REGIONS = [
   "Outside the Philippines",
 ] as const;
 
-export const DEFAULT_AGENCY = "Department of Migrant Workers (DMW) Regional Office XIII";
+export const DEFAULT_AGENCY = "Department of Migrant Workers - RO XIII (Caraga)";
 
 export const SQD_ITEMS = [
   { name: "sqd0", qKey: "sqd0_q", dimKey: "sqd0_dim", allowsNA: false },

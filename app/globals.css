@@ -860,6 +860,7 @@ main { display: block; }
 .field input[type="text"],
 .field input[type="password"],
 .field input[type="number"],
+.field input[type="email"],
 .field select,
 .field textarea {
   font: inherit;

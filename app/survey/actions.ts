@@ -66,6 +66,7 @@ export async function submitSurvey(input: unknown): Promise<{ id: string }> {
       sqd7: toSqd(data.sqd7),
       sqd8: toSqd(data.sqd8),
       remarks: data.remarks || undefined,
+      email: data.email || undefined,
     },
     select: { id: true },
   });

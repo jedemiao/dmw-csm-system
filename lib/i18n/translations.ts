@@ -93,6 +93,8 @@ export const TRANSLATIONS: Record<Lang, Record<string, string>> = {
     lbl_optional: "Optional",
     lbl_remarks: "Remarks",
     placeholder_remarks: "Tell us anything that would help improve this service.",
+    lbl_email: "Email",
+    placeholder_email: "you@example.com",
 
     actions_note: "Your response is submitted to the Department of Migrant Workers for service reporting.",
     btn_submit: "Submit survey",
@@ -113,6 +115,7 @@ export const TRANSLATIONS: Record<Lang, Record<string, string>> = {
     msg_service_subcategory: "Select a category.",
     msg_service: "Select the service you availed.",
     msg_customer_type: "Select a customer type.",
+    msg_email: "Enter a valid email address.",
     msg_cc1: "Select an answer for CC1.",
     msg_cc2: "Select an answer for CC2.",
     msg_cc3: "Select an answer for CC3.",
@@ -225,6 +228,8 @@ export const TRANSLATIONS: Record<Lang, Record<string, string>> = {
     lbl_optional: "Opsyonal",
     lbl_remarks: "Puna",
     placeholder_remarks: "Sabihin sa amin ang anumang makatutulong upang mapabuti ang serbisyong ito.",
+    lbl_email: "Email",
+    placeholder_email: "ikaw@halimbawa.com",
 
     actions_note: "Ipinapadala ang iyong sagot sa Department of Migrant Workers para sa ulat ng serbisyo.",
     btn_submit: "Isumite ang Survey",
@@ -244,6 +249,7 @@ export const TRANSLATIONS: Record<Lang, Record<string, string>> = {
     msg_service_subcategory: "Piliin ang kategorya.",
     msg_service: "Piliin ang serbisyong kinuha mo.",
     msg_customer_type: "Piliin ang uri ng kliyente.",
+    msg_email: "Maglagay ng wastong email address.",
     msg_cc1: "Pumili ng sagot para sa CC1.",
     msg_cc2: "Pumili ng sagot para sa CC2.",
     msg_cc3: "Pumili ng sagot para sa CC3.",
