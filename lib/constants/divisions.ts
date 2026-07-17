@@ -25,20 +25,42 @@ export function getDivisionShortLabel(value: Division): string {
 
 export type ServiceGroup = { category: string; services: readonly string[] };
 export type ServiceCatalog = readonly string[] | readonly ServiceGroup[];
+// A tab is a top-level "type of service" branch. Most tabs are terminal — picking
+// the tab IS the service, no further breakdown (WRSD: "Welfare and Other Forms of
+// Assistance", "AKSYON Fund"). A tab only gets a `catalog` when it needs to drill
+// further (WRSD: "Reintegration Services" -> category -> specific service).
+export type ServiceTab = { type: string; catalog?: ServiceCatalog };
+export type DivisionCatalog = ServiceCatalog | readonly ServiceTab[];
 
 export function isGroupedCatalog(catalog: ServiceCatalog): catalog is readonly ServiceGroup[] {
-  return catalog.length > 0 && typeof catalog[0] !== "string";
+  return catalog.length > 0 && typeof catalog[0] === "object" && "category" in catalog[0];
+}
+
+export function isTabbedCatalog(catalog: DivisionCatalog): catalog is readonly ServiceTab[] {
+  return catalog.length > 0 && typeof catalog[0] === "object" && "type" in catalog[0];
+}
+
+// Whether a tab needs a further pick (has a non-empty sub-catalog) or is terminal
+// (the tab's own name is the service).
+export function tabHasCatalog(tab: ServiceTab): boolean {
+  return Boolean(tab.catalog && tab.catalog.length > 0);
+}
+
+function flattenCatalog(catalog: ServiceCatalog): string[] {
+  return isGroupedCatalog(catalog) ? catalog.flatMap((group) => group.services) : [...catalog];
 }
 
 export function getFlatServices(division: Division): string[] {
   const catalog = SERVICES_BY_DIVISION[division];
-  return isGroupedCatalog(catalog) ? catalog.flatMap((group) => group.services) : [...catalog];
+  return isTabbedCatalog(catalog)
+    ? catalog.flatMap((tab) => (tabHasCatalog(tab) ? flattenCatalog(tab.catalog!) : [tab.type]))
+    : flattenCatalog(catalog);
 }
 
 // MWPTD's list reflects its real services. MWPSD's is grouped under head
-// service categories (its real catalog). FAD and WRSD are placeholder
-// samples pending the actual per-division service lists.
-export const SERVICES_BY_DIVISION: Record<Division, ServiceCatalog> = {
+// service categories, and WRSD is grouped under "type of service" tabs (its
+// real catalogs). FAD is a placeholder sample pending its actual service list.
+export const SERVICES_BY_DIVISION: Record<Division, DivisionCatalog> = {
   MWPTD: [
     "Provision of Legal Assistance",
     "Extended Other Forms of Assistance",
@@ -75,9 +97,17 @@ export const SERVICES_BY_DIVISION: Record<Division, ServiceCatalog> = {
     },
   ],
   WRSD: [
-    "Repatriation Assistance",
-    "Welfare Case Management",
-    "Reintegration Program Enrollment",
+    {
+      type: "Reintegration Services",
+      catalog: [
+        {
+          category: "KABUHAYAN (Employment, Financial Grant/Livelihood)",
+          services: ["LPOR", "LDAP", "SPIMS"],
+        },
+      ],
+    },
+    { type: "Welfare and Other Forms of Assistance" },
+    { type: "AKSYON Fund" },
   ],
 };
 

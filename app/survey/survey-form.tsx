@@ -5,7 +5,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { useLang } from "@/lib/i18n/lang-context";
 import { REGIONS, DEFAULT_AGENCY, SQD_ITEMS, SCALE_OPTIONS } from "@/lib/constants/survey-options";
-import { SERVICES_BY_DIVISION, isGroupedCatalog, type DivisionMeta } from "@/lib/constants/divisions";
+import {
+  SERVICES_BY_DIVISION,
+  isGroupedCatalog,
+  isTabbedCatalog,
+  tabHasCatalog,
+  type DivisionMeta,
+} from "@/lib/constants/divisions";
 import { toReferenceCode } from "@/lib/reference";
 import { submitSurvey } from "./actions";
 
@@ -13,6 +19,7 @@ type Values = {
   age: string;
   sex: string;
   region: string;
+  serviceType: string;
   serviceCategory: string;
   services: string[];
   customerType: string;
@@ -27,6 +34,7 @@ const INITIAL_VALUES: Values = {
   age: "",
   sex: "",
   region: "",
+  serviceType: "",
   serviceCategory: "",
   services: [],
   customerType: "",
@@ -49,7 +57,7 @@ const INITIAL_VALUES: Values = {
 export function SurveyForm({ division }: { division: DivisionMeta }) {
   const { t } = useLang();
   const catalog = SERVICES_BY_DIVISION[division.value];
-  const grouped = isGroupedCatalog(catalog);
+  const tabbed = isTabbedCatalog(catalog);
   const [values, setValues] = useState<Values>(INITIAL_VALUES);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [invalidItems, setInvalidItems] = useState<Array<{ id: string; label: string }>>([]);
@@ -58,9 +66,14 @@ export function SurveyForm({ division }: { division: DivisionMeta }) {
   const [reference, setReference] = useState<string | null>(null);
 
   const showCc3Reason = values.cc3 === "2";
+  const selectedTab = tabbed ? catalog.find((tab) => tab.type === values.serviceType) : undefined;
+  // A tab with no sub-catalog is terminal — picking it IS the service, nothing more to ask.
+  const hasSubCatalog = tabbed ? Boolean(selectedTab && tabHasCatalog(selectedTab)) : true;
+  const activeTabCatalog = tabbed ? (selectedTab?.catalog ?? []) : catalog;
+  const grouped = isGroupedCatalog(activeTabCatalog);
   const serviceOptions = grouped
-    ? (catalog.find((group) => group.category === values.serviceCategory)?.services ?? [])
-    : catalog;
+    ? (activeTabCatalog.find((group) => group.category === values.serviceCategory)?.services ?? [])
+    : activeTabCatalog;
 
   function set<K extends keyof Omit<Values, "services">>(key: K, value: string) {
     setValues((prev) => {
@@ -70,6 +83,17 @@ export function SurveyForm({ division }: { division: DivisionMeta }) {
       }
       return next;
     });
+  }
+
+  function setServiceType(value: string) {
+    const tab = tabbed ? catalog.find((t) => t.type === value) : undefined;
+    const isTerminal = value !== "" && tab !== undefined && !tabHasCatalog(tab);
+    setValues((prev) => ({
+      ...prev,
+      serviceType: value,
+      serviceCategory: "",
+      services: isTerminal ? [value] : [],
+    }));
   }
 
   function setServiceCategory(value: string) {
@@ -110,8 +134,16 @@ export function SurveyForm({ division }: { division: DivisionMeta }) {
     check("field-age", values.age.trim() !== "" && ageNum > 0 && ageNum < 120, t("msg_age"), t("lbl_age"));
     check("field-sex", values.sex !== "", t("msg_select_option"), t("lbl_sex"));
     check("field-region", values.region !== "", t("msg_region"), t("lbl_region"));
+    if (tabbed) {
+      check("field-service-type", values.serviceType !== "", t("msg_service_category"), t("lbl_service_category"));
+    }
     if (grouped) {
-      check("field-service-category", values.serviceCategory !== "", t("msg_service_category"), t("lbl_service_category"));
+      check(
+        "field-service-category",
+        values.serviceCategory !== "",
+        tabbed ? t("msg_service_subcategory") : t("msg_service_category"),
+        tabbed ? t("lbl_service_subcategory") : t("lbl_service_category"),
+      );
     }
     check("field-service", values.services.length > 0, t("msg_service"), t("lbl_service"));
     check("field-customer-type", values.customerType !== "", t("msg_customer_type"), t("lbl_customer_type"));
@@ -329,7 +361,26 @@ export function SurveyForm({ division }: { division: DivisionMeta }) {
               <label htmlFor="division">{t("lbl_division")}</label>
               <input type="text" id="division" value={division.label} readOnly />
             </div>
-            {grouped ? (
+            {tabbed ? (
+              <div className={`field${errors["field-service-type"] ? " has-error" : ""}`} id="field-service-type">
+                <label htmlFor="serviceType">{t("lbl_service_category")}</label>
+                <select
+                  id="serviceType"
+                  required
+                  aria-describedby="serviceType-error"
+                  value={values.serviceType}
+                  onChange={(e) => setServiceType(e.target.value)}
+                >
+                  <option value="">{t("opt_select")}</option>
+                  {catalog.map((tab) => (
+                    <option key={tab.type}>{tab.type}</option>
+                  ))}
+                </select>
+                <span className="field-error" id="serviceType-error" role="alert">
+                  {errors["field-service-type"]}
+                </span>
+              </div>
+            ) : grouped ? (
               <div className={`field${errors["field-service-category"] ? " has-error" : ""}`} id="field-service-category">
                 <label htmlFor="serviceCategory">{t("lbl_service_category")}</label>
                 <select
@@ -340,7 +391,7 @@ export function SurveyForm({ division }: { division: DivisionMeta }) {
                   onChange={(e) => setServiceCategory(e.target.value)}
                 >
                   <option value="">{t("opt_select")}</option>
-                  {catalog.map((group) => (
+                  {activeTabCatalog.map((group) => (
                     <option key={group.category}>{group.category}</option>
                   ))}
                 </select>
@@ -370,29 +421,75 @@ export function SurveyForm({ division }: { division: DivisionMeta }) {
             )}
           </div>
 
-          {grouped && (
+          {tabbed && values.serviceType !== "" && grouped && (
+            <div
+              className={`field${errors["field-service-category"] ? " has-error" : ""}`}
+              style={{ marginTop: "1.25rem" }}
+              id="field-service-category"
+            >
+              <label htmlFor="serviceCategory">{t("lbl_service_subcategory")}</label>
+              <select
+                id="serviceCategory"
+                required
+                aria-describedby="serviceCategory-error"
+                value={values.serviceCategory}
+                onChange={(e) => setServiceCategory(e.target.value)}
+              >
+                <option value="">{t("opt_select")}</option>
+                {activeTabCatalog.map((group) => (
+                  <option key={group.category}>{group.category}</option>
+                ))}
+              </select>
+              <span className="field-error" id="serviceCategory-error" role="alert">
+                {errors["field-service-category"]}
+              </span>
+            </div>
+          )}
+
+          {tabbed && hasSubCatalog && !grouped && (
+            <div
+              className={`field${errors["field-service"] ? " has-error" : ""}`}
+              style={{ marginTop: "1.25rem" }}
+              id="field-service"
+            >
+              <label htmlFor="service">{t("lbl_service")}</label>
+              <select
+                id="service"
+                required
+                aria-describedby="service-error"
+                value={values.services[0] ?? ""}
+                onChange={(e) => setSingleService(e.target.value)}
+              >
+                <option value="">{t("opt_select")}</option>
+                {serviceOptions.map((service) => (
+                  <option key={service}>{service}</option>
+                ))}
+              </select>
+              <span className="field-error" id="service-error" role="alert">
+                {errors["field-service"]}
+              </span>
+            </div>
+          )}
+
+          {grouped && values.serviceCategory !== "" && (
             <fieldset
               style={{ marginTop: "1.25rem" }}
               id="field-service"
               className={errors["field-service"] ? "has-error" : ""}
             >
               <legend>{t("lbl_service")}</legend>
-              {values.serviceCategory === "" ? (
-                <p className="form-section__hint">{t("msg_service_pick_category_first")}</p>
-              ) : (
-                <div className="radio-row">
-                  {serviceOptions.map((service) => (
-                    <label className="radio-option" key={service}>
-                      <input
-                        type="checkbox"
-                        checked={values.services.includes(service)}
-                        onChange={(e) => toggleService(service, e.target.checked)}
-                      />{" "}
-                      <span>{service}</span>
-                    </label>
-                  ))}
-                </div>
-              )}
+              <div className="radio-row">
+                {serviceOptions.map((service) => (
+                  <label className="radio-option" key={service}>
+                    <input
+                      type="checkbox"
+                      checked={values.services.includes(service)}
+                      onChange={(e) => toggleService(service, e.target.checked)}
+                    />{" "}
+                    <span>{service}</span>
+                  </label>
+                ))}
+              </div>
               <span className="field-error" role="alert">
                 {errors["field-service"]}
               </span>
