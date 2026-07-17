@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { REGIONS } from "@/lib/constants/survey-options";
-import { DIVISION_SLUGS, DIVISIONS, SERVICES_BY_DIVISION } from "@/lib/constants/divisions";
+import { DIVISION_SLUGS, DIVISIONS, getFlatServices } from "@/lib/constants/divisions";
 
 const sqdValue = z.enum(["1", "2", "3", "4", "5"]);
 const sqdValueWithNA = z.enum(["1", "2", "3", "4", "5", "NA"]);
@@ -11,7 +11,7 @@ export const surveyFormSchema = z
     sex: z.enum(["female", "male"]),
     region: z.enum(REGIONS),
     division: z.enum(DIVISION_SLUGS),
-    service: z.string(),
+    services: z.array(z.string()).min(1),
     customerType: z.enum(["citizen", "business", "government"]),
 
     cc1: z.enum(["1", "2", "3"]),
@@ -37,8 +37,10 @@ export const surveyFormSchema = z
     }
 
     const division = DIVISIONS.find((d) => d.slug === data.division);
-    if (!division || !SERVICES_BY_DIVISION[division.value].includes(data.service)) {
-      ctx.addIssue({ code: "custom", path: ["service"], message: "Select a valid service for this division." });
+    const flatServices = division ? getFlatServices(division.value) : [];
+    const allValid = data.services.length > 0 && data.services.every((s) => flatServices.includes(s));
+    if (!division || !allValid) {
+      ctx.addIssue({ code: "custom", path: ["services"], message: "Select at least one valid service for this division." });
     }
   });
 

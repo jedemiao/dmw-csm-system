@@ -11,7 +11,7 @@ const EXIT_MS = 160;
 
 type NotificationItem = {
   id: string;
-  service: string;
+  services: string[];
   region: string;
   customerType: string;
   createdAt: string;
@@ -262,7 +262,7 @@ export function NotificationBell() {
                       <span className="notification-panel__dot" aria-hidden="true" />
                       <div className="notification-panel__body">
                         <div className="notification-panel__row">
-                          <p className="notification-panel__title">{item.service}</p>
+                          <p className="notification-panel__title">{item.services.join(", ")}</p>
                           <span className="notification-panel__time">{timeAgo(item.createdAt)}</span>
                         </div>
                         <p className="notification-panel__desc">

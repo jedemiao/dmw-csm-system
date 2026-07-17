@@ -61,7 +61,7 @@ model SurveyResponse {
   region       String
   agency       String       @default("Department of Migrant Workers (DMW) Regional Office XIII")
   division     Division
-  service      String
+  services     String[]
   customerType CustomerType
 
   cc1       Cc1
@@ -88,7 +88,7 @@ model SurveyResponse {
 
   @@index([createdAt])
   @@index([region])
-  @@index([service])
+  @@index([services], type: Gin)
   @@index([customerType])
   @@index([division])
 }

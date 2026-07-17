@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { REGIONS } from "@/lib/constants/survey-options";
-import { ALL_SERVICES, DIVISIONS, SERVICES_BY_DIVISION } from "@/lib/constants/divisions";
+import { ALL_SERVICES, DIVISIONS, getFlatServices } from "@/lib/constants/divisions";
 import { toReferenceCode } from "@/lib/reference";
 import { AutoRefresh } from "@/components/admin/auto-refresh";
 import { requireAdmin, resolveDivisionFilter } from "@/lib/auth/dal";
@@ -44,11 +44,13 @@ export default async function AdminResponsesPage({
 
   const isOversight = user.division === null;
   const divisionFilter = resolveDivisionFilter(user, params.division);
-  const serviceOptions = divisionFilter ? SERVICES_BY_DIVISION[divisionFilter] : ALL_SERVICES;
+  const serviceOptions = divisionFilter ? getFlatServices(divisionFilter) : ALL_SERVICES;
 
   const where = {
     ...(params.region && (REGIONS as readonly string[]).includes(params.region) ? { region: params.region } : {}),
-    ...(params.service && (serviceOptions as readonly string[]).includes(params.service) ? { service: params.service } : {}),
+    ...(params.service && (serviceOptions as readonly string[]).includes(params.service)
+      ? { services: { has: params.service } }
+      : {}),
     ...(isValidCustomerType(customerType) ? { customerType } : {}),
     ...(referenceSuffix ? { id: { endsWith: referenceSuffix } } : {}),
     ...(divisionFilter ? { division: divisionFilter } : {}),
@@ -96,7 +98,7 @@ export default async function AdminResponsesPage({
       sex: r.sex,
       region: r.region,
       division: r.division,
-      service: r.service,
+      services: r.services,
       customerType: r.customerType,
       cc1: r.cc1,
       avgSqd: answered.length > 0 ? answered.reduce((a, b) => a + b, 0) / answered.length : null,

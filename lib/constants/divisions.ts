@@ -23,9 +23,22 @@ export function getDivisionShortLabel(value: Division): string {
   return DIVISIONS.find((d) => d.value === value)?.shortLabel ?? value;
 }
 
-// MWPTD's list reflects its real services. The other three are placeholder
+export type ServiceGroup = { category: string; services: readonly string[] };
+export type ServiceCatalog = readonly string[] | readonly ServiceGroup[];
+
+export function isGroupedCatalog(catalog: ServiceCatalog): catalog is readonly ServiceGroup[] {
+  return catalog.length > 0 && typeof catalog[0] !== "string";
+}
+
+export function getFlatServices(division: Division): string[] {
+  const catalog = SERVICES_BY_DIVISION[division];
+  return isGroupedCatalog(catalog) ? catalog.flatMap((group) => group.services) : [...catalog];
+}
+
+// MWPTD's list reflects its real services. MWPSD's is grouped under head
+// service categories (its real catalog). FAD and WRSD are placeholder
 // samples pending the actual per-division service lists.
-export const SERVICES_BY_DIVISION: Record<Division, readonly string[]> = {
+export const SERVICES_BY_DIVISION: Record<Division, ServiceCatalog> = {
   MWPTD: [
     "Provision of Legal Assistance",
     "Extended Other Forms of Assistance",
@@ -40,9 +53,26 @@ export const SERVICES_BY_DIVISION: Record<Division, readonly string[]> = {
     "Budget and Financial Reporting",
   ],
   MWPSD: [
-    "Overseas Employment Certificate (OEC) Processing",
-    "Contract Verification and Processing",
-    "Registration and Accreditation",
+    {
+      category: "Documentation and Processing",
+      services: ["OEC (Balik-Manggagawa)", "OEC (Direct-Hire)"],
+    },
+    {
+      category: "E-Registration Concerns",
+      services: ["Account Creation", "Account Retrieval", "OEC Exemption", "Setting of Appointment"],
+    },
+    {
+      category: "Balik-Manggagawa Concerns",
+      services: ["OEC Cancellation", "Transfer of OLD Records"],
+    },
+    {
+      category: "Deployment Record",
+      services: ["Input of Deployment Record"],
+    },
+    {
+      category: "Information Sheet",
+      services: ["Request for Info Sheet"],
+    },
   ],
   WRSD: [
     "Repatriation Assistance",
@@ -52,5 +82,5 @@ export const SERVICES_BY_DIVISION: Record<Division, readonly string[]> = {
 };
 
 export const ALL_SERVICES: readonly string[] = Array.from(
-  new Set(Object.values(SERVICES_BY_DIVISION).flat()),
+  new Set(Object.keys(SERVICES_BY_DIVISION).flatMap((key) => getFlatServices(key as Division))),
 );

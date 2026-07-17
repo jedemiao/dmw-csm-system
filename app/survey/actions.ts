@@ -50,7 +50,7 @@ export async function submitSurvey(input: unknown): Promise<{ id: string }> {
       sex: SEX_MAP[data.sex],
       region: data.region,
       division: division.value,
-      service: data.service,
+      services: data.services,
       customerType: CUSTOMER_TYPE_MAP[data.customerType],
       cc1: CC1_MAP[data.cc1],
       cc2: CC2_MAP[data.cc2],

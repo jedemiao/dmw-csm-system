@@ -1,7 +1,7 @@
 import "server-only";
 import { prisma } from "@/lib/db";
 import { CC1_LABELS, CC2_LABELS, CC3_LABELS, SEX_LABELS } from "@/lib/constants/enum-labels";
-import { SERVICES_BY_DIVISION, type Division } from "@/lib/constants/divisions";
+import { getFlatServices, type Division } from "@/lib/constants/divisions";
 import {
   AGE_BUCKETS,
   REPORT_REGION_ORDER,
@@ -43,11 +43,11 @@ export type MonthlyAggregate = ReportAggregate;
 
 async function getAggregateForRange(start: Date, end: Date, division: Division) {
   const where = { createdAt: { gte: start, lt: end }, division };
-  const services = SERVICES_BY_DIVISION[division];
+  const services = getFlatServices(division);
 
   const [
     totalResponses,
-    serviceGroups,
+    serviceRows,
     cc1Groups,
     cc2Groups,
     cc3Groups,
@@ -60,7 +60,9 @@ async function getAggregateForRange(start: Date, end: Date, division: Division) 
     ...sqdGroups
   ] = await Promise.all([
     prisma.surveyResponse.count({ where }),
-    prisma.surveyResponse.groupBy({ where, by: ["service"], _count: true }),
+    // Prisma's groupBy can't group by array element, and a response can list more
+    // than one service — tally each response's services client-side instead.
+    prisma.surveyResponse.findMany({ where, select: { services: true } }),
     prisma.surveyResponse.groupBy({ where, by: ["cc1"], _count: true }),
     prisma.surveyResponse.groupBy({ where, by: ["cc2"], _count: true }),
     prisma.surveyResponse.groupBy({ where, by: ["cc3"], _count: true }),
@@ -77,7 +79,12 @@ async function getAggregateForRange(start: Date, end: Date, division: Division) 
     ...SQD_DIMENSIONS.map(({ key }) => prisma.surveyResponse.groupBy({ where, by: [key as "sqd1"], _count: true })),
   ]);
 
-  const serviceCountMap = new Map(serviceGroups.map((g) => [g.service, g._count]));
+  const serviceCountMap = new Map<string, number>();
+  for (const row of serviceRows) {
+    for (const service of row.services) {
+      serviceCountMap.set(service, (serviceCountMap.get(service) ?? 0) + 1);
+    }
+  }
   const serviceCounts = services.filter((s) => (serviceCountMap.get(s) ?? 0) > 0).map((service) => ({
     service,
     responses: serviceCountMap.get(service) ?? 0,
@@ -232,6 +239,6 @@ export async function getRolledUpServiceTransactions(
     }
   }
 
-  const services = SERVICES_BY_DIVISION[division];
+  const services = getFlatServices(division);
   return services.filter((s) => totals.has(s)).map((service) => ({ service, totalTransactions: totals.get(service)! }));
 }

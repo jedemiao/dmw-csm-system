@@ -14,7 +14,7 @@ export type ResponseRow = {
   sex: string;
   region: string;
   division: Division;
-  service: string;
+  services: string[];
   customerType: string;
   cc1: string;
   avgSqd: number | null;
@@ -33,7 +33,7 @@ const columns = [
   columnHelper.accessor("sex", { header: "Sex", cell: (info) => SEX_LABELS[info.getValue()] ?? info.getValue() }),
   columnHelper.accessor("region", { header: "Region" }),
   columnHelper.accessor("division", { header: "Division", cell: (info) => getDivisionLabel(info.getValue()) }),
-  columnHelper.accessor("service", { header: "Service" }),
+  columnHelper.accessor("services", { header: "Service", cell: (info) => info.getValue().join(", ") }),
   columnHelper.accessor("customerType", {
     header: "Customer type",
     cell: (info) => CUSTOMER_TYPE_LABELS[info.getValue()] ?? info.getValue(),

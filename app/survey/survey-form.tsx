@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useLang } from "@/lib/i18n/lang-context";
 import { REGIONS, DEFAULT_AGENCY, SQD_ITEMS, SCALE_OPTIONS } from "@/lib/constants/survey-options";
-import { SERVICES_BY_DIVISION, type DivisionMeta } from "@/lib/constants/divisions";
+import { SERVICES_BY_DIVISION, isGroupedCatalog, type DivisionMeta } from "@/lib/constants/divisions";
 import { toReferenceCode } from "@/lib/reference";
 import { submitSurvey } from "./actions";
 
@@ -13,7 +13,8 @@ type Values = {
   age: string;
   sex: string;
   region: string;
-  service: string;
+  serviceCategory: string;
+  services: string[];
   customerType: string;
   cc1: string;
   cc2: string;
@@ -26,7 +27,8 @@ const INITIAL_VALUES: Values = {
   age: "",
   sex: "",
   region: "",
-  service: "",
+  serviceCategory: "",
+  services: [],
   customerType: "",
   cc1: "",
   cc2: "",
@@ -46,7 +48,8 @@ const INITIAL_VALUES: Values = {
 
 export function SurveyForm({ division }: { division: DivisionMeta }) {
   const { t } = useLang();
-  const services = SERVICES_BY_DIVISION[division.value];
+  const catalog = SERVICES_BY_DIVISION[division.value];
+  const grouped = isGroupedCatalog(catalog);
   const [values, setValues] = useState<Values>(INITIAL_VALUES);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [invalidItems, setInvalidItems] = useState<Array<{ id: string; label: string }>>([]);
@@ -55,8 +58,11 @@ export function SurveyForm({ division }: { division: DivisionMeta }) {
   const [reference, setReference] = useState<string | null>(null);
 
   const showCc3Reason = values.cc3 === "2";
+  const serviceOptions = grouped
+    ? (catalog.find((group) => group.category === values.serviceCategory)?.services ?? [])
+    : catalog;
 
-  function set<K extends keyof Values>(key: K, value: string) {
+  function set<K extends keyof Omit<Values, "services">>(key: K, value: string) {
     setValues((prev) => {
       const next = { ...prev, [key]: value };
       if (key === "cc3" && value !== "2") {
@@ -64,6 +70,21 @@ export function SurveyForm({ division }: { division: DivisionMeta }) {
       }
       return next;
     });
+  }
+
+  function setServiceCategory(value: string) {
+    setValues((prev) => ({ ...prev, serviceCategory: value, services: [] }));
+  }
+
+  function setSingleService(value: string) {
+    setValues((prev) => ({ ...prev, services: value ? [value] : [] }));
+  }
+
+  function toggleService(service: string, checked: boolean) {
+    setValues((prev) => ({
+      ...prev,
+      services: checked ? [...prev.services, service] : prev.services.filter((s) => s !== service),
+    }));
   }
 
   function focusField(containerId: string) {
@@ -89,7 +110,10 @@ export function SurveyForm({ division }: { division: DivisionMeta }) {
     check("field-age", values.age.trim() !== "" && ageNum > 0 && ageNum < 120, t("msg_age"), t("lbl_age"));
     check("field-sex", values.sex !== "", t("msg_select_option"), t("lbl_sex"));
     check("field-region", values.region !== "", t("msg_region"), t("lbl_region"));
-    check("field-service", values.service !== "", t("msg_service"), t("lbl_service"));
+    if (grouped) {
+      check("field-service-category", values.serviceCategory !== "", t("msg_service_category"), t("lbl_service_category"));
+    }
+    check("field-service", values.services.length > 0, t("msg_service"), t("lbl_service"));
     check("field-customer-type", values.customerType !== "", t("msg_customer_type"), t("lbl_customer_type"));
     check("field-cc1", values.cc1 !== "", t("msg_cc1"), t("lbl_cc1"));
 
@@ -124,7 +148,7 @@ export function SurveyForm({ division }: { division: DivisionMeta }) {
         region: values.region,
         agency: DEFAULT_AGENCY,
         division: division.slug,
-        service: values.service,
+        services: values.services,
         customerType: values.customerType,
         cc1: values.cc1,
         cc2: values.cc2,
@@ -305,25 +329,75 @@ export function SurveyForm({ division }: { division: DivisionMeta }) {
               <label htmlFor="division">{t("lbl_division")}</label>
               <input type="text" id="division" value={division.label} readOnly />
             </div>
-            <div className={`field${errors["field-service"] ? " has-error" : ""}`} id="field-service">
-              <label htmlFor="service">{t("lbl_service")}</label>
-              <select
-                id="service"
-                required
-                aria-describedby="service-error"
-                value={values.service}
-                onChange={(e) => set("service", e.target.value)}
-              >
-                <option value="">{t("opt_select")}</option>
-                {services.map((service) => (
-                  <option key={service}>{service}</option>
-                ))}
-              </select>
-              <span className="field-error" id="service-error" role="alert">
+            {grouped ? (
+              <div className={`field${errors["field-service-category"] ? " has-error" : ""}`} id="field-service-category">
+                <label htmlFor="serviceCategory">{t("lbl_service_category")}</label>
+                <select
+                  id="serviceCategory"
+                  required
+                  aria-describedby="serviceCategory-error"
+                  value={values.serviceCategory}
+                  onChange={(e) => setServiceCategory(e.target.value)}
+                >
+                  <option value="">{t("opt_select")}</option>
+                  {catalog.map((group) => (
+                    <option key={group.category}>{group.category}</option>
+                  ))}
+                </select>
+                <span className="field-error" id="serviceCategory-error" role="alert">
+                  {errors["field-service-category"]}
+                </span>
+              </div>
+            ) : (
+              <div className={`field${errors["field-service"] ? " has-error" : ""}`} id="field-service">
+                <label htmlFor="service">{t("lbl_service")}</label>
+                <select
+                  id="service"
+                  required
+                  aria-describedby="service-error"
+                  value={values.services[0] ?? ""}
+                  onChange={(e) => setSingleService(e.target.value)}
+                >
+                  <option value="">{t("opt_select")}</option>
+                  {serviceOptions.map((service) => (
+                    <option key={service}>{service}</option>
+                  ))}
+                </select>
+                <span className="field-error" id="service-error" role="alert">
+                  {errors["field-service"]}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {grouped && (
+            <fieldset
+              style={{ marginTop: "1.25rem" }}
+              id="field-service"
+              className={errors["field-service"] ? "has-error" : ""}
+            >
+              <legend>{t("lbl_service")}</legend>
+              {values.serviceCategory === "" ? (
+                <p className="form-section__hint">{t("msg_service_pick_category_first")}</p>
+              ) : (
+                <div className="radio-row">
+                  {serviceOptions.map((service) => (
+                    <label className="radio-option" key={service}>
+                      <input
+                        type="checkbox"
+                        checked={values.services.includes(service)}
+                        onChange={(e) => toggleService(service, e.target.checked)}
+                      />{" "}
+                      <span>{service}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+              <span className="field-error" role="alert">
                 {errors["field-service"]}
               </span>
-            </div>
-          </div>
+            </fieldset>
+          )}
 
           <fieldset
             style={{ marginTop: "1.25rem" }}
@@ -496,7 +570,7 @@ export function SurveyForm({ division }: { division: DivisionMeta }) {
                         name={item.name}
                         value={opt.value}
                         checked={values[item.name as keyof Values] === opt.value}
-                        onChange={(e) => set(item.name as keyof Values, e.target.value)}
+                        onChange={(e) => set(item.name as keyof Omit<Values, "services">, e.target.value)}
                       />
                     </label>
                   ))}

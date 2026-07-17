@@ -26,7 +26,7 @@ export async function GET(request: Request) {
       where: divisionWhere,
       orderBy: { createdAt: "desc" },
       take: MAX_ITEMS,
-      select: { id: true, service: true, region: true, customerType: true, createdAt: true },
+      select: { id: true, services: true, region: true, customerType: true, createdAt: true },
     }),
   ]);
 

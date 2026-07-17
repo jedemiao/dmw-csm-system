@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import { Prisma } from "@/generated/prisma/client";
 import { CC1_LABELS, CC2_LABELS, CC3_LABELS, CUSTOMER_TYPE_LABELS } from "@/lib/constants/enum-labels";
-import { ALL_SERVICES, DIVISIONS, SERVICES_BY_DIVISION } from "@/lib/constants/divisions";
+import { ALL_SERVICES, DIVISIONS, getFlatServices } from "@/lib/constants/divisions";
 import { getPeriodLabel, getPeriodRange, getPreviousPeriod, parseAnalyticsQuery } from "@/lib/reports/constants";
 import { AutoRefresh } from "@/components/admin/auto-refresh";
 import { requireAdmin, resolveDivisionFilter } from "@/lib/auth/dal";
@@ -90,7 +90,15 @@ export default async function AdminAnalyticsPage({
     prisma.surveyResponse.groupBy({ where, by: ["cc2"], _count: true }),
     prisma.surveyResponse.groupBy({ where, by: ["cc3"], _count: true }),
     prisma.surveyResponse.groupBy({ where, by: ["region"], _count: true, orderBy: { _count: { region: "desc" } } }),
-    prisma.surveyResponse.groupBy({ where, by: ["service"], _count: true, orderBy: { _count: { service: "desc" } } }),
+    // Prisma's groupBy can't group by array element, and a response can list more than
+    // one service — unnest so each response counts once per service it lists.
+    prisma.$queryRaw<Array<{ service: string; count: bigint }>>`
+      SELECT s.service, COUNT(*)::bigint AS count
+      FROM "SurveyResponse", unnest(services) AS s(service)
+      ${dateFilter}
+      GROUP BY s.service
+      ORDER BY count DESC
+    `,
     prisma.surveyResponse.groupBy({ where, by: ["customerType"], _count: true }),
     prisma.$queryRaw<Array<{ day: Date; count: bigint }>>`
       SELECT date_trunc('day', "createdAt") AS day, COUNT(*)::bigint AS count
@@ -104,7 +112,7 @@ export default async function AdminAnalyticsPage({
     // (lib/reports/aggregate.ts) plus the standalone SQD0 question folded in.
     prisma.$queryRaw<Array<{ service: string; total: bigint; agree: bigint; answered: bigint; scoreSum: bigint }>>`
       SELECT
-        service,
+        s.service,
         COUNT(*)::bigint AS total,
         SUM(
           (CASE WHEN sqd0 IN (4,5) THEN 1 ELSE 0 END) +
@@ -124,9 +132,9 @@ export default async function AdminAnalyticsPage({
           COALESCE(sqd0,0) + COALESCE(sqd1,0) + COALESCE(sqd2,0) + COALESCE(sqd3,0) + COALESCE(sqd4,0) +
           COALESCE(sqd5,0) + COALESCE(sqd6,0) + COALESCE(sqd7,0) + COALESCE(sqd8,0)
         )::bigint AS "scoreSum"
-      FROM "SurveyResponse"
+      FROM "SurveyResponse", unnest(services) AS s(service)
       ${dateFilter}
-      GROUP BY service
+      GROUP BY s.service
       ORDER BY total DESC
     `,
     // Rating descriptor breakdown: every SQD0-8 answer in scope, bucketed by scale value (1-5, N/A).
@@ -218,7 +226,7 @@ export default async function AdminAnalyticsPage({
       ] as const;
     }),
   );
-  const catalogServices = divisionFilter ? SERVICES_BY_DIVISION[divisionFilter] : ALL_SERVICES;
+  const catalogServices = divisionFilter ? getFlatServices(divisionFilter) : ALL_SERVICES;
   const knownServices = new Set<string>(catalogServices);
   const allServiceNames = [...catalogServices, ...[...serviceRatingMap.keys()].filter((s) => !knownServices.has(s))];
   const serviceRatings = allServiceNames
@@ -271,7 +279,7 @@ export default async function AdminAnalyticsPage({
   }));
 
   const regionData = regionGroups.map((g) => ({ label: g.region, count: g._count }));
-  const serviceData = serviceGroups.map((g) => ({ label: g.service, count: g._count }));
+  const serviceData = serviceGroups.map((g) => ({ label: g.service, count: Number(g.count) }));
   const customerTypeData = customerTypeGroups.map((g) => ({
     label: CUSTOMER_TYPE_LABELS[g.customerType] ?? g.customerType,
     count: g._count,

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ClockCounterClockwise } from "@phosphor-icons/react/ssr";
 import { getReportAggregate, getRolledUpServiceTransactions } from "@/lib/reports/aggregate";
-import { DIVISIONS, SERVICES_BY_DIVISION } from "@/lib/constants/divisions";
+import { DIVISIONS, getFlatServices } from "@/lib/constants/divisions";
 import { requireAdmin, resolveDivisionFilter } from "@/lib/auth/dal";
 import { getReportMeta } from "./actions";
 import { ReportForm } from "./report-form";
@@ -25,7 +25,7 @@ export default async function AdminReportsPage({
   const { periodType, year, period } = parseReportQuery(params);
   const isOversight = user.division === null;
   const division = resolveDivisionFilter(user, params.division) ?? DIVISIONS[0].value;
-  const services = SERVICES_BY_DIVISION[division];
+  const services = getFlatServices(division);
 
   const [data, meta, rolledUp] = await Promise.all([
     getReportAggregate(periodType, year, period, division),

@@ -4,7 +4,7 @@ import { getReportAggregate, getRolledUpServiceTransactions } from "@/lib/report
 import { CsmReportDocument } from "@/lib/reports/pdf-document";
 import { getPeriodLabel, getPeriodSlug, parseReportQuery, DIVISION_REPORT_NAMES } from "@/lib/reports/constants";
 import { prisma } from "@/lib/db";
-import { DIVISIONS, SERVICES_BY_DIVISION } from "@/lib/constants/divisions";
+import { DIVISIONS, getFlatServices } from "@/lib/constants/divisions";
 
 export async function GET(req: Request) {
   const admin = await requireAdmin();
@@ -18,7 +18,7 @@ export async function GET(req: Request) {
   // resolveDivisionFilter forces a scoped admin's own division regardless of what's
   // requested, so this query param can't be used to download another division's report.
   const division = resolveDivisionFilter(admin, searchParams.get("division") ?? undefined) ?? DIVISIONS[0].value;
-  const services = SERVICES_BY_DIVISION[division];
+  const services = getFlatServices(division);
 
   try {
     const [data, meta, rolledUp] = await Promise.all([

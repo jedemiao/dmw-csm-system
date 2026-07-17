@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { PrismaClient } from "../generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { DIVISIONS, SERVICES_BY_DIVISION } from "../lib/constants/divisions";
+import { DIVISIONS, getFlatServices } from "../lib/constants/divisions";
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
@@ -116,7 +116,7 @@ function buildResponse(createdAt: Date) {
     sex: pick(SEX_VALUES),
     region: REGION,
     division,
-    service: pick(SERVICES_BY_DIVISION[division]),
+    services: [pick(getFlatServices(division))],
     customerType: pick(CUSTOMER_TYPES),
     cc1,
     cc2,

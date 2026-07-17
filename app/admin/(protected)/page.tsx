@@ -84,7 +84,7 @@ export default async function AdminOverviewPage({
       where,
       orderBy: { createdAt: "desc" },
       take: 6,
-      select: { id: true, region: true, service: true, customerType: true, createdAt: true },
+      select: { id: true, region: true, services: true, customerType: true, createdAt: true },
     }),
     ...SQD_FIELDS.map((field) => prisma.surveyResponse.groupBy({ where, by: [field as "sqd1"], _count: true })),
   ]);
@@ -222,7 +222,7 @@ export default async function AdminOverviewPage({
                   <ClipboardText size={17} aria-hidden="true" />
                 </span>
                 <div className="activity-item__body">
-                  <p className="activity-item__title">{r.service}</p>
+                  <p className="activity-item__title">{r.services.join(", ")}</p>
                   <p className="activity-item__desc">
                     {r.region} · {r.customerType.charAt(0) + r.customerType.slice(1).toLowerCase()}
                   </p>
