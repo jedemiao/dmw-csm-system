@@ -121,7 +121,7 @@ export const SERVICES_BY_DIVISION: Record<Division, DivisionCatalog> = {
         },
         {
           category: "KUMUSTAHAN",
-          services: ["NRN/CaRENet"],
+          services: ["NRN", "CaRENet"],
         },
       ],
     },
