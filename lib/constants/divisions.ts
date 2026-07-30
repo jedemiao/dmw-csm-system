@@ -98,7 +98,11 @@ export const SERVICES_BY_DIVISION: Record<Division, DivisionCatalog> = {
       catalog: [
         {
           category: "KABUHAYAN (Employment, Financial Grant/Livelihood)",
-          services: ["LPOR", "LDAP", "SPIMS"],
+          services: [
+            "ELPOR: Enhanced Balik Pinay, Balik Hanapbuhay Program (EBPBH)",
+            "ELDAP: Expanded Livelihood Development Assistance Program (ELDAP)",
+            "SPIMS",
+          ],
         },
       ],
     },
