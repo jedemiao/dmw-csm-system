@@ -91,10 +91,6 @@ export const SERVICES_BY_DIVISION: Record<Division, DivisionCatalog> = {
       category: "Deployment Record",
       services: ["Input of Deployment Record"],
     },
-    {
-      category: "Information Sheet",
-      services: ["Request for Info Sheet"],
-    },
   ],
   WRSD: [
     {
