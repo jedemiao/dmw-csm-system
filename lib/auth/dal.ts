@@ -21,6 +21,12 @@ export async function requireAdminRole() {
   return user;
 }
 
+// The oversight account (role ADMIN, no division) is the only one that manages
+// other admins' credentials — a division-scoped admin manages only its own.
+export function isOversightAdmin(user: { role: string; division: Division | null }): boolean {
+  return user.role === "ADMIN" && user.division === null;
+}
+
 type ScopedUser = { division: Division | null };
 
 // "ALL" means an oversight admin (division = null on their AdminUser row) who

@@ -1527,3 +1527,51 @@ dialog.confirm-dialog p { margin: 0; color: var(--ink-500); font-size: 0.9rem; }
 .data-table tr:last-child td { border-bottom: 0; }
 .data-table__row--highlighted:hover td { background: var(--blue-100); }
 .data-table__row--highlighted:hover td:first-child { box-shadow: inset 3px 0 0 var(--blue-600); }
+
+/* ---------- Admin settings ---------- */
+.settings-section { margin-bottom: 2.5rem; }
+.settings-section:last-child { margin-bottom: 0; }
+.settings-section__head { max-width: 62ch; margin-bottom: 1rem; }
+.settings-section__head h2 { font-size: 1.05rem; margin-bottom: 0.3rem; }
+.settings-section__head p { font-size: 0.88rem; color: var(--ink-500); margin: 0; }
+.settings-section__body {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+}
+.settings-section__body .data-table-wrap { border-radius: var(--radius-sm); }
+
+.account-reset-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-top: 1.25rem;
+  padding: 1.25rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface-alt);
+}
+.account-reset-panel__head { display: flex; align-items: flex-start; gap: 1rem; justify-content: space-between; }
+.account-reset-panel__head h4 { font-size: 0.95rem; margin: 0 0 0.2rem; }
+.account-reset-panel__head p { font-size: 0.82rem; color: var(--ink-500); margin: 0; }
+.account-reset-panel__close {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink-500);
+  cursor: pointer;
+}
+.account-reset-panel__close:hover { color: var(--ink-900); border-color: var(--ink-400); }
+.account-reset-panel__fields {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  align-items: start;
+}

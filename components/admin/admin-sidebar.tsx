@@ -29,6 +29,9 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/admin/analytics", label: "Analytics", Icon: ChartBar },
   { href: "/admin/reports", label: "Reports", Icon: FilePdf },
   { href: "/admin/qr-code", label: "QR Code", Icon: QrCode },
+  // Every signed-in account needs Settings to change its own password; the
+  // administrator-only controls on that page are gated within it.
+  { href: "/admin/settings", label: "Settings", Icon: Gear },
 ];
 
 export function AdminSidebar({
@@ -42,7 +45,6 @@ export function AdminSidebar({
 }) {
   const [open, setOpen] = useState(true);
   const pathname = usePathname();
-  const navItems = role === "ADMIN" ? [...NAV_ITEMS, { href: "/admin/settings", label: "Settings", Icon: Gear }] : NAV_ITEMS;
   const scopeLabel = division ? getDivisionShortLabel(division) : "All divisions";
 
   return (
@@ -61,7 +63,7 @@ export function AdminSidebar({
       </div>
 
       <div className="admin-sidebar__links">
-        {navItems.map(({ href, label, Icon }) => {
+        {NAV_ITEMS.map(({ href, label, Icon }) => {
           const isActive = href === "/admin" ? pathname === href : pathname.startsWith(href);
           return (
             <Link
