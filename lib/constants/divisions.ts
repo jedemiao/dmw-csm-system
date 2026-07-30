@@ -77,11 +77,11 @@ export const SERVICES_BY_DIVISION: Record<Division, DivisionCatalog> = {
   MWPSD: [
     {
       category: "Documentation and Processing",
-      services: ["OEC (Balik-Manggagawa)", "OEC (Direct-Hire)"],
+      services: ["OEC (Balik-Manggagawa)", "OEC (Direct-Hire)", "OEC Exemption"],
     },
     {
       category: "E-Registration Concerns",
-      services: ["Account Creation", "Account Retrieval", "OEC Exemption", "Setting of Appointment"],
+      services: ["Account Creation", "Account Retrieval", "Setting of Appointment"],
     },
     {
       category: "Balik-Manggagawa Concerns",
