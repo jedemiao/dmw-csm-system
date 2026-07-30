@@ -14,6 +14,7 @@ export type ReportMetaInput = {
   year: number;
   period: number;
   serviceTransactions: ServiceTransactionRow[];
+  includedServices: string[];
   improvementPlan: ImprovementPlanRow[];
   summaryAnalysis: string;
   ccAnalysis: string;

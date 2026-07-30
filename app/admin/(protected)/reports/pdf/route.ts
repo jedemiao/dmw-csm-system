@@ -1,10 +1,11 @@
 import { renderToBuffer } from "@react-pdf/renderer";
 import { requireAdmin, resolveDivisionFilter } from "@/lib/auth/dal";
 import { getReportAggregate, getRolledUpServiceTransactions } from "@/lib/reports/aggregate";
+import { resolveIncludedServices } from "@/lib/reports/service-selection";
 import { CsmReportDocument } from "@/lib/reports/pdf-document";
 import { getPeriodLabel, getPeriodSlug, parseReportQuery, DIVISION_REPORT_NAMES } from "@/lib/reports/constants";
 import { prisma } from "@/lib/db";
-import { DIVISIONS, getFlatServices } from "@/lib/constants/divisions";
+import { DIVISIONS } from "@/lib/constants/divisions";
 
 export async function GET(req: Request) {
   const admin = await requireAdmin();
@@ -26,18 +27,17 @@ export async function GET(req: Request) {
       periodType === "MONTH" ? Promise.resolve(null) : getRolledUpServiceTransactions(periodType, year, period, division),
     ]);
 
-    // Mirrors the report page's filtering: WRSD's Summary table only lists services
-    // with at least one response this period, every other division lists all of them.
-    const respondedServices = new Set(data.serviceCounts.map((r) => r.service));
-    const services =
-      division === "WRSD" ? getFlatServices(division).filter((s) => respondedServices.has(s)) : getFlatServices(division);
+    // Only the services staff checked in the report's checklist (Report.includedServices)
+    // are printed — same resolution the report page uses, so the PDF always matches what
+    // was last shown/saved there.
+    const includedServices = resolveIncludedServices(division, meta?.includedServices);
 
     const savedServiceTx = new Map(
       ((meta?.serviceTransactions as { service: string; totalTransactions: number }[] | undefined) ?? []).map(
         (r) => [r.service, r.totalTransactions],
       ),
     );
-    const serviceTransactions = services.map((service) => ({
+    const serviceTransactions = includedServices.map((service) => ({
       service,
       totalTransactions:
         savedServiceTx.get(service) ??

@@ -56,6 +56,7 @@ export function ReportForm({
   totalResponses,
   serviceTransactions: initialServiceTx,
   autoServiceTransactions,
+  includedServices: initialIncludedServices,
   improvementPlan: initialPlan,
   summaryAnalysis: initialSummary,
   ccAnalysis: initialCc,
@@ -75,6 +76,7 @@ export function ReportForm({
   totalResponses: number;
   serviceTransactions: ServiceTransactionRow[];
   autoServiceTransactions: ServiceTransactionRow[];
+  includedServices: string[];
   improvementPlan: ImprovementPlanRow[];
   summaryAnalysis: string;
   ccAnalysis: string;
@@ -95,6 +97,20 @@ export function ReportForm({
 
   const [serviceTx, setServiceTx] = useState(initialServiceTx);
   const autoTxMap = new Map(autoServiceTransactions.map((r) => [r.service, r.totalTransactions]));
+  const [includedServices, setIncludedServices] = useState<Set<string>>(new Set(initialIncludedServices));
+
+  function toggleIncluded(service: string) {
+    setIncludedServices((prev) => {
+      // Keep at least one service checked — an empty selection isn't a valid report
+      // and would be indistinguishable from "no selection saved yet" (see
+      // resolveIncludedServices), which falls back to showing everything.
+      if (prev.has(service) && prev.size === 1) return prev;
+      const next = new Set(prev);
+      if (next.has(service)) next.delete(service);
+      else next.add(service);
+      return next;
+    });
+  }
   const [plan, setPlan] = useState<ImprovementPlanRow[]>(
     initialPlan.length ? initialPlan : [{ recommendation: "", actionPlan: "", timeline: "" }],
   );
@@ -140,6 +156,7 @@ export function ReportForm({
       // an unedited field should keep tracking live response totals on every future
       // load instead of freezing at whatever number happened to be showing on save.
       serviceTransactions: serviceTx.filter((r) => r.totalTransactions !== autoTxMap.get(r.service)),
+      includedServices: Array.from(includedServices),
       improvementPlan: plan.filter((r) => r.recommendation.trim() || r.actionPlan.trim() || r.timeline.trim()),
       summaryAnalysis,
       ccAnalysis,
@@ -319,36 +336,55 @@ export function ReportForm({
       <section>
         <h2 style={{ fontSize: "1.05rem", marginBottom: "0.25rem" }}>A. Summary</h2>
         <p style={{ color: "var(--ink-500)", fontSize: "0.85rem", marginBottom: "0.5rem" }}>
-          Total transactions auto-fills from actual survey responses (or, for quarter/semester/year reports, the
-          rolled-up monthly figures) and keeps updating automatically unless you edit a value.
+          Check the services to include in this report. Total transactions auto-fills from actual survey responses
+          (or, for quarter/semester/year reports, the rolled-up monthly figures) and keeps updating automatically
+          unless you edit a value.
         </p>
         {serviceTx.length === 0 ? (
           <p style={{ color: "var(--ink-500)", fontSize: "0.9rem" }}>No survey responses for this service breakdown yet.</p>
         ) : (
           <div className="stat-tile" style={{ padding: "1rem" }}>
-            {serviceTx.map((row, i) => (
-              <div
-                key={row.service}
-                style={{ display: "grid", gridTemplateColumns: "1fr 9rem", gap: "0.75rem", alignItems: "center", marginBottom: "0.6rem" }}
-              >
-                <span style={{ fontSize: "0.9rem" }}>{row.service}</span>
-                <div className="field" style={{ marginBottom: 0 }}>
-                  <label htmlFor={`tx-${i}`} className="field-help">
-                    Total transactions
-                  </label>
+            {serviceTx.map((row, i) => {
+              const checked = includedServices.has(row.service);
+              return (
+                <div
+                  key={row.service}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1.5rem 1fr 9rem",
+                    gap: "0.75rem",
+                    alignItems: "center",
+                    marginBottom: "0.6rem",
+                  }}
+                >
                   <input
-                    id={`tx-${i}`}
-                    type="number"
-                    min={0}
-                    value={row.totalTransactions}
-                    onChange={(e) => {
-                      const value = Number(e.target.value) || 0;
-                      setServiceTx((prev) => prev.map((r, idx) => (idx === i ? { ...r, totalTransactions: value } : r)));
-                    }}
+                    type="checkbox"
+                    id={`include-${i}`}
+                    checked={checked}
+                    onChange={() => toggleIncluded(row.service)}
+                    aria-label={`Include ${row.service} in this report`}
                   />
+                  <label htmlFor={`include-${i}`} style={{ fontSize: "0.9rem", color: checked ? "var(--ink-900)" : "var(--ink-400)" }}>
+                    {row.service}
+                  </label>
+                  <div className="field" style={{ marginBottom: 0 }}>
+                    <label htmlFor={`tx-${i}`} className="field-help">
+                      Total transactions
+                    </label>
+                    <input
+                      id={`tx-${i}`}
+                      type="number"
+                      min={0}
+                      value={row.totalTransactions}
+                      onChange={(e) => {
+                        const value = Number(e.target.value) || 0;
+                        setServiceTx((prev) => prev.map((r, idx) => (idx === i ? { ...r, totalTransactions: value } : r)));
+                      }}
+                    />
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
         <div className="field" style={{ marginTop: "0.75rem" }}>

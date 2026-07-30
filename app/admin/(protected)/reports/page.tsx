@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ClockCounterClockwise } from "@phosphor-icons/react/ssr";
 import { getReportAggregate, getRolledUpServiceTransactions } from "@/lib/reports/aggregate";
+import { resolveIncludedServices } from "@/lib/reports/service-selection";
 import { DIVISIONS, getFlatServices } from "@/lib/constants/divisions";
 import { requireAdmin, resolveDivisionFilter } from "@/lib/auth/dal";
 import { getReportMeta } from "./actions";
@@ -32,17 +33,11 @@ export default async function AdminReportsPage({
     periodType === "MONTH" ? Promise.resolve(null) : getRolledUpServiceTransactions(periodType, year, period, division),
   ]);
 
-  // Lists every defined service, not just ones with responses this period — the report
-  // template expects zero-client services to show explicitly (see its "Zero-Client Service" note)
-  // rather than being silently omitted.
-  //
-  // WRSD is the one exception: its service catalog is large enough (four "type of
-  // service" tabs, some with their own sub-catalogs) that most periods would otherwise
-  // print a mostly-empty table, so its report only lists services with at least one
-  // response this period. Every other division keeps the full zero-client listing above.
-  const respondedServices = new Set(data.serviceCounts.map((r) => r.service));
-  const services =
-    division === "WRSD" ? getFlatServices(division).filter((s) => respondedServices.has(s)) : getFlatServices(division);
+  // Lists every defined service in the division's catalog — staff choose which of them
+  // actually appear in the report via the checklist in report-form.tsx (persisted as
+  // Report.includedServices), rather than the app guessing based on response counts.
+  const services = getFlatServices(division);
+  const includedServices = resolveIncludedServices(division, meta?.includedServices);
 
   const savedServiceTx = new Map(
     ((meta?.serviceTransactions as ServiceTransactionRow[] | undefined) ?? []).map((r) => [r.service, r.totalTransactions]),
@@ -88,6 +83,7 @@ export default async function AdminReportsPage({
         totalResponses={data.totalResponses}
         serviceTransactions={serviceTransactions}
         autoServiceTransactions={autoServiceTransactions}
+        includedServices={includedServices}
         improvementPlan={(meta?.improvementPlan as ImprovementPlanRow[] | undefined) ?? []}
         summaryAnalysis={meta?.summaryAnalysis ?? ""}
         ccAnalysis={meta?.ccAnalysis ?? ""}

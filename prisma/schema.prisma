@@ -149,6 +149,12 @@ model Report {
   serviceTransactions Json // [{ service: string, totalTransactions: number }]
   improvementPlan     Json // [{ recommendation: string, actionPlan: string, timeline: string }]
 
+  // Which of the division's catalog services staff chose to include in this report's
+  // Summary table, via the checklist in report-form.tsx. Empty means "no explicit
+  // selection saved yet" and is resolved to "every catalog service" by
+  // resolveIncludedServices() — not treated as "include nothing".
+  includedServices String[] @default([])
+
   summaryAnalysis    String?
   ccAnalysis         String?
   sqdAnalysis        String?
