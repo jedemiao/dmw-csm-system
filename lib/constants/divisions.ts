@@ -104,6 +104,25 @@ export const SERVICES_BY_DIVISION: Record<Division, DivisionCatalog> = {
             "SPIMS",
           ],
         },
+        {
+          category: "KAALAMAN",
+          services: [
+            "FAS-SBMT",
+            "Business Mentoring",
+            "Livelihood Skills Training",
+            "Byaheng Entrepreneur",
+            "Financial Education",
+            "Reintegration Education Campaign/Advocacy",
+          ],
+        },
+        {
+          category: "KALINGA",
+          services: ["Capacity Building for Children of OFW", "Mental Health Awareness & Stress Management Seminar"],
+        },
+        {
+          category: "KUMUSTAHAN",
+          services: ["NRN/CaRENet"],
+        },
       ],
     },
     { type: "Welfare and Other Forms of Assistance" },
