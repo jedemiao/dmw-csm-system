@@ -25,7 +25,6 @@ export default async function AdminReportsPage({
   const { periodType, year, period } = parseReportQuery(params);
   const isOversight = user.division === null;
   const division = resolveDivisionFilter(user, params.division) ?? DIVISIONS[0].value;
-  const services = getFlatServices(division);
 
   const [data, meta, rolledUp] = await Promise.all([
     getReportAggregate(periodType, year, period, division),
@@ -33,13 +32,21 @@ export default async function AdminReportsPage({
     periodType === "MONTH" ? Promise.resolve(null) : getRolledUpServiceTransactions(periodType, year, period, division),
   ]);
 
-  const savedServiceTx = new Map(
-    ((meta?.serviceTransactions as ServiceTransactionRow[] | undefined) ?? []).map((r) => [r.service, r.totalTransactions]),
-  );
   // Lists every defined service, not just ones with responses this period — the report
   // template expects zero-client services to show explicitly (see its "Zero-Client Service" note)
   // rather than being silently omitted.
   //
+  // WRSD is the one exception: its service catalog is large enough (four "type of
+  // service" tabs, some with their own sub-catalogs) that most periods would otherwise
+  // print a mostly-empty table, so its report only lists services with at least one
+  // response this period. Every other division keeps the full zero-client listing above.
+  const respondedServices = new Set(data.serviceCounts.map((r) => r.service));
+  const services =
+    division === "WRSD" ? getFlatServices(division).filter((s) => respondedServices.has(s)) : getFlatServices(division);
+
+  const savedServiceTx = new Map(
+    ((meta?.serviceTransactions as ServiceTransactionRow[] | undefined) ?? []).map((r) => [r.service, r.totalTransactions]),
+  );
   // "Auto" is the live-computed default (rolled-up figure, else survey response count) —
   // kept separate from the saved value so the form can tell "still following the live
   // total" apart from "staff typed in a different number." Only rows that actually

@@ -18,7 +18,6 @@ export async function GET(req: Request) {
   // resolveDivisionFilter forces a scoped admin's own division regardless of what's
   // requested, so this query param can't be used to download another division's report.
   const division = resolveDivisionFilter(admin, searchParams.get("division") ?? undefined) ?? DIVISIONS[0].value;
-  const services = getFlatServices(division);
 
   try {
     const [data, meta, rolledUp] = await Promise.all([
@@ -26,6 +25,12 @@ export async function GET(req: Request) {
       prisma.report.findUnique({ where: { periodType_year_period_division: { periodType, year, period, division } } }),
       periodType === "MONTH" ? Promise.resolve(null) : getRolledUpServiceTransactions(periodType, year, period, division),
     ]);
+
+    // Mirrors the report page's filtering: WRSD's Summary table only lists services
+    // with at least one response this period, every other division lists all of them.
+    const respondedServices = new Set(data.serviceCounts.map((r) => r.service));
+    const services =
+      division === "WRSD" ? getFlatServices(division).filter((s) => respondedServices.has(s)) : getFlatServices(division);
 
     const savedServiceTx = new Map(
       ((meta?.serviceTransactions as { service: string; totalTransactions: number }[] | undefined) ?? []).map(
