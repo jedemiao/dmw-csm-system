@@ -69,11 +69,7 @@ export const SERVICES_BY_DIVISION: Record<Division, DivisionCatalog> = {
     "Prosecution",
     "Regulation and Licensing",
   ],
-  FAD: [
-    "Payroll and Compensation Processing",
-    "Procurement and Supply Management",
-    "Budget and Financial Reporting",
-  ],
+  FAD: ["Request for Information Sheet"],
   MWPSD: [
     {
       category: "Documentation and Processing",
