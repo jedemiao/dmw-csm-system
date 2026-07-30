@@ -102,6 +102,7 @@ export const SERVICES_BY_DIVISION: Record<Division, DivisionCatalog> = {
             "ELPOR: Enhanced Balik Pinay, Balik Hanapbuhay Program (EBPBH)",
             "ELPOR: Expanded Livelihood Development Assistance Program (ELDAP)",
             "SPIMS",
+            "SPINB",
           ],
         },
         {
@@ -117,7 +118,11 @@ export const SERVICES_BY_DIVISION: Record<Division, DivisionCatalog> = {
         },
         {
           category: "KALINGA",
-          services: ["Capacity Building for Children of OFW", "Mental Health Awareness & Stress Management Seminar"],
+          services: [
+            "Capacity Building for Children of OFW",
+            "Mental Health Awareness & Stress Management Seminar",
+            "Psychosocial Support",
+          ],
         },
         {
           category: "KUMUSTAHAN",
