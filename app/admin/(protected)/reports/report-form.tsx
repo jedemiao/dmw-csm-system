@@ -111,6 +111,16 @@ export function ReportForm({
       return next;
     });
   }
+
+  function checkAllServices() {
+    setIncludedServices(new Set(serviceTx.map((r) => r.service)));
+  }
+
+  function uncheckAllServices() {
+    // Same "at least one" rule as toggleIncluded — leave the first catalog service
+    // checked rather than allowing a fully empty selection.
+    setIncludedServices(new Set(serviceTx.length ? [serviceTx[0].service] : []));
+  }
   const [plan, setPlan] = useState<ImprovementPlanRow[]>(
     initialPlan.length ? initialPlan : [{ recommendation: "", actionPlan: "", timeline: "" }],
   );
@@ -340,6 +350,42 @@ export function ReportForm({
           (or, for quarter/semester/year reports, the rolled-up monthly figures) and keeps updating automatically
           unless you edit a value.
         </p>
+        {serviceTx.length > 0 && (
+          <div style={{ display: "flex", gap: "1rem", marginBottom: "0.5rem" }}>
+            <button
+              type="button"
+              onClick={checkAllServices}
+              disabled={includedServices.size === serviceTx.length}
+              style={{
+                font: "inherit",
+                fontSize: "0.82rem",
+                color: includedServices.size === serviceTx.length ? "var(--ink-400)" : "var(--blue-600)",
+                background: "none",
+                border: "none",
+                padding: 0,
+                cursor: includedServices.size === serviceTx.length ? "default" : "pointer",
+              }}
+            >
+              Check all
+            </button>
+            <button
+              type="button"
+              onClick={uncheckAllServices}
+              disabled={includedServices.size <= 1}
+              style={{
+                font: "inherit",
+                fontSize: "0.82rem",
+                color: includedServices.size <= 1 ? "var(--ink-400)" : "var(--blue-600)",
+                background: "none",
+                border: "none",
+                padding: 0,
+                cursor: includedServices.size <= 1 ? "default" : "pointer",
+              }}
+            >
+              Uncheck all
+            </button>
+          </div>
+        )}
         {serviceTx.length === 0 ? (
           <p style={{ color: "var(--ink-500)", fontSize: "0.9rem" }}>No survey responses for this service breakdown yet.</p>
         ) : (
