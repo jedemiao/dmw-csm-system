@@ -532,7 +532,7 @@ export function ReportForm({
             <input id="prepared-name" type="text" value={preparedByName} onChange={(e) => setPreparedByName(e.target.value)} />
           </div>
           <div className="field">
-            <label htmlFor="prepared-title">Prepared by — title</label>
+            <label htmlFor="prepared-title">Prepared by — title/position</label>
             <input id="prepared-title" type="text" value={preparedByTitle} onChange={(e) => setPreparedByTitle(e.target.value)} />
           </div>
           <div className="field">
@@ -540,7 +540,7 @@ export function ReportForm({
             <input id="approved-name" type="text" value={approvedByName} onChange={(e) => setApprovedByName(e.target.value)} />
           </div>
           <div className="field">
-            <label htmlFor="approved-title">Approved by — title</label>
+            <label htmlFor="approved-title">Approved by — title/position</label>
             <input id="approved-title" type="text" value={approvedByTitle} onChange={(e) => setApprovedByTitle(e.target.value)} />
           </div>
         </div>
