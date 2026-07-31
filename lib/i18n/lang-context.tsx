@@ -14,7 +14,7 @@ type LangContextValue = {
 const LangContext = createContext<LangContextValue | null>(null);
 
 export function LangProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLangState] = useState<Lang>("en");
+  const [lang, setLangState] = useState<Lang>("tl");
 
   useEffect(() => {
     // Reads localStorage post-mount so SSR/client markup match; the
@@ -22,7 +22,7 @@ export function LangProvider({ children }: { children: React.ReactNode }) {
     try {
       const stored = localStorage.getItem(LANG_KEY);
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      if (stored === "tl") setLangState("tl");
+      if (stored === "en") setLangState("en");
     } catch {
       // storage unavailable
     }
