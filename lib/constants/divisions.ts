@@ -134,7 +134,7 @@ export const SERVICES_BY_DIVISION: Record<Division, DivisionCatalog> = {
         },
       ],
     },
-    { type: "Welfare and Other Forms of Assistance" },
+    { type: "Welfare and Other Forms of Assistance", catalog: ["Repatriation"] },
     { type: "AKSYON Fund" },
   ],
 };
