@@ -3,7 +3,7 @@ import { ThemeScript } from "@/lib/theme/theme-script";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Client Satisfaction Measurement | Department of Migrant Workers",
+  title: "Client Satisfaction Measurement | Department of Migrant Workers Regional Office XIII",
   description:
     "Share feedback on your DMW online transaction through the official Client Satisfaction Measurement (CSM) survey.",
 };
