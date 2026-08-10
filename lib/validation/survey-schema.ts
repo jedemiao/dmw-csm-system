@@ -8,7 +8,7 @@ const sqdValueWithNA = z.enum(["1", "2", "3", "4", "5", "NA"]);
 export const surveyFormSchema = z
   .object({
     age: z.coerce.number().int().gt(0).lt(120),
-    sex: z.enum(["female", "male", "non-binary"]),
+    sex: z.enum(["female", "male", "non-binary", "did-not-specify"]),
     region: z.enum(REGIONS),
     division: z.enum(DIVISION_SLUGS),
     services: z.array(z.string()).min(1),

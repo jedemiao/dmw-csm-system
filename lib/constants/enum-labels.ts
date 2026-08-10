@@ -2,6 +2,8 @@ export const SEX_LABELS: Record<string, string> = {
   FEMALE: "Female",
   MALE: "Male",
   NON_BINARY: "Non-binary",
+  // Matches the C.1 Gender row label in the ARTA report template exactly.
+  DID_NOT_SPECIFY: "Did not specify",
 };
 
 export const CUSTOMER_TYPE_LABELS: Record<string, string> = {

@@ -11,6 +11,7 @@ enum Sex {
   FEMALE
   MALE
   NON_BINARY
+  DID_NOT_SPECIFY
 }
 
 enum CustomerType {

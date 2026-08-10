@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "Sex" ADD VALUE 'DID_NOT_SPECIFY';

@@ -134,7 +134,7 @@ async function getAggregateForRange(start: Date, end: Date, division: Division) 
   // Every Sex enum value must be listed here — the report's C.1 Gender table renders
   // exactly these rows, so a value omitted from this array would be stored in the DB
   // but silently missing from (and unaccounted for in) the printed report.
-  const sex = (["MALE", "FEMALE", "NON_BINARY"] as const).map((value) => ({
+  const sex = (["MALE", "FEMALE", "NON_BINARY", "DID_NOT_SPECIFY"] as const).map((value) => ({
     label: SEX_LABELS[value],
     count: sexGroups.find((g) => g.sex === value)?._count ?? 0,
   }));

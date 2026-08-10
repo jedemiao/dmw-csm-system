@@ -410,7 +410,10 @@ export function CsmReportDocument({
 
         <Text style={s.sectionLabel}>C. Client Demographic Profile:</Text>
 
-        <LabeledCountTable title="C.1 Gender" rows={[...data.sex, { label: "Did not specify", count: 0 }]} />
+        {/* Unlike C.2/C.3 below, "Did not specify" is a real Sex enum value the survey
+            collects, so it already comes through in data.sex with a live count — appending
+            a hardcoded zero row here would render it twice. */}
+        <LabeledCountTable title="C.1 Gender" rows={data.sex} />
         <LabeledCountTable
           title="C.2 Type of Client"
           rows={[...data.customerType, { label: "Did not specify", count: 0 }]}
