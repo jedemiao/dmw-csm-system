@@ -168,6 +168,11 @@ model Report {
   approvedByName  String?
   approvedByTitle String?
 
+  // Signs under "For and By the Authority of the Regional Director:" — printed
+  // beneath the approved-by signatory in the report's signature block.
+  authorityName  String?
+  authorityTitle String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

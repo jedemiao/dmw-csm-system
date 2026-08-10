@@ -245,6 +245,8 @@ export function CsmReportDocument({
   preparedByTitle,
   approvedByName,
   approvedByTitle,
+  authorityName,
+  authorityTitle,
 }: {
   data: ReportAggregate;
   periodLabel: string;
@@ -260,6 +262,8 @@ export function CsmReportDocument({
   preparedByTitle: string;
   approvedByName: string;
   approvedByTitle: string;
+  authorityName: string;
+  authorityTitle: string;
 }) {
   const totalTransactions = serviceTransactions.reduce((sum, r) => sum + r.totalTransactions, 0);
 
@@ -470,6 +474,18 @@ export function CsmReportDocument({
             <Text style={{ fontSize: 8 }}>Approved by:</Text>
             <Text style={s.signName}>{approvedByName || " "}</Text>
             <Text style={s.signTitle}>{approvedByTitle}</Text>
+
+            {/* Omitted entirely when unfilled — an empty caption with a blank
+                signature line would read as a signatory who failed to sign. */}
+            {(authorityName.trim() || authorityTitle.trim()) && (
+              <>
+                <Text style={{ fontSize: 8, marginTop: 14 }}>
+                  For and By the Authority of the Regional Director:
+                </Text>
+                <Text style={s.signName}>{authorityName || " "}</Text>
+                <Text style={s.signTitle}>{authorityTitle}</Text>
+              </>
+            )}
           </View>
         </View>
 

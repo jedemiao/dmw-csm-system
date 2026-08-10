@@ -65,6 +65,8 @@ export async function GET(req: Request) {
         preparedByTitle: meta?.preparedByTitle ?? "",
         approvedByName: meta?.approvedByName ?? "",
         approvedByTitle: meta?.approvedByTitle ?? "",
+        authorityName: meta?.authorityName ?? "",
+        authorityTitle: meta?.authorityTitle ?? "",
       }),
     );
 

@@ -67,6 +67,8 @@ export function ReportForm({
   preparedByTitle: initialPreparedTitle,
   approvedByName: initialApprovedName,
   approvedByTitle: initialApprovedTitle,
+  authorityName: initialAuthorityName,
+  authorityTitle: initialAuthorityTitle,
 }: {
   periodType: ReportPeriodType;
   year: number;
@@ -87,6 +89,8 @@ export function ReportForm({
   preparedByTitle: string;
   approvedByName: string;
   approvedByTitle: string;
+  authorityName: string;
+  authorityTitle: string;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -133,6 +137,8 @@ export function ReportForm({
   const [preparedByTitle, setPreparedByTitle] = useState(initialPreparedTitle);
   const [approvedByName, setApprovedByName] = useState(initialApprovedName);
   const [approvedByTitle, setApprovedByTitle] = useState(initialApprovedTitle);
+  const [authorityName, setAuthorityName] = useState(initialAuthorityName);
+  const [authorityTitle, setAuthorityTitle] = useState(initialAuthorityTitle);
 
   function navigate(nextType: ReportPeriodType, nextYear: number, nextPeriod: number, nextDivision: Division) {
     router.push(
@@ -177,6 +183,8 @@ export function ReportForm({
       preparedByTitle,
       approvedByName,
       approvedByTitle,
+      authorityName,
+      authorityTitle,
     };
   }
 
@@ -542,6 +550,15 @@ export function ReportForm({
           <div className="field">
             <label htmlFor="approved-title">Approved by — title/position</label>
             <input id="approved-title" type="text" value={approvedByTitle} onChange={(e) => setApprovedByTitle(e.target.value)} />
+          </div>
+          <div className="field">
+            <label htmlFor="authority-name">For and By the Authority of the Regional Director — name</label>
+            <input id="authority-name" type="text" value={authorityName} onChange={(e) => setAuthorityName(e.target.value)} />
+            <p className="field-help">Optional. Leave both blank to omit this block from the report.</p>
+          </div>
+          <div className="field">
+            <label htmlFor="authority-title">For and By the Authority of the Regional Director — title/position</label>
+            <input id="authority-title" type="text" value={authorityTitle} onChange={(e) => setAuthorityTitle(e.target.value)} />
           </div>
         </div>
       </section>

@@ -25,6 +25,8 @@ export type ReportMetaInput = {
   preparedByTitle: string;
   approvedByName: string;
   approvedByTitle: string;
+  authorityName: string;
+  authorityTitle: string;
 };
 
 export async function getReportMeta(periodType: ReportPeriodType, year: number, period: number, division: Division) {

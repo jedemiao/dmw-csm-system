@@ -94,6 +94,8 @@ export default async function AdminReportsPage({
         preparedByTitle={meta?.preparedByTitle ?? ""}
         approvedByName={meta?.approvedByName ?? ""}
         approvedByTitle={meta?.approvedByTitle ?? ""}
+        authorityName={meta?.authorityName ?? ""}
+        authorityTitle={meta?.authorityTitle ?? ""}
       />
     </div>
   );
