@@ -11,21 +11,9 @@ export async function requireAdmin() {
   return user;
 }
 
-// Gates destructive/administrative pages to the ADMIN role only (STAFF accounts
-// are redirected away rather than shown a permission error).
-export async function requireAdminRole() {
-  const user = await requireAdmin();
-  if (user.role !== "ADMIN") {
-    redirect("/admin");
-  }
-  return user;
-}
-
-// The oversight account (role ADMIN, no division) is the only one that manages
-// other admins' credentials — a division-scoped admin manages only its own.
-export function isOversightAdmin(user: { role: string; division: Division | null }): boolean {
-  return user.role === "ADMIN" && user.division === null;
-}
+// Authorization policy lives in ./permissions (a plain module, so it stays
+// unit-testable); re-exported here so existing call sites keep one import.
+export { isOversightAdmin, canManageAccount, canCreateStaff } from "./permissions";
 
 type ScopedUser = { division: Division | null };
 

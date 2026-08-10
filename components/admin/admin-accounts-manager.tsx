@@ -1,9 +1,10 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { CheckCircle, Key, Warning, X } from "@phosphor-icons/react";
+import { CheckCircle, Key, Prohibit, Warning, X } from "@phosphor-icons/react";
 import {
   resetAdminPassword,
+  setAccountActive,
   type ManagedAdmin,
   type PasswordFormState,
 } from "@/lib/auth/account-actions";
@@ -14,19 +15,23 @@ const INITIAL_STATE: PasswordFormState = { error: null, success: null, successCo
 
 export function AdminAccountsManager({ accounts }: { accounts: ManagedAdmin[] }) {
   const [state, formAction, pending] = useActionState(resetAdminPassword, INITIAL_STATE);
+  const [activeState, activeAction, activePending] = useActionState(setAccountActive, INITIAL_STATE);
+
+  const error = state.error ?? activeState.error;
+  const success = state.success ?? activeState.success;
 
   return (
     <div>
-      {state.error && (
+      {error && (
         <div className="alert alert-error" role="alert" style={{ margin: "0 0 1.25rem" }}>
           <Warning size={20} aria-hidden="true" />
-          <p className="alert-summary">{state.error}</p>
+          <p className="alert-summary">{error}</p>
         </div>
       )}
-      {state.success && (
+      {success && (
         <div className="alert alert-success" role="status" style={{ margin: "0 0 1.25rem" }}>
           <CheckCircle size={20} aria-hidden="true" />
-          <p className="alert-summary">{state.success}</p>
+          <p className="alert-summary">{success}</p>
         </div>
       )}
 
@@ -36,7 +41,8 @@ export function AdminAccountsManager({ accounts }: { accounts: ManagedAdmin[] })
         key={state.successCount}
         accounts={accounts}
         formAction={formAction}
-        pending={pending}
+        pending={pending || activePending}
+        activeAction={activeAction}
       />
     </div>
   );
@@ -46,10 +52,12 @@ function AccountList({
   accounts,
   formAction,
   pending,
+  activeAction,
 }: {
   accounts: ManagedAdmin[];
   formAction: (formData: FormData) => void;
   pending: boolean;
+  activeAction: (formData: FormData) => void;
 }) {
   const [targetId, setTargetId] = useState<string | null>(null);
   const target = accounts.find((a) => a.id === targetId) ?? null;
@@ -58,11 +66,12 @@ function AccountList({
     <div>
       <div className="data-table-wrap">
         <table className="data-table">
-          <caption className="visually-hidden">Administrator accounts</caption>
+          <caption className="visually-hidden">Accounts you can manage</caption>
           <thead>
             <tr>
               <th scope="col">Username</th>
               <th scope="col">Name</th>
+              <th scope="col">Role</th>
               <th scope="col">Division</th>
               <th scope="col">Status</th>
               <th scope="col" aria-label="Actions" />
@@ -73,25 +82,47 @@ function AccountList({
               <tr key={account.id}>
                 <td style={{ fontFamily: "var(--font-mono)" }}>{account.username}</td>
                 <td>{account.name}</td>
+                <td>{account.role === "ADMIN" ? "Administrator" : "Staff"}</td>
                 <td>{account.divisionLabel}</td>
-                <td>{account.isActive ? "Active" : "Disabled"}</td>
-                <td style={{ textAlign: "right" }}>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    style={{ padding: "0.4rem 0.7rem", fontSize: "0.8rem" }}
-                    aria-expanded={targetId === account.id}
-                    onClick={() => setTargetId((id) => (id === account.id ? null : account.id))}
-                  >
-                    <Key size={15} aria-hidden="true" /> Reset password
-                  </button>
+                <td style={{ color: account.isActive ? undefined : "var(--ink-400)" }}>
+                  {account.isActive ? "Active" : "Deactivated"}
+                </td>
+                <td>
+                  <div style={{ display: "flex", gap: "0.4rem", justifyContent: "flex-end" }}>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      style={{ padding: "0.4rem 0.7rem", fontSize: "0.8rem" }}
+                      aria-expanded={targetId === account.id}
+                      onClick={() => setTargetId((id) => (id === account.id ? null : account.id))}
+                    >
+                      <Key size={15} aria-hidden="true" /> Reset password
+                    </button>
+                    <form action={activeAction} style={{ display: "inline" }}>
+                      <input type="hidden" name="targetId" value={account.id} />
+                      <input type="hidden" name="isActive" value={account.isActive ? "false" : "true"} />
+                      <button
+                        type="submit"
+                        className="btn btn-secondary"
+                        style={{
+                          padding: "0.4rem 0.7rem",
+                          fontSize: "0.8rem",
+                          color: account.isActive ? "var(--danger-600)" : undefined,
+                        }}
+                        disabled={pending}
+                      >
+                        <Prohibit size={15} aria-hidden="true" />
+                        {account.isActive ? "Deactivate" : "Reactivate"}
+                      </button>
+                    </form>
+                  </div>
                 </td>
               </tr>
             ))}
             {accounts.length === 0 && (
               <tr>
-                <td colSpan={5} style={{ textAlign: "center", color: "var(--ink-400)", padding: "1.5rem" }}>
-                  No other administrator accounts exist.
+                <td colSpan={6} style={{ textAlign: "center", color: "var(--ink-400)", padding: "1.5rem" }}>
+                  No accounts to manage yet.
                 </td>
               </tr>
             )}

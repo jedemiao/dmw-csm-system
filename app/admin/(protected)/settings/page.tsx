@@ -1,9 +1,10 @@
 import { requireAdmin, isOversightAdmin } from "@/lib/auth/dal";
-import { getDivisionLabel } from "@/lib/constants/divisions";
+import { DIVISIONS, getDivisionLabel } from "@/lib/constants/divisions";
 import { prisma } from "@/lib/db";
 import type { ManagedAdmin } from "@/lib/auth/account-actions";
 import { ChangePasswordForm } from "@/components/admin/change-password-form";
 import { AdminAccountsManager } from "@/components/admin/admin-accounts-manager";
+import { AddStaffForm } from "@/components/admin/add-staff-form";
 import { ResetDataForm } from "@/components/admin/reset-data-form";
 
 export default async function AdminSettingsPage() {
@@ -11,14 +12,21 @@ export default async function AdminSettingsPage() {
   const oversight = isOversightAdmin(user);
   const scopeText = user.division ? `in ${getDivisionLabel(user.division)}` : "across every division";
 
-  // Oversight manages the other accounts' credentials; its own password goes
-  // through the "Your password" form, so it isn't listed here.
-  const accounts: ManagedAdmin[] = oversight
+  const isAdmin = user.role === "ADMIN";
+
+  // Mirrors canManageAccount() in dal.ts: oversight sees every other account, a
+  // division admin sees only their own division's staff. Keep the two in sync —
+  // listing a row the actions would refuse just produces a confusing error.
+  // Either way the current user is excluded; their own password is handled by
+  // the "Your password" form above.
+  const accounts: ManagedAdmin[] = isAdmin
     ? (
         await prisma.adminUser.findMany({
-          where: { id: { not: user.id } },
-          select: { id: true, username: true, name: true, division: true, isActive: true },
-          orderBy: [{ division: "asc" }, { username: "asc" }],
+          where: oversight
+            ? { id: { not: user.id } }
+            : { id: { not: user.id }, role: "STAFF", division: user.division },
+          select: { id: true, username: true, name: true, division: true, isActive: true, role: true },
+          orderBy: [{ division: "asc" }, { role: "asc" }, { username: "asc" }],
         })
       ).map((a) => ({
         id: a.id,
@@ -26,6 +34,7 @@ export default async function AdminSettingsPage() {
         name: a.name,
         divisionLabel: a.division ? getDivisionLabel(a.division) : "All divisions (oversight)",
         isActive: a.isActive,
+        role: a.role,
       }))
     : [];
 
@@ -48,22 +57,29 @@ export default async function AdminSettingsPage() {
         </div>
       </section>
 
-      {oversight && (
+      {isAdmin && (
         <section className="settings-section" aria-labelledby="accounts-heading">
           <div className="settings-section__head">
-            <h2 id="accounts-heading">Administrator accounts</h2>
+            <h2 id="accounts-heading">{oversight ? "Accounts" : "Division staff"}</h2>
             <p>
-              As the oversight administrator you can set a new password for any division account without knowing
-              their current one. Every reset is recorded in the audit log.
+              {oversight
+                ? "Add staff, reset any account's password without knowing their current one, and deactivate accounts. Every change is recorded in the audit log."
+                : `Give colleagues in ${getDivisionLabel(user.division!)} their own sign-in instead of sharing yours. Staff can record responses and prepare reports, but cannot reset data or manage accounts. Every change is recorded in the audit log.`}
             </p>
           </div>
           <div className="settings-section__body">
+            <div style={{ marginBottom: "1.5rem" }}>
+              <AddStaffForm
+                divisionLabel={user.division ? getDivisionLabel(user.division) : null}
+                divisions={oversight ? DIVISIONS : undefined}
+              />
+            </div>
             <AdminAccountsManager accounts={accounts} />
           </div>
         </section>
       )}
 
-      {user.role === "ADMIN" && (
+      {isAdmin && (
         <section className="settings-section" aria-labelledby="danger-heading">
           <div className="settings-section__head">
             <h2 id="danger-heading">Danger zone</h2>
