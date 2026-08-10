@@ -10,6 +10,7 @@ datasource db {
 enum Sex {
   FEMALE
   MALE
+  NON_BINARY
 }
 
 enum CustomerType {

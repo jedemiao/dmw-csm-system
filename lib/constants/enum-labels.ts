@@ -1,6 +1,7 @@
 export const SEX_LABELS: Record<string, string> = {
   FEMALE: "Female",
   MALE: "Male",
+  NON_BINARY: "Non-binary",
 };
 
 export const CUSTOMER_TYPE_LABELS: Record<string, string> = {

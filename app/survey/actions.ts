@@ -6,7 +6,7 @@ import { prisma } from "@/lib/db";
 import { surveyFormSchema } from "@/lib/validation/survey-schema";
 import { getDivisionBySlug } from "@/lib/constants/divisions";
 
-const SEX_MAP = { female: "FEMALE", male: "MALE" } as const;
+const SEX_MAP = { female: "FEMALE", male: "MALE", "non-binary": "NON_BINARY" } as const;
 const CUSTOMER_TYPE_MAP = { citizen: "CITIZEN", business: "BUSINESS", government: "GOVERNMENT" } as const;
 const CC1_MAP = { "1": "AWARE_BEFORE", "2": "AWARE_ON_SITE", "3": "NOT_AWARE" } as const;
 const CC2_MAP = { "1": "EASY_TO_FIND", "2": "HARD_TO_FIND", "3": "NOT_SEEN" } as const;

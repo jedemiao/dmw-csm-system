@@ -329,6 +329,7 @@ export function SurveyForm({ division }: { division: DivisionMeta }) {
                 <option value="">{t("opt_select")}</option>
                 <option value="female">{t("opt_female")}</option>
                 <option value="male">{t("opt_male")}</option>
+                <option value="non-binary">{t("opt_non_binary")}</option>
               </select>
               <span className="field-error" id="sex-error" role="alert">
                 {errors["field-sex"]}
