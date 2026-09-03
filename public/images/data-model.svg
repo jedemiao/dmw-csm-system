@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-14 -10 1288 744" width="1288" height="744" role="img" aria-label="Entity diagram of the DMW CSM Prisma schema. Eight models in three clusters: public survey data (SurveyResponse and SubmissionThrottle, which are deliberately not related), reporting (Report, ReportDownload, AuditLog), and authentication (AdminUser, Session, LoginAttempt). The only foreign key is AdminUser to Session with cascade delete. SurveyResponse feeds Report by aggregation over period and division, Report matches ReportDownload by the same period key, and AuditLog copies an admin username rather than referencing it. Four models carry the Division enum as a plain column.">
+  <title>DMW CSM Data Model</title>
+  <style>
+    .ent  { font-family: "IBM Plex Mono", ui-monospace, Consolas, "Liberation Mono", monospace; font-size: 14.5px; font-weight: 600; fill: #1e3a8a; letter-spacing: .2px; }
+    .fld  { font-family: "IBM Plex Mono", ui-monospace, Consolas, "Liberation Mono", monospace; font-size: 12px; fill: #2b3350; }
+    .gold { fill: #a8781c; font-weight: 600; }
+    .lane { font-family: "IBM Plex Mono", ui-monospace, Consolas, "Liberation Mono", monospace; font-size: 11px; fill: #7d8398; letter-spacing: 1.7px; }
+    .rel  { font-family: "IBM Plex Sans", system-ui, "Segoe UI", Roboto, sans-serif; font-size: 11.5px; fill: #5a6178; }
+    .lgd  { font-family: "IBM Plex Sans", system-ui, "Segoe UI", Roboto, sans-serif; font-size: 12px; fill: #5a6178; }
+    .box  { fill: #ffffff; stroke: #c3cadb; stroke-width: 1.25; }
+    .rule { stroke: #dde1ea; stroke-width: 1; }
+    .dash { fill: none; stroke: #5a6178; stroke-width: 1.6; stroke-dasharray: 6 5; }
+  </style>
+
+  <defs>
+    <marker id="ahSolid" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#1e3a8a"/>
+    </marker>
+    <marker id="ahDash" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#5a6178"/>
+    </marker>
+  </defs>
+
+  <rect x="-14" y="-10" width="1288" height="744" fill="#ffffff"/>
+
+  <rect x="12" y="24" width="360" height="428" rx="12" fill="#f7f8fb"/>
+  <rect x="450" y="24" width="360" height="640" rx="12" fill="#f7f8fb"/>
+  <rect x="888" y="24" width="360" height="596" rx="12" fill="#f7f8fb"/>
+
+  <text class="lane" x="28" y="46">PUBLIC &#183; ANONYMOUS</text>
+  <text class="lane" x="466" y="46">REPORTING</text>
+  <text class="lane" x="904" y="46">AUTHENTICATION</text>
+
+  <rect class="box" x="28" y="62" width="328" height="206" rx="9"/>
+  <text class="ent" x="46" y="88">SurveyResponse</text>
+  <line class="rule" x1="28" y1="100" x2="356" y2="100"/>
+  <text class="fld" x="46" y="122">id  String @id @default(cuid())</text>
+  <rect x="36" y="136" width="5" height="5" fill="#a8781c"/>
+  <text class="fld gold" x="46" y="144">division  Division</text>
+  <text class="fld" x="46" y="166">services  String[] &#183; GIN index</text>
+  <text class="fld" x="46" y="188">age &#183; sex &#183; region &#183; customerType</text>
+  <text class="fld" x="46" y="210">cc1 &#183; cc2 &#183; cc3 &#183; cc3Reason</text>
+  <text class="fld" x="46" y="232">sqd0&#8230;sqd8  Int?</text>
+  <text class="fld" x="46" y="254">remarks &#183; email &#183; createdAt</text>
+
+  <rect class="box" x="28" y="318" width="328" height="118" rx="9"/>
+  <text class="ent" x="46" y="344">SubmissionThrottle</text>
+  <line class="rule" x1="28" y1="356" x2="356" y2="356"/>
+  <text class="fld" x="46" y="378">id  String @id</text>
+  <text class="fld" x="46" y="400">ipHash  String</text>
+  <text class="fld" x="46" y="422">createdAt  DateTime</text>
+
+  <line x1="192" y1="274" x2="192" y2="312" stroke="#7d8398" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <line x1="183" y1="301" x2="201" y2="285" stroke="#5a6178" stroke-width="1.75"/>
+  <line x1="189" y1="301" x2="207" y2="285" stroke="#5a6178" stroke-width="1.75"/>
+  <text class="rel" x="216" y="289">no relation &#8212;</text>
+  <text class="rel" x="216" y="303">responses stay anonymous</text>
+
+  <rect class="box" x="466" y="62" width="328" height="206" rx="9"/>
+  <text class="ent" x="484" y="88">Report</text>
+  <line class="rule" x1="466" y1="100" x2="794" y2="100"/>
+  <text class="fld" x="484" y="122">id  String @id</text>
+  <rect x="474" y="136" width="5" height="5" fill="#a8781c"/>
+  <text class="fld gold" x="484" y="144">division  Division</text>
+  <text class="fld" x="484" y="166">periodType &#183; year &#183; period</text>
+  <text class="fld" x="484" y="188">@@unique(period key + division)</text>
+  <text class="fld" x="484" y="210">serviceTransactions  Json</text>
+  <text class="fld" x="484" y="232">improvementPlan  Json</text>
+  <text class="fld" x="484" y="254">5 analysis &#183; 3 signatory pairs</text>
+
+  <rect class="box" x="466" y="318" width="328" height="162" rx="9"/>
+  <text class="ent" x="484" y="344">ReportDownload</text>
+  <line class="rule" x1="466" y1="356" x2="794" y2="356"/>
+  <text class="fld" x="484" y="378">id  String @id</text>
+  <rect x="474" y="392" width="5" height="5" fill="#a8781c"/>
+  <text class="fld gold" x="484" y="400">division  Division</text>
+  <text class="fld" x="484" y="422">periodType &#183; year &#183; period</text>
+  <text class="fld" x="484" y="444">periodLabel &#183; filename &#183; byName</text>
+  <text class="fld" x="484" y="466">downloadedAt  DateTime</text>
+
+  <rect class="box" x="466" y="530" width="328" height="118" rx="9"/>
+  <text class="ent" x="484" y="556">AuditLog</text>
+  <line class="rule" x1="466" y1="568" x2="794" y2="568"/>
+  <text class="fld" x="484" y="590">action  String</text>
+  <text class="fld" x="484" y="612">performedByUsername / Name</text>
+  <text class="fld" x="484" y="634">details Json &#183; createdAt</text>
+
+  <rect class="box" x="904" y="62" width="328" height="184" rx="9"/>
+  <text class="ent" x="922" y="88">AdminUser</text>
+  <line class="rule" x1="904" y1="100" x2="1232" y2="100"/>
+  <text class="fld" x="922" y="122">id  String @id</text>
+  <text class="fld" x="922" y="144">username  String @unique</text>
+  <text class="fld" x="922" y="166">passwordHash &#183; name</text>
+  <text class="fld" x="922" y="188">role  STAFF | ADMIN</text>
+  <rect x="912" y="202" width="5" height="5" fill="#a8781c"/>
+  <text class="fld gold" x="922" y="210">division  Division?</text>
+  <text class="fld" x="922" y="232">isActive &#183; createdAt</text>
+
+  <rect class="box" x="904" y="296" width="328" height="140" rx="9"/>
+  <text class="ent" x="922" y="322">Session</text>
+  <line class="rule" x1="904" y1="334" x2="1232" y2="334"/>
+  <text class="fld" x="922" y="356">id  String @id</text>
+  <text class="fld" x="922" y="378">userId  &#8594; AdminUser.id</text>
+  <text class="fld" x="922" y="400">expiresAt  DateTime</text>
+  <text class="fld" x="922" y="422">userAgent &#183; ipAddress</text>
+
+  <rect class="box" x="904" y="486" width="328" height="118" rx="9"/>
+  <text class="ent" x="922" y="512">LoginAttempt</text>
+  <line class="rule" x1="904" y1="524" x2="1232" y2="524"/>
+  <text class="fld" x="922" y="546">username  String @id</text>
+  <text class="fld" x="922" y="568">failedCount  Int</text>
+  <text class="fld" x="922" y="590">lockedUntil  DateTime?</text>
+
+  <line x1="1068" y1="246" x2="1068" y2="292" stroke="#1e3a8a" stroke-width="2" marker-end="url(#ahSolid)"/>
+  <text class="rel" x="1056" y="264" text-anchor="end">1 : N</text>
+  <text class="rel" x="1056" y="278" text-anchor="end">cascade delete</text>
+
+  <line class="dash" x1="356" y1="170" x2="458" y2="170" marker-end="url(#ahDash)"/>
+  <text class="rel" x="411" y="148" text-anchor="middle">aggregated by</text>
+  <text class="rel" x="411" y="161" text-anchor="middle">period + division</text>
+
+  <line class="dash" x1="630" y1="268" x2="630" y2="312" marker-end="url(#ahDash)"/>
+  <text class="rel" x="618" y="286" text-anchor="end">same period key,</text>
+  <text class="rel" x="618" y="300" text-anchor="end">snapshotted</text>
+
+  <path class="dash" d="M904 180 H849 V570 H802" marker-end="url(#ahDash)"/>
+  <text class="rel" x="841" y="498" text-anchor="end">name copied,</text>
+  <text class="rel" x="841" y="512" text-anchor="end">not referenced</text>
+
+  <line x1="28" y1="686" x2="52" y2="686" stroke="#1e3a8a" stroke-width="2" marker-end="url(#ahSolid)"/>
+  <text class="lgd" x="66" y="690">foreign key &#8212; the only one in the schema</text>
+  <line class="dash" x1="470" y1="686" x2="494" y2="686" marker-end="url(#ahDash)"/>
+  <text class="lgd" x="508" y="690">joined by value, no FK</text>
+  <rect x="880" y="682" width="7" height="7" fill="#a8781c"/>
+  <text class="lgd" x="898" y="690">Division &#183; FAD MWPTD MWPSD WRSD</text>
+</svg>
