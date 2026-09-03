@@ -6,7 +6,9 @@ import { getDivisionBySlug, type Division } from "@/lib/constants/divisions";
 export async function requireAdmin() {
   const user = await getSessionUser();
   if (!user) {
-    redirect("/admin/login");
+    // ?expired stops the proxy bouncing a stale session cookie straight back
+    // here; see the comment in proxy.ts.
+    redirect("/admin/login?expired=1");
   }
   return user;
 }
