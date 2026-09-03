@@ -141,7 +141,7 @@ export const SERVICES_BY_DIVISION: Record<Division, DivisionCatalog> = {
     { type: "AKSYON Fund" },
     {
       type: "Profiling",
-      catalog: ["BPinay", "ELDAP"],
+      catalog: ["Balik Pinay", "ELDAP"],
     },
   ],
 };
