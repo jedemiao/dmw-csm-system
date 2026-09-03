@@ -1,13 +1,17 @@
 "use server";
 
 import { cookies, headers } from "next/headers";
-import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { verifyPassword } from "./password";
 import { createSession } from "./session";
 import { REMEMBERED_USERNAME_COOKIE, rememberedUsernameCookieOptions } from "./remember-cookie";
 
-export type LoginState = { error: string | null };
+// `success` rather than a server-side redirect(): React intercepts the submit
+// on a server-action form, so the browser never sees a form submission followed
+// by a navigation — which is exactly the signal Chrome and Edge use to offer
+// "Save password?". The client turns this into a full page load instead, so the
+// password manager notices the sign-in and can fill both fields next time.
+export type LoginState = { error: string | null; success?: boolean };
 
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_MS = 15 * 60 * 1000;
@@ -61,5 +65,5 @@ export async function login(_prevState: LoginState, formData: FormData): Promise
     cookieStore.delete({ name: REMEMBERED_USERNAME_COOKIE, path: "/admin/login" });
   }
 
-  redirect("/admin");
+  return { error: null, success: true };
 }

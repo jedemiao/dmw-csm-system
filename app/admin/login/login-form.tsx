@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import Image from "next/image";
 import { Eye, EyeSlash, LockKey, User } from "@phosphor-icons/react";
 import { login, type LoginState } from "@/lib/auth/actions";
@@ -15,6 +15,14 @@ type LoginFormProps = {
 export function LoginForm({ rememberedUsername }: LoginFormProps) {
   const [state, formAction, pending] = useActionState(login, INITIAL_STATE);
   const [showPassword, setShowPassword] = useState(false);
+
+  // A full page load, not router.push(): the hard navigation is what tells the
+  // browser's password manager the sign-in succeeded, so it offers to save.
+  useEffect(() => {
+    if (state.success) {
+      window.location.assign("/admin");
+    }
+  }, [state.success]);
 
   return (
     <form action={formAction} className="form-shell login-card">
@@ -77,8 +85,8 @@ export function LoginForm({ rememberedUsername }: LoginFormProps) {
           <input type="checkbox" id="remember" name="remember" defaultChecked={Boolean(rememberedUsername)} />
           <span>Keep me signed in</span>
         </label>
-        <button type="submit" className="btn btn-primary btn-block" disabled={pending}>
-          {pending ? "Signing in..." : "Sign in"}
+        <button type="submit" className="btn btn-primary btn-block" disabled={pending || state.success}>
+          {pending || state.success ? "Signing in..." : "Sign in"}
         </button>
       </div>
     </form>
