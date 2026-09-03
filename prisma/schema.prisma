@@ -128,13 +128,16 @@ model SubmissionThrottle {
 }
 
 model Session {
-  id        String    @id @default(cuid())
-  userId    String
-  user      AdminUser @relation(fields: [userId], references: [id], onDelete: Cascade)
-  expiresAt DateTime
-  createdAt DateTime  @default(now())
-  userAgent String?
-  ipAddress String?
+  id         String    @id @default(cuid())
+  userId     String
+  user       AdminUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime
+  createdAt  DateTime  @default(now())
+  userAgent  String?
+  ipAddress  String?
+  // Set when the admin ticked "Keep me signed in" — the session then uses the
+  // longer TTL, both on creation and on every sliding refresh.
+  rememberMe Boolean   @default(false)
 
   @@index([userId])
   @@index([expiresAt])

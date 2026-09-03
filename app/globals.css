@@ -787,6 +787,23 @@ main { display: block; }
 .login-card__subtitle { color: var(--ink-500); font-size: 0.9rem; margin: 0 0 1.75rem; }
 .login-card .alert { text-align: left; margin: 0 0 1.25rem; }
 .login-card__fields { display: flex; flex-direction: column; gap: 1.1rem; text-align: left; }
+.login-card__remember {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  /* Hugs its content rather than stretching the full field width, so only the
+     checkbox and its label are clickable. */
+  align-self: flex-start;
+  font-size: 0.88rem;
+  color: var(--ink-900);
+  cursor: pointer;
+}
+.login-card__remember input {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--blue-600);
+}
 
 .input-icon { position: relative; display: flex; align-items: center; }
 .input-icon svg {

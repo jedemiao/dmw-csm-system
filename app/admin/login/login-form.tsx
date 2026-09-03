@@ -7,7 +7,12 @@ import { login, type LoginState } from "@/lib/auth/actions";
 
 const INITIAL_STATE: LoginState = { error: null };
 
-export function LoginForm() {
+type LoginFormProps = {
+  // Username kept from the last "Keep me signed in" sign-in on this device.
+  rememberedUsername?: string;
+};
+
+export function LoginForm({ rememberedUsername }: LoginFormProps) {
   const [state, formAction, pending] = useActionState(login, INITIAL_STATE);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -35,7 +40,14 @@ export function LoginForm() {
           <label htmlFor="username">Username</label>
           <div className="input-icon">
             <User size={18} aria-hidden="true" />
-            <input type="text" id="username" name="username" autoComplete="username" required />
+            <input
+              type="text"
+              id="username"
+              name="username"
+              autoComplete="username"
+              defaultValue={rememberedUsername}
+              required
+            />
           </div>
         </div>
         <div className="field">
@@ -61,6 +73,10 @@ export function LoginForm() {
             </button>
           </div>
         </div>
+        <label className="login-card__remember" htmlFor="remember">
+          <input type="checkbox" id="remember" name="remember" defaultChecked={Boolean(rememberedUsername)} />
+          <span>Keep me signed in</span>
+        </label>
         <button type="submit" className="btn btn-primary btn-block" disabled={pending}>
           {pending ? "Signing in..." : "Sign in"}
         </button>

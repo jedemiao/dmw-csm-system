@@ -1,10 +1,11 @@
 "use server";
 
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { verifyPassword } from "./password";
 import { createSession } from "./session";
+import { REMEMBERED_USERNAME_COOKIE, rememberedUsernameCookieOptions } from "./remember-cookie";
 
 export type LoginState = { error: string | null };
 
@@ -14,6 +15,7 @@ const LOCKOUT_MS = 15 * 60 * 1000;
 export async function login(_prevState: LoginState, formData: FormData): Promise<LoginState> {
   const username = String(formData.get("username") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
+  const rememberMe = formData.get("remember") === "on";
 
   if (!username || !password) {
     return { error: "Enter your username and password." };
@@ -49,7 +51,15 @@ export async function login(_prevState: LoginState, formData: FormData): Promise
   await createSession(user!.id, {
     userAgent: headerStore.get("user-agent") ?? undefined,
     ipAddress: headerStore.get("x-forwarded-for") ?? undefined,
+    rememberMe,
   });
+
+  const cookieStore = await cookies();
+  if (rememberMe) {
+    cookieStore.set(REMEMBERED_USERNAME_COOKIE, username, rememberedUsernameCookieOptions());
+  } else {
+    cookieStore.delete({ name: REMEMBERED_USERNAME_COOKIE, path: "/admin/login" });
+  }
 
   redirect("/admin");
 }
