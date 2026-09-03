@@ -12,7 +12,7 @@ export default async function AdminQrCodePage() {
     <div>
       <h1 style={{ fontSize: "1.5rem", marginBottom: "0.25rem" }}>QR Code</h1>
       <p style={{ color: "var(--ink-500)", marginBottom: "1.5rem", maxWidth: "60ch" }}>
-        Print the code for a division and post it at that division's service counter so clients can open its survey
+        Print the code for a division and post it at that division&apos;s service counter so clients can open its survey
         on their own phone.
       </p>
 
